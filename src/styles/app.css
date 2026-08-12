@@ -205,7 +205,7 @@
 }
 .search-widget {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1.2fr auto;
+  grid-template-columns: 1.5fr 2fr 1.2fr auto;
   align-items: stretch;
   background: #fff;
   border: 2px solid var(--rd-red);
@@ -250,9 +250,71 @@
 .sw-value:hover {
   color: var(--rd-red);
 }
-.sw-date {
-  cursor: pointer;
-  color-scheme: light;
+.sw-dates {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+.sw-dates .sw-field {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.sw-dates .sw-value {
+  white-space: nowrap;
+}
+
+.date-popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: var(--rd-shadow-lg);
+  border: 1px solid #eee;
+  padding: 16px 14px 10px;
+}
+.date-popup-footer {
+  text-align: center;
+  font-size: 13px;
+  color: var(--rd-muted);
+  padding: 10px 0 4px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 8px;
+}
+.date-popup-footer b {
+  color: var(--rd-red);
+  font-size: 14px;
+}
+
+.rdp-root {
+  --rdp-accent-color: var(--rd-red);
+  --rdp-accent-background-color: #FFE9E9;
+  font-family: inherit;
+  margin: 0;
+}
+.rdp-root .rdp-caption_label {
+  font-weight: 800;
+  color: var(--rd-text);
+}
+.rdp-root .rdp-weekday {
+  color: var(--rd-muted);
+  font-weight: 700;
+}
+.rdp-root .rdp-day_range_start,
+.rdp-root .rdp-day_range_end {
+  background-color: var(--rd-red);
+  color: #fff;
+  font-weight: 800;
+}
+.rdp-root .rdp-day_range_middle {
+  background-color: #FFE9E9;
+}
+.rdp-root .rdp-day_today:not(.rdp-disabled) {
+  color: var(--rd-red);
+  font-weight: 800;
 }
 .sw-dropdown {
   position: absolute;
@@ -965,6 +1027,10 @@
     grid-column: 1 / -1;
     border-bottom: 1px solid #eee;
   }
+  .sw-dates {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid #eee;
+  }
   .btn-search {
     grid-column: 1 / -1;
     padding: 15px 0;
@@ -1009,6 +1075,15 @@
   }
   .sw-city {
     grid-column: auto;
+  }
+  .sw-dates {
+    grid-column: auto;
+    border-bottom: 1px solid #eee;
+  }
+  .date-popup {
+    left: 0;
+    right: 0;
+    transform: none;
   }
   .btn-search {
     grid-column: auto;

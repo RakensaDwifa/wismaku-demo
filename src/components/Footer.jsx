@@ -45,11 +45,13 @@ export default function Footer({ onOpenPartner }) {
                 <rect x="27" y="20" width="5" height="7" rx="1.5" fill="#14B8A6" />
                 <circle cx="33" cy="23.5" r="1.6" fill="#FFF" />
               </svg>
-              <span className="logo-text">Wisma<strong>Ku</strong></span>
+              <span className="logo-text">
+                Wisma<strong>Ku</strong>
+              </span>
             </a>
             <p className="footer-desc">
-              Platform pemesanan penginapan terjangkau untuk perjalanan bisnis maupun liburan. Kamar
-              bersih, free WiFi, dan harga transparan.
+              Platform pemesanan penginapan terjangkau untuk perjalanan bisnis maupun liburan. Kamar bersih,
+              free WiFi, dan harga transparan.
             </p>
             <p className="footer-contact">
               Layanan Pelanggan: 021-8063-5835
@@ -75,7 +77,9 @@ export default function Footer({ onOpenPartner }) {
                           e.preventDefault()
                         }
                       }}
-                    >{l}</a>
+                    >
+                      {l}
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -85,7 +89,14 @@ export default function Footer({ onOpenPartner }) {
             <h4>Ikuti Kami</h4>
             <div className="footer-social">
               {['Facebook', 'Instagram', 'X', 'YouTube'].map((s) => (
-                <a key={s} href="#" className="footer-social-btn is-disabled" aria-label={s} title={s} onClick={(e) => e.preventDefault()}>
+                <a
+                  key={s}
+                  href="#"
+                  className="footer-social-btn is-disabled"
+                  aria-label={s}
+                  title={s}
+                  onClick={(e) => e.preventDefault()}
+                >
                   {s.charAt(0)}
                 </a>
               ))}
@@ -102,7 +113,9 @@ export default function Footer({ onOpenPartner }) {
 
       <div className="footer-bottom">
         <div className="container footer-bottom-inner">
-          <p>&copy; {new Date().getFullYear()} WismaKu. Semua hak dilindungi. Demo tiruan untuk pembelajaran.</p>
+          <p>
+            &copy; {new Date().getFullYear()} WismaKu. Semua hak dilindungi. Demo tiruan untuk pembelajaran.
+          </p>
         </div>
       </div>
     </footer>

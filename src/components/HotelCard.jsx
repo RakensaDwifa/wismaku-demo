@@ -1,9 +1,13 @@
-const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
+import { fmtRupiah } from '../utils/format.js'
+import { srcSet } from '../utils/image.js'
+import FavButton from './FavButton.jsx'
+
 export default function HotelCard({ hotel, nights = 0, onOpen }) {
   const total = nights > 0 ? hotel.price * nights : 0
 
   return (
     <article className="hotel-card">
+      <FavButton hotelId={hotel.id} className="hotel-card__fav" />
       <a
         href="#hotels"
         className="hotel-card__link"
@@ -14,10 +18,14 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
         }}
       >
         <div className="hotel-card__media">
-          <img src={hotel.img} alt={hotel.name} loading="lazy" />
-          {hotel.discount > 0 && (
-            <span className="hotel-card__badge">Hemat {hotel.discount}%</span>
-          )}
+          <img
+            src={hotel.img}
+            srcSet={srcSet(hotel.img, [400, 800, 1200])}
+            sizes="(max-width: 600px) 100vw, 320px"
+            alt={hotel.name}
+            loading="lazy"
+          />
+          {hotel.discount > 0 && <span className="hotel-card__badge">Hemat {hotel.discount}%</span>}
           <span className="hotel-card__rating">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
               <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" />
@@ -27,7 +35,9 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
         </div>
         <div className="hotel-card__body">
           <h3 className="hotel-card__name">{hotel.name}</h3>
-          <p className="hotel-card__loc">{hotel.area}, {hotel.city}</p>
+          <p className="hotel-card__loc">
+            {hotel.area}, {hotel.city}
+          </p>
           <div className="hotel-card__price">
             <span className="hotel-card__from">Mulai dari</span>
             <div className="hotel-card__amount">
@@ -36,7 +46,9 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
             </div>
             <span className="hotel-card__per">/ malam</span>
             {total > 0 && (
-              <span className="hotel-card__total">{fmtRupiah(total)} total &middot; {nights} malam</span>
+              <span className="hotel-card__total">
+                {fmtRupiah(total)} total &middot; {nights} malam
+              </span>
             )}
           </div>
         </div>

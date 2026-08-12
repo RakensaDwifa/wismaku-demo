@@ -1,3 +1,5 @@
+import { srcSet } from '../utils/image.js'
+
 export default function BrandCards({ brands }) {
   return (
     <section className="section brands-section" id="brands">
@@ -7,7 +9,13 @@ export default function BrandCards({ brands }) {
           {brands.map((b) => (
             <article className="brand-card" key={b.name}>
               <div className="brand-card__media">
-                <img src={b.img} alt={b.name} loading="lazy" />
+                <img
+                  src={b.img}
+                  srcSet={srcSet(b.img, [400, 800])}
+                  sizes="(max-width: 768px) 100vw, 300px"
+                  alt={b.name}
+                  loading="lazy"
+                />
               </div>
               <div className="brand-card__body">
                 <h3 className="brand-card__name">
@@ -16,7 +24,9 @@ export default function BrandCards({ brands }) {
                 </h3>
                 <p className="brand-card__tag">{b.tagline}</p>
                 <p className="brand-card__desc">{b.desc}</p>
-                <button className="brand-card__btn is-disabled" type="button" disabled>Lihat Semua</button>
+                <button className="brand-card__btn is-disabled" type="button" disabled>
+                  Lihat Semua
+                </button>
               </div>
             </article>
           ))}

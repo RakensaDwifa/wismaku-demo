@@ -12,12 +12,11 @@ const fmtDate = (d) =>
 export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('checkin')
-  const [mobile, setMobile] = useState(false)
+  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches)
   const wrapRef = useRef(null)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)')
-    setMobile(mq.matches)
     const onChange = (e) => setMobile(e.matches)
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
@@ -39,8 +38,7 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
   }, [])
 
   const today = new Date()
-  const nights =
-    checkIn && checkOut ? Math.round((checkOut - checkIn) / 86400000) : 0
+  const nights = checkIn && checkOut ? Math.round((checkOut - checkIn) / 86400000) : 0
   const range = checkIn && checkOut && checkOut > checkIn ? { from: checkIn, to: checkOut } : undefined
 
   const openFor = (field) => {
@@ -108,9 +106,7 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
                 {nights > 0 ? (
                   <b>{nights} malam</b>
                 ) : (
-                  <span>
-                    {active === 'checkin' ? 'Pilih tanggal check-in' : 'Pilih tanggal check-out'}
-                  </span>
+                  <span>{active === 'checkin' ? 'Pilih tanggal check-in' : 'Pilih tanggal check-out'}</span>
                 )}
               </div>
             }

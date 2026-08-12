@@ -11,12 +11,20 @@ export default function TopBar() {
           </span>
         </div>
         <div className="topbar-right">
-          <button className="topbar-link is-disabled" type="button" disabled>Bantuan</button>
+          <button className="topbar-link is-disabled" type="button" disabled>
+            Bantuan
+          </button>
           <span className="topbar-sep" />
-          <button className="topbar-link is-disabled" type="button" disabled>IDR &bull; ID</button>
+          <button className="topbar-link is-disabled" type="button" disabled>
+            IDR &bull; ID
+          </button>
           <span className="topbar-sep" />
-          <button className="topbar-link is-disabled" type="button" disabled>Masuk</button>
-          <button className="topbar-link topbar-strong is-disabled" type="button" disabled>Daftar</button>
+          <button className="topbar-link is-disabled" type="button" disabled>
+            Masuk
+          </button>
+          <button className="topbar-link topbar-strong is-disabled" type="button" disabled>
+            Daftar
+          </button>
         </div>
       </div>
     </div>

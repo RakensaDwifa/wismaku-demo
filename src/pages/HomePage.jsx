@@ -17,6 +17,7 @@ import { useHotels, useCities, usePromos, useBrands, useTestimonials } from '../
 import { parseSearchParams, parseSearchWidgetInitial, buildSearchParams } from '../utils/searchParams.js'
 import { parseFilters, applyFilters, applySort } from '../utils/filtering.js'
 import { srcSet } from '../utils/image.js'
+import { usePageMeta } from '../hooks/usePageMeta.js'
 import '../styles/app.css'
 
 const filterHotels = (hotels, q) => {
@@ -49,6 +50,11 @@ export default function HomePage() {
   const [partnerOpen, setPartnerOpen] = useState(false)
   const hotelsRef = useRef(null)
   const heroRef = useRef(null)
+
+  usePageMeta(
+    null,
+    'Booking hotel murah dengan harga promo di WismaKu - website demo tiruan tampilan ala RedDoorz.',
+  )
 
   const query = (searchParams.get('q') || '').trim()
   const isSearch = Boolean(query)

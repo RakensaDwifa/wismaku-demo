@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import HotelDetailPanel from '../components/HotelDetailPanel.jsx'
 import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
+import { usePageMeta } from '../hooks/usePageMeta.js'
 import '../styles/app.css'
 
 export default function HotelDetailPage() {
@@ -10,6 +11,13 @@ export default function HotelDetailPage() {
   const navigate = useNavigate()
   const { hotels, loading } = useHotels()
   const hotel = hotels.find((h) => String(h.id) === String(id))
+
+  usePageMeta(
+    hotel ? `${hotel.name} - ${hotel.city}` : 'Detail Penginapan',
+    hotel
+      ? `Pesan ${hotel.name} di ${hotel.area}, ${hotel.city} mulai ${hotel.price} rupiah per malam.`
+      : 'Detail penginapan di WismaKu.',
+  )
 
   if (loading) {
     return (

@@ -8,9 +8,11 @@ import { HotelCardSkeleton } from '../components/Skeletons.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import { useHotels } from '../hooks/useCatalog.js'
 import { getFavorites } from '../services/favorite.js'
+import { usePageMeta } from '../hooks/usePageMeta.js'
 import '../styles/app.css'
 
 export default function FavoritesPage() {
+  usePageMeta('Hotel Favorit', 'Daftar hotel favorit yang Anda simpan di WismaKu.')
   const navigate = useNavigate()
   const { hotels, loading: hotelsLoading } = useHotels()
   const [favIds, setFavIds] = useState([])

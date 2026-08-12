@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { ALL_AMENITIES, SORT_OPTIONS, priceBounds } from '../utils/filtering.js'
 
+const RATING_OPTIONS = [
+  { value: 0, label: 'Semua' },
+  { value: 3, label: '3+ Bintang' },
+  { value: 4, label: '4+ Bintang' },
+]
+
+const DEFAULT_FILTERS = { sort: 'relevance', amenities: [], minPrice: 0, maxPrice: 0, minRating: 0 }
+
 export default function FilterBar({ hotels, filters, onChange }) {
   const [open, setOpen] = useState(false)
   const barRef = useRef(null)
   const bounds = priceBounds(hotels)
   const maxBound = bounds.min === bounds.max ? bounds.min + 1 : bounds.max
+  const minPos = filters.minPrice || bounds.min
+  const maxPos = filters.maxPrice || maxBound
 
   const hasFilter =
     filters.sort !== 'relevance' ||
@@ -31,7 +41,17 @@ export default function FilterBar({ hotels, filters, onChange }) {
     set({ amenities: next })
   }
 
-  const reset = () => onChange({ sort: 'relevance', amenities: [], minPrice: 0, maxPrice: 0 })
+  const reset = () => onChange(DEFAULT_FILTERS)
+
+  const setMinPrice = (e) => {
+    const v = Math.max(bounds.min, Number(e.target.value))
+    set({ minPrice: v, maxPrice: Math.max(v, maxPos) })
+  }
+
+  const setMaxPrice = (e) => {
+    const v = Math.min(maxBound, Number(e.target.value))
+    set({ maxPrice: v, minPrice: Math.min(v, minPos) })
+  }
 
   return (
     <div className="filter-bar" ref={barRef}>
@@ -69,6 +89,22 @@ export default function FilterBar({ hotels, filters, onChange }) {
       {open && (
         <div className="filter-panel" id="filter-panel">
           <fieldset className="filter-group">
+            <legend>Rating</legend>
+            <div className="filter-chips">
+              {RATING_OPTIONS.map((r) => (
+                <button
+                  key={r.value}
+                  type="button"
+                  className={`filter-chip${filters.minRating === r.value ? ' is-active' : ''}`}
+                  onClick={() => set({ minRating: r.value })}
+                  aria-pressed={filters.minRating === r.value}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="filter-group">
             <legend>Fasilitas</legend>
             <div className="filter-chips">
               {ALL_AMENITIES.map((a) => (
@@ -86,6 +122,26 @@ export default function FilterBar({ hotels, filters, onChange }) {
           </fieldset>
           <fieldset className="filter-group">
             <legend>Harga / malam</legend>
+            <div className="filter-range">
+              <input
+                type="range"
+                className="range-min"
+                aria-label="Harga minimum"
+                min={bounds.min}
+                max={maxBound}
+                value={minPos}
+                onChange={setMinPrice}
+              />
+              <input
+                type="range"
+                className="range-max"
+                aria-label="Harga maksimum"
+                min={bounds.min}
+                max={maxBound}
+                value={maxPos}
+                onChange={setMaxPrice}
+              />
+            </div>
             <div className="filter-prices">
               <label>
                 Min
@@ -95,7 +151,7 @@ export default function FilterBar({ hotels, filters, onChange }) {
                   max={maxBound}
                   value={filters.minPrice || ''}
                   placeholder={String(bounds.min)}
-                  onChange={(e) => set({ minPrice: Math.max(0, Number(e.target.value) || 0) })}
+                  onChange={(e) => setMinPrice({ target: { value: e.target.value } })}
                 />
               </label>
               <span>&ndash;</span>
@@ -107,7 +163,7 @@ export default function FilterBar({ hotels, filters, onChange }) {
                   max={maxBound}
                   value={filters.maxPrice || ''}
                   placeholder={String(maxBound)}
-                  onChange={(e) => set({ maxPrice: Math.max(0, Number(e.target.value) || 0) })}
+                  onChange={(e) => setMaxPrice({ target: { value: e.target.value } })}
                 />
               </label>
             </div>

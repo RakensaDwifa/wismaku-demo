@@ -11,6 +11,8 @@ import AssuranceBar from './components/AssuranceBar.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import Footer from './components/Footer.jsx'
 import HotelDetailModal from './components/HotelDetailModal.jsx'
+import MemberModal from './components/MemberModal.jsx'
+import PartnerModal from './components/PartnerModal.jsx'
 import { cities } from './data/cities.js'
 import { hotels, promos, brands, testimonials } from './data/hotels.js'
 import './styles/app.css'
@@ -20,6 +22,8 @@ export default function App() {
   const [searchActive, setSearchActive] = useState(false)
   const [searchParams, setSearchParams] = useState(null)
   const [selectedHotel, setSelectedHotel] = useState(null)
+  const [clubOpen, setClubOpen] = useState(false)
+  const [partnerOpen, setPartnerOpen] = useState(false)
   const hotelsRef = useRef(null)
   const heroRef = useRef(null)
 
@@ -59,7 +63,7 @@ export default function App() {
           <Hero cities={cities} onSearch={handleSearch} />
         </div>
         <CityChips cities={cities} onPick={(c) => handleSearch({ destination: c })} />
-        <PromoCarousel promos={promos} />
+        <PromoCarousel promos={promos} onShowHotels={() => hotelsRef.current?.scrollIntoView({ behavior: 'smooth' })} />
         <div ref={hotelsRef}>
           <PopularHotels hotels={filtered} isSearch={searchActive} onReset={resetSearch} searchParams={searchParams} onOpen={setSelectedHotel} />
         </div>
@@ -70,7 +74,7 @@ export default function App() {
               <h2>Gabung WismaClub, Gratis!</h2>
               <p>Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out di ribuan properti.</p>
             </div>
-            <button className="btn btn-primary is-disabled" type="button" disabled>
+            <button className="btn btn-primary" type="button" onClick={() => setClubOpen(true)}>
               Daftar WismaClub
             </button>
           </div>
@@ -81,7 +85,7 @@ export default function App() {
               <h2>Punya Penginapan? Jadi Partner Kami</h2>
               <p className="gray_color">Gabung jaringan 3500+ properti dan naikkan okupansi hingga 2x lipat.</p>
               <p className="dark_gray">Mitra kami dapat distribusi, teknologi, dan pendampingan pemasaran dari tim WismaKu.</p>
-              <button className="btn btn-outline is-disabled" type="button" disabled>
+              <button className="btn btn-outline" type="button" onClick={() => setPartnerOpen(true)}>
                 Pelajari Lebih Lanjut
               </button>
             </div>
@@ -97,7 +101,7 @@ export default function App() {
         <AssuranceBar />
         <Testimonials items={testimonials} />
       </main>
-      <Footer />
+      <Footer onOpenPartner={() => setPartnerOpen(true)} />
       {selectedHotel && (
         <HotelDetailModal
           hotel={selectedHotel}
@@ -105,6 +109,8 @@ export default function App() {
           onClose={() => setSelectedHotel(null)}
         />
       )}
+      {clubOpen && <MemberModal onClose={() => setClubOpen(false)} />}
+      {partnerOpen && <PartnerModal onClose={() => setPartnerOpen(false)} />}
     </>
   )
 }

@@ -3,7 +3,13 @@ const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
 export default function HotelCard({ hotel }) {
   return (
     <article className="hotel-card">
-      <a href="#" className="hotel-card__link">
+      <a
+        href="#hotels"
+        className="hotel-card__link"
+        title="Halaman detail segera hadir"
+        onClick={(e) => e.preventDefault()}
+        aria-disabled="true"
+      >
         <div className="hotel-card__media">
           <img src={hotel.img} alt={hotel.name} loading="lazy" />
           {hotel.discount > 0 && (

@@ -36,7 +36,7 @@ export default function Footer() {
       <div className="footer-main">
         <div className="container footer-grid">
           <div className="footer-brand">
-            <a className="logo logo--footer" href="#">
+            <a className="logo logo--footer" href="#top">
               <svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true">
                 <rect x="6" y="4" width="36" height="40" rx="6" fill="#EC2224" />
                 <rect x="10" y="8" width="28" height="32" rx="3" fill="#FFF" />
@@ -62,7 +62,9 @@ export default function Footer() {
               <h4>{col.title}</h4>
               <ul>
                 {col.links.map((l) => (
-                  <li key={l}><a href="#">{l}</a></li>
+                  <li key={l}>
+                    <a href="#" className="footer-link" aria-disabled="true" onClick={(e) => e.preventDefault()}>{l}</a>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -71,7 +73,7 @@ export default function Footer() {
             <h4>Ikuti Kami</h4>
             <div className="footer-social">
               {['Facebook', 'Instagram', 'X', 'YouTube'].map((s) => (
-                <a key={s} href="#" className="footer-social-btn" aria-label={s} title={s}>
+                <a key={s} href="#" className="footer-social-btn is-disabled" aria-label={s} title={s} onClick={(e) => e.preventDefault()}>
                   {s.charAt(0)}
                 </a>
               ))}

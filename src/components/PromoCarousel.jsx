@@ -17,7 +17,7 @@ export default function PromoCarousel({ promos }) {
       <div className="container">
         <div className="promo-header">
           <h2 className="section-title promo-title">Penawaran Menarik</h2>
-          <button className="btn btn-outline btn-sm" type="button">Lihat Semua Promo</button>
+          <button className="btn btn-outline btn-sm is-disabled" type="button" disabled>Lihat Semua Promo</button>
         </div>
         <div className="carousel">
           {promos.map((p, i) => (
@@ -26,7 +26,7 @@ export default function PromoCarousel({ promos }) {
               <div className="carousel-caption">
                 <h3>{p.title}</h3>
                 <p>{p.subtitle}</p>
-                <span className="carousel-cta">Pesan Sekarang</span>
+                <span className="carousel-cta is-disabled" title="Halaman promo segera hadir">Pesan Sekarang</span>
               </div>
             </div>
           ))}

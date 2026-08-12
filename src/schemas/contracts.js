@@ -33,6 +33,14 @@ export const PartnerPayloadSchema = z.object({
   email: z.string().email(),
 })
 
+export const ReviewPayloadSchema = z.object({
+  hotelId: z.union([z.number().int().positive(), z.string().min(1)]),
+  name: z.string().min(3, 'Nama minimal 3 karakter.'),
+  city: z.string().min(2, 'Kota minimal 2 karakter.').optional(),
+  rating: z.number().int().min(1).max(5),
+  text: z.string().min(5, 'Ulasan minimal 5 karakter.').max(500, 'Ulasan maksimal 500 karakter.'),
+})
+
 export const parsePayload = (schema, payload) => {
   const result = schema.safeParse(payload)
   if (!result.success) {
@@ -45,4 +53,5 @@ export const schemaDocs = {
   BookingPayload: BookingPayloadSchema,
   MemberPayload: MemberPayloadSchema,
   PartnerPayload: PartnerPayloadSchema,
+  ReviewPayload: ReviewPayloadSchema,
 }

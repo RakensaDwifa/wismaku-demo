@@ -9,9 +9,7 @@ const items = [
   {
     title: 'Harga Terbaik',
     desc: 'Mulai dari Rp 99rb dan diskon s.d. 40%',
-    icon: (
-      <path d="M12 2l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 15.9 6.6 18.5l1.2-6L3.3 8.3l6.1-.7z" />
-    ),
+    icon: <path d="M12 2l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 15.9 6.6 18.5l1.2-6L3.3 8.3l6.1-.7z" />,
   },
   {
     title: 'Tanpa Ribet',

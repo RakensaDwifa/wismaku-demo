@@ -1,17 +1,17 @@
 :root {
-  --rd-red: #14B8A6;
-  --rd-red-dark: #0F766E;
-  --rd-gradient: linear-gradient(95deg, #10B981 0%, #0D9488 100%);
-  --rd-pink: #2DD4BF;
+  --rd-red: #14b8a6;
+  --rd-red-dark: #0f766e;
+  --rd-gradient: linear-gradient(95deg, #10b981 0%, #0d9488 100%);
+  --rd-pink: #2dd4bf;
   --rd-text: #303030;
   --rd-muted: #606060;
-  --rd-bg-soft: #F3FBFD;
-  --rd-teal: #31C1C1;
-  --rd-teal-bg: #EFF;
+  --rd-bg-soft: #f3fbfd;
+  --rd-teal: #31c1c1;
+  --rd-teal-bg: #eff;
   --rd-footer: #404041;
-  --rd-border: #D8D8D8;
-  --rd-green: #1BB814;
-  --rd-white: #FFFFFF;
+  --rd-border: #d8d8d8;
+  --rd-green: #1bb814;
+  --rd-white: #ffffff;
   --rd-radius: 12px;
   --rd-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   --rd-shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.12);
@@ -28,7 +28,11 @@ html {
 }
 
 body {
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Manrope',
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--rd-text);
   background: var(--rd-white);
   -webkit-font-smoothing: antialiased;

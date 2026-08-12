@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import DateRangePicker from './DateRangePicker.jsx'
-
-const toYMD = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+import { toYMD } from '../utils/format.js'
 
 const addDays = (d, n) => {
   const x = new Date(d)
@@ -10,15 +8,15 @@ const addDays = (d, n) => {
   return x
 }
 
-export default function SearchWidget({ cities, onSearch }) {
-  const [destination, setDestination] = useState('')
-  const [checkIn, setCheckIn] = useState(new Date())
-  const [checkOut, setCheckOut] = useState(addDays(new Date(), 1))
+export default function SearchWidget({ cities, onSearch, initial = {} }) {
+  const [destination, setDestination] = useState(initial.destination || '')
+  const [checkIn, setCheckIn] = useState(initial.checkIn || new Date())
+  const [checkOut, setCheckOut] = useState(initial.checkOut || addDays(new Date(), 1))
   const [guestOpen, setGuestOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
-  const [rooms, setRooms] = useState(1)
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
+  const [rooms, setRooms] = useState(initial.rooms || 1)
+  const [adults, setAdults] = useState(initial.adults || 2)
+  const [children, setChildren] = useState(initial.children || 0)
   const guestRef = useRef(null)
 
   useEffect(() => {
@@ -28,6 +26,15 @@ export default function SearchWidget({ cities, onSearch }) {
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
   }, [])
+
+  useEffect(() => {
+    if (!cityOpen) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') setCityOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [cityOpen])
 
   const handleRange = (from, to) => {
     setCheckIn(from)
@@ -59,7 +66,14 @@ export default function SearchWidget({ cities, onSearch }) {
           </svg>
           Tujuan
         </label>
-        <button className="sw-value" type="button" onClick={() => setCityOpen((v) => !v)}>
+        <button
+          className="sw-value"
+          type="button"
+          onClick={() => setCityOpen((v) => !v)}
+          aria-expanded={cityOpen}
+          aria-controls="sw-city-list"
+          aria-haspopup="listbox"
+        >
           {destination || 'Mau ke mana?'}
         </button>
         {cityOpen && (
@@ -71,12 +85,16 @@ export default function SearchWidget({ cities, onSearch }) {
               onChange={(e) => setDestination(e.target.value)}
               autoFocus
             />
-            <ul className="sw-city-list">
-              {cities.filter((c) => c.name.toLowerCase().includes(destination.toLowerCase())).map((c) => (
-                <li key={c.name}>
-                  <button type="button" onClick={() => pickCity(c.name)}>{c.name}</button>
-                </li>
-              ))}
+            <ul className="sw-city-list" id="sw-city-list" role="listbox" aria-label="Daftar kota">
+              {cities
+                .filter((c) => c.name.toLowerCase().includes(destination.toLowerCase()))
+                .map((c) => (
+                  <li key={c.name} role="option" aria-selected={destination === c.name}>
+                    <button type="button" onClick={() => pickCity(c.name)}>
+                      {c.name}
+                    </button>
+                  </li>
+                ))}
             </ul>
           </div>
         )}
@@ -86,11 +104,23 @@ export default function SearchWidget({ cities, onSearch }) {
 
       <div className="sw-field sw-guests" ref={guestRef}>
         <label className="sw-label">Tamu &amp; Kamar</label>
-        <button className="sw-value" type="button" onClick={() => setGuestOpen((v) => !v)}>
+        <button
+          className="sw-value"
+          type="button"
+          onClick={() => setGuestOpen((v) => !v)}
+          aria-expanded={guestOpen}
+          aria-controls="sw-guest-box"
+          aria-haspopup="group"
+        >
           {rooms} kamar &middot; {adults + children} tamu
         </button>
         {guestOpen && (
-          <div className="sw-dropdown sw-guest-box">
+          <div
+            className="sw-dropdown sw-guest-box"
+            id="sw-guest-box"
+            role="group"
+            aria-label="Jumlah tamu dan kamar"
+          >
             {[
               { label: 'Kamar', val: rooms, min: 1, max: 9, set: setRooms },
               { label: 'Dewasa', val: adults, min: 1, max: 9, set: setAdults },
@@ -99,9 +129,17 @@ export default function SearchWidget({ cities, onSearch }) {
               <div className="sw-guest-row" key={r.label}>
                 <span>{r.label}</span>
                 <div className="stepper">
-                  <button type="button" onClick={down(r.set, r.val, r.min)} aria-label={`Kurangi ${r.label}`}>&minus;</button>
+                  <button type="button" onClick={down(r.set, r.val, r.min)} aria-label={`Kurangi ${r.label}`}>
+                    &minus;
+                  </button>
                   <b>{r.val}</b>
-                  <button type="button" onClick={step(r.set, r.val, r.min, r.max)} aria-label={`Tambah ${r.label}`}>+</button>
+                  <button
+                    type="button"
+                    onClick={step(r.set, r.val, r.min, r.max)}
+                    aria-label={`Tambah ${r.label}`}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             ))}

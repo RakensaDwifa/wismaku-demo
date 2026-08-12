@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import SearchWidget from './SearchWidget.jsx'
+import { srcSet } from '../utils/image.js'
 
-export default function Hero({ cities, onSearch }) {
+export default function Hero({ cities, onSearch, initial }) {
   const heroRef = useRef(null)
   const [fixed, setFixed] = useState(false)
+
+  const heroImg =
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1800&q=70'
 
   useEffect(() => {
     const onScroll = () => {
@@ -19,8 +23,11 @@ export default function Hero({ cities, onSearch }) {
     <section ref={heroRef} className={`hero${fixed ? ' hero--search-fixed' : ''}`} id="top">
       <div className="hero-bg">
         <img
-          src="https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1800&q=70"
+          src={heroImg}
+          srcSet={srcSet(heroImg, [800, 1200, 1800])}
+          sizes="100vw"
           alt="Suasana penginapan yang nyaman"
+          fetchPriority="high"
         />
         <div className="hero-overlay" />
       </div>
@@ -35,7 +42,7 @@ export default function Hero({ cities, onSearch }) {
       </div>
       <div className={`search-wrap${fixed ? ' search-wrap--fixed' : ''}`}>
         <div className="container">
-          <SearchWidget cities={cities} onSearch={onSearch} />
+          <SearchWidget key={JSON.stringify(initial)} cities={cities} onSearch={onSearch} initial={initial} />
         </div>
       </div>
     </section>

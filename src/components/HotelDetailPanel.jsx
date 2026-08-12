@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createBooking } from '../services/booking.js'
 import { applyCoupon } from '../services/coupon.js'
 import { getMember } from '../services/member.js'
+import { getReviews, addReview } from '../services/review.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { srcSet } from '../utils/image.js'
@@ -22,6 +23,11 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
   const [couponError, setCouponError] = useState('')
   const [isMember, setIsMember] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [userReviews, setUserReviews] = useState([])
+  const [reviewForm, setReviewForm] = useState({ name: '', city: '', text: '' })
+  const [reviewRating, setReviewRating] = useState(0)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [reviewError, setReviewError] = useState('')
   const panelRef = useRef(null)
 
   useFocusTrap(panelRef)
@@ -30,14 +36,11 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
   const guests = search?.guests ?? 0
   const rooms = search?.rooms ?? 1
   const hasDates = Boolean(search?.checkIn && search?.checkOut)
-  const roomType =
-    hotel.roomTypes?.find((t) => t.id === roomTypeId) ??
+  const roomType = hotel.roomTypes?.find((t) => t.id === roomTypeId) ??
     hotel.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel.price }
 
   const subtotal = roomType.price * (nights || 1) * rooms
-  const couponAmount = coupon
-    ? Math.min(Math.round((subtotal * coupon.pct) / 100), coupon.maxDiscount)
-    : 0
+  const couponAmount = coupon ? Math.min(Math.round((subtotal * coupon.pct) / 100), coupon.maxDiscount) : 0
   const afterCoupon = subtotal - couponAmount
   const memberDiscount = isMember ? Math.round(afterCoupon * MEMBER_DISCOUNT_PCT) : 0
   const total = afterCoupon - memberDiscount
@@ -76,6 +79,24 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
       window.removeEventListener('wismaku:members-changed', sync)
     }
   }, [])
+
+  useEffect(() => {
+    let live = true
+    const sync = async () => {
+      try {
+        const list = await getReviews(hotel.id)
+        if (live) setUserReviews(list)
+      } catch {
+        if (live) setUserReviews([])
+      }
+    }
+    sync()
+    window.addEventListener('wismaku:reviews-changed', sync)
+    return () => {
+      live = false
+      window.removeEventListener('wismaku:reviews-changed', sync)
+    }
+  }, [hotel.id])
 
   const goForm = () => {
     setError('')
@@ -132,6 +153,37 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
     } catch (err) {
       setError(err.message || 'Gagal membuat pesanan.')
     }
+  }
+
+  const submitReview = async (e) => {
+    e.preventDefault()
+    const name = reviewForm.name.trim()
+    const city = reviewForm.city.trim()
+    const text = reviewForm.text.trim()
+    if (name.length < 3) return setReviewError('Nama minimal 3 karakter.')
+    if (city && city.length < 2) return setReviewError('Kota minimal 2 karakter.')
+    if (!reviewRating) return setReviewError('Pilih rating bintang dulu.')
+    if (text.length < 5) return setReviewError('Ulasan minimal 5 karakter.')
+    try {
+      const rev = await addReview({
+        hotelId: hotel.id,
+        name,
+        city: city || undefined,
+        rating: reviewRating,
+        text,
+      })
+      setUserReviews((list) => [rev, ...list])
+      setReviewForm({ name: '', city: '', text: '' })
+      setReviewRating(0)
+      setReviewError('')
+    } catch (err) {
+      setReviewError(err.message || 'Gagal mengirim ulasan.')
+    }
+  }
+
+  const setReviewField = (key) => (e) => {
+    setReviewForm((f) => ({ ...f, [key]: e.target.value }))
+    setReviewError('')
   }
 
   return (
@@ -201,20 +253,24 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
 
             <p className="modal-desc">{hotel.desc}</p>
 
-            {hotel.reviewList?.length > 0 && (
+            {(userReviews.length > 0 || hotel.reviewList?.length > 0) && (
               <section className="modal-section">
                 <h4 className="modal-section__title">Ulasan Tamu</h4>
                 <div className="review-summary">
                   <span className="review-summary__score">{hotel.rating}</span>
                   <span className="review-summary__meta">
-                    Dari {hotel.reviews} ulasan &middot; {hotel.reviewList.length} ulasan terbaru
+                    Dari {hotel.reviews} ulasan &middot; {hotel.reviewList.length + userReviews.length} ulasan
+                    terbaru
                   </span>
                 </div>
                 <ul className="review-list">
-                  {hotel.reviewList.map((r, i) => (
-                    <li className="review-item" key={i}>
+                  {[...userReviews, ...(hotel.reviewList ?? [])].map((r, i) => (
+                    <li className="review-item" key={r.id || i}>
                       <div className="review-item__head">
-                        <b>{r.name}</b>
+                        <b>
+                          {r.name}
+                          {userReviews.includes(r) && <span className="review-item__badge">Ulasan Anda</span>}
+                        </b>
                         <span className="review-item__stars">{'★'.repeat(r.rating)}</span>
                       </div>
                       <span className="review-item__date">{fmtDate(r.date)}</span>
@@ -222,6 +278,72 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                     </li>
                   ))}
                 </ul>
+
+                {userReviews.length === 0 ? (
+                  <form className="review-form" onSubmit={submitReview} noValidate>
+                    <h5 className="review-form__title">Tulis Ulasan</h5>
+                    <div
+                      className="star-input"
+                      role="radiogroup"
+                      aria-label="Rating bintang"
+                      onMouseLeave={() => setHoverRating(0)}
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          className={`star-btn${n <= (hoverRating || reviewRating) ? ' is-on' : ''}`}
+                          onClick={() => {
+                            setReviewRating(n)
+                            setReviewError('')
+                          }}
+                          onMouseEnter={() => setHoverRating(n)}
+                          role="radio"
+                          aria-checked={reviewRating === n}
+                          aria-label={`${n} bintang`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                    <label>
+                      Nama
+                      <input
+                        type="text"
+                        value={reviewForm.name}
+                        onChange={setReviewField('name')}
+                        placeholder="cth: Andi Pratama"
+                        maxLength={50}
+                      />
+                    </label>
+                    <label>
+                      Kota <span className="review-form__opt">(opsional)</span>
+                      <input
+                        type="text"
+                        value={reviewForm.city}
+                        onChange={setReviewField('city')}
+                        placeholder="cth: Bandung"
+                        maxLength={40}
+                      />
+                    </label>
+                    <label>
+                      Ulasan
+                      <textarea
+                        value={reviewForm.text}
+                        onChange={setReviewField('text')}
+                        placeholder="Ceritakan pengalaman menginapmu..."
+                        rows={3}
+                        maxLength={500}
+                      />
+                    </label>
+                    {reviewError && <p className="booking-error">{reviewError}</p>}
+                    <button className="btn btn-primary btn-sm" type="submit">
+                      Kirim Ulasan
+                    </button>
+                  </form>
+                ) : (
+                  <p className="review-done">Terima kasih, ulasan Anda telah tersimpan.</p>
+                )}
               </section>
             )}
 
@@ -325,7 +447,11 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
             </button>
           </div>
           {couponError && <p className="booking-error">{couponError}</p>}
-          {coupon && <p className="coupon-ok">Kupon {coupon.code} berlaku &mdash; hemat {fmtRupiah(couponAmount)}</p>}
+          {coupon && (
+            <p className="coupon-ok">
+              Kupon {coupon.code} berlaku &mdash; hemat {fmtRupiah(couponAmount)}
+            </p>
+          )}
           {isMember && <p className="coupon-ok">Diskon member WismaClub 10% diterapkan</p>}
 
           <div className="price-breakdown">
@@ -397,8 +523,8 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
               {fmtDate(booking.checkIn)} &rarr; {fmtDate(booking.checkOut)}
             </p>
             <p>
-              {booking.nights} malam &middot; {booking.rooms} kamar &middot; {booking.guests} tamu
-              &middot; {booking.roomTypeName}
+              {booking.nights} malam &middot; {booking.rooms} kamar &middot; {booking.guests} tamu &middot;{' '}
+              {booking.roomTypeName}
             </p>
             {(booking.couponDiscount > 0 || booking.memberDiscount > 0) && (
               <p>
@@ -431,9 +557,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
               <button
                 className="btn btn-outline btn-sm"
                 type="button"
-                onClick={() =>
-                  setImgIdx((i) => (i - 1 + hotel.gallery.length) % hotel.gallery.length)
-                }
+                onClick={() => setImgIdx((i) => (i - 1 + hotel.gallery.length) % hotel.gallery.length)}
               >
                 &larr; Sebelumnya
               </button>

@@ -120,6 +120,7 @@ export default function HomePage() {
         <div ref={hotelsRef}>
           <PopularHotels
             hotels={list}
+            allHotels={filtered}
             isSearch={isSearch}
             onReset={resetSearch}
             searchParams={derivedSearch}

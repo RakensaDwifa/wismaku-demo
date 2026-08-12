@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import SearchWidget from './SearchWidget.jsx'
 import { srcSet } from '../utils/image.js'
 
-export default function Hero({ cities, onSearch, initial }) {
+export default function Hero({ cities, hotels, onSearch, initial }) {
   const heroRef = useRef(null)
   const [fixed, setFixed] = useState(false)
 
@@ -42,7 +42,13 @@ export default function Hero({ cities, onSearch, initial }) {
       </div>
       <div className={`search-wrap${fixed ? ' search-wrap--fixed' : ''}`}>
         <div className="container">
-          <SearchWidget key={JSON.stringify(initial)} cities={cities} onSearch={onSearch} initial={initial} />
+          <SearchWidget
+            key={JSON.stringify(initial)}
+            cities={cities}
+            hotels={hotels}
+            onSearch={onSearch}
+            initial={initial}
+          />
         </div>
       </div>
     </section>

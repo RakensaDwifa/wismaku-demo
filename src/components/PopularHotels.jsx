@@ -3,6 +3,7 @@ import HotelCard from './HotelCard.jsx'
 import FilterBar from './FilterBar.jsx'
 import { HotelCardSkeleton } from './Skeletons.jsx'
 import ErrorBanner from './ErrorBanner.jsx'
+import { cities } from '../data/cities.js'
 
 const INITIAL_LIMIT = 8
 const STEP = 4
@@ -18,6 +19,8 @@ export default function PopularHotels({
   onRetry,
   filters,
   onFiltersChange,
+  query = '',
+  onCityPick,
 }) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_LIMIT)
   const totals = hotels.length
@@ -58,7 +61,29 @@ export default function PopularHotels({
           <ErrorBanner onRetry={onRetry} message="Gagal memuat penginapan." />
         ) : totals === 0 ? (
           <div className="hotels-empty">
-            <p>Tidak ada penginapan ditemukan.</p>
+            {isSearch && query ? (
+              <>
+                <p>
+                  Tidak ada penginapan cocok untuk &quot;{query}&quot;
+                  {nights > 0 ? ` selama ${nights} malam` : ''}.
+                </p>
+                <p className="hotels-empty__hint">Coba ubah kata kunci atau jelajahi kota populer:</p>
+                <div className="hotels-empty__cities">
+                  {cities.slice(0, 6).map((c) => (
+                    <button
+                      key={c.name}
+                      className="btn btn-outline btn-sm"
+                      type="button"
+                      onClick={() => onCityPick?.(c.name)}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p>Tidak ada penginapan ditemukan.</p>
+            )}
             <button className="btn btn-primary" type="button" onClick={onReset}>
               Ubah Pencarian
             </button>

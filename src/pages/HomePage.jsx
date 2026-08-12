@@ -69,6 +69,7 @@ export default function HomePage() {
     params.amenities = nextFilters.amenities.join(',')
     params.minPrice = nextFilters.minPrice ? String(nextFilters.minPrice) : ''
     params.maxPrice = nextFilters.maxPrice ? String(nextFilters.maxPrice) : ''
+    params.minRating = nextFilters.minRating ? String(nextFilters.minRating) : ''
     const cleaned = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== ''))
     setSearchParams(cleaned, { replace: true })
   }
@@ -79,6 +80,8 @@ export default function HomePage() {
     })
     hotelsRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  const handleCityPick = (name) => handleSearch({ destination: name })
 
   const resetSearch = () => {
     setSearchParams({}, { replace: true })
@@ -93,7 +96,12 @@ export default function HomePage() {
       <Header />
       <main>
         <div ref={heroRef}>
-          <Hero cities={cities} onSearch={handleSearch} initial={parseSearchWidgetInitial(searchParams)} />
+          <Hero
+            cities={cities}
+            hotels={hotels}
+            onSearch={handleSearch}
+            initial={parseSearchWidgetInitial(searchParams)}
+          />
         </div>
         <CityChips
           cities={cities}
@@ -121,6 +129,8 @@ export default function HomePage() {
             onRetry={refetchHotels}
             filters={filters}
             onFiltersChange={setFilterParams}
+            query={query}
+            onCityPick={handleCityPick}
           />
         </div>
         {brandsLoading ? (

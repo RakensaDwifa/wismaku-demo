@@ -1,8 +1,8 @@
 :root {
-  --rd-red: #EC2224;
-  --rd-red-dark: #C81012;
-  --rd-gradient: linear-gradient(95deg, #FB4042 0%, #EC228A 100%);
-  --rd-pink: #EC228A;
+  --rd-red: #14B8A6;
+  --rd-red-dark: #0F766E;
+  --rd-gradient: linear-gradient(95deg, #10B981 0%, #0D9488 100%);
+  --rd-pink: #2DD4BF;
   --rd-text: #303030;
   --rd-muted: #606060;
   --rd-bg-soft: #F3FBFD;

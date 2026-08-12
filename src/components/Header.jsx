@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 const navLinks = [
   { label: 'Hotel di Indonesia', href: '#hotels' },
   { label: 'Promo', href: '#promo' },
-  { label: 'RedClub', href: '#redclub' },
+  { label: 'WismaClub', href: '#redclub' },
   { label: 'Daftarkan Properti', href: '#partner' },
 ]
 
@@ -23,17 +23,17 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-inner container">
-        <a className="logo" href="#top" aria-label="RedDoo Beranda">
+        <a className="logo" href="#top" aria-label="WismaKu Beranda">
           <svg viewBox="0 0 48 48" width="38" height="38" aria-hidden="true">
-            <rect x="6" y="4" width="36" height="40" rx="6" fill="#EC2224" />
+            <rect x="6" y="4" width="36" height="40" rx="6" fill="#14B8A6" />
             <rect x="10" y="8" width="28" height="32" rx="3" fill="#FFF" />
-            <rect x="12" y="10" width="24" height="28" rx="2" fill="#EC2224" />
+            <rect x="12" y="10" width="24" height="28" rx="2" fill="#14B8A6" />
             <rect x="27" y="20" width="10" height="7" rx="2" fill="#FFF" />
-            <rect x="27" y="20" width="5" height="7" rx="1.5" fill="#EC2224" />
+            <rect x="27" y="20" width="5" height="7" rx="1.5" fill="#14B8A6" />
             <circle cx="33" cy="23.5" r="1.6" fill="#FFF" />
           </svg>
           <span className="logo-text">
-            Red<strong>Doo</strong>
+            Wisma<strong>Ku</strong>
           </span>
         </a>
         <nav className="nav" aria-label="Navigasi utama">
@@ -60,7 +60,7 @@ export default function Header() {
           <div className="drawer-backdrop" onClick={closeMenu} aria-hidden="true" />
           <div className="drawer-panel" role="dialog" aria-label="Menu navigasi">
             <div className="drawer-head">
-              <span className="logo-text">Red<strong>Doo</strong></span>
+              <span className="logo-text">Wisma<strong>Ku</strong></span>
               <button className="drawer-close" type="button" aria-label="Tutup menu" onClick={closeMenu}>&times;</button>
             </div>
             <nav className="drawer-nav">

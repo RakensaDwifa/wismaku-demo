@@ -8,7 +8,6 @@ import PopularHotels from './components/PopularHotels.jsx'
 import BrandCards from './components/BrandCards.jsx'
 import AssuranceBar from './components/AssuranceBar.jsx'
 import Testimonials from './components/Testimonials.jsx'
-import AppDownload from './components/AppDownload.jsx'
 import Footer from './components/Footer.jsx'
 import { cities } from './data/cities.js'
 import { hotels, promos, brands, testimonials } from './data/hotels.js'
@@ -53,11 +52,11 @@ export default function App() {
         <section className="redclub" id="redclub">
           <div className="container redclub-inner">
             <div className="redclub-text">
-              <h2>Gabung RedClub, Gratis!</h2>
+              <h2>Gabung WismaClub, Gratis!</h2>
               <p>Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out di ribuan properti.</p>
             </div>
             <button className="btn btn-primary is-disabled" type="button" disabled>
-              Daftar RedClub
+              Daftar WismaClub
             </button>
           </div>
         </section>
@@ -66,7 +65,7 @@ export default function App() {
             <div className="partner-text">
               <h2>Punya Penginapan? Jadi Partner Kami</h2>
               <p className="gray_color">Gabung jaringan 3500+ properti dan naikkan okupansi hingga 2x lipat.</p>
-              <p className="dark_gray">Mitra kami dapat distribusi, teknologi, dan pendampingan pemasaran dari tim RedDoo.</p>
+              <p className="dark_gray">Mitra kami dapat distribusi, teknologi, dan pendampingan pemasaran dari tim WismaKu.</p>
               <button className="btn btn-outline is-disabled" type="button" disabled>
                 Pelajari Lebih Lanjut
               </button>
@@ -82,7 +81,6 @@ export default function App() {
         </section>
         <AssuranceBar />
         <Testimonials items={testimonials} />
-        <AppDownload />
       </main>
       <Footer />
     </>

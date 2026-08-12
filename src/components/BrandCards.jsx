@@ -16,7 +16,7 @@ export default function BrandCards({ brands }) {
                 </h3>
                 <p className="brand-card__tag">{b.tagline}</p>
                 <p className="brand-card__desc">{b.desc}</p>
-                <button className="brand-card__btn" type="button">Lihat Semua</button>
+                <button className="brand-card__btn is-disabled" type="button" disabled>Lihat Semua</button>
               </div>
             </article>
           ))}

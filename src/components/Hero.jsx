@@ -27,7 +27,7 @@ export default function Hero({ cities, onSearch, initial }) {
           srcSet={srcSet(heroImg, [800, 1200, 1800])}
           sizes="100vw"
           alt="Suasana penginapan yang nyaman"
-          fetchPriority="high"
+          fetchpriority="high"
         />
         <div className="hero-overlay" />
       </div>

@@ -19,6 +19,7 @@ const bookRef = () => {
 const toLocal = (payload) => ({
   id: `WK-${Date.now().toString(36).toUpperCase()}`,
   createdAt: new Date().toISOString(),
+  status: 'confirmed',
   ...payload,
 })
 
@@ -44,7 +45,9 @@ export async function createBooking(payload) {
 
 export async function cancelBooking(id) {
   if (USE_MOCK) {
-    const list = bookRef().filter((b) => b.id !== id)
+    const list = bookRef().map((b) =>
+      b.id === id ? { ...b, status: 'cancelled', cancelledAt: new Date().toISOString() } : b,
+    )
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
     notify()
     return list

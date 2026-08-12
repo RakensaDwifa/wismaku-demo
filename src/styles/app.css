@@ -1952,3 +1952,127 @@
     width: 100%;
   }
 }
+.modal-rooms {
+  margin: 4px 0 16px;
+}
+.modal-rooms__label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--rd-text);
+  margin-bottom: 8px;
+}
+.modal-rooms__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.room-type {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1.5px solid var(--rd-border);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.room-type:hover {
+  border-color: var(--rd-teal);
+}
+.room-type.is-active {
+  border-color: var(--rd-teal);
+  background: rgba(20, 184, 166, 0.07);
+}
+.room-type b {
+  font-size: 13.5px;
+  color: var(--rd-text);
+}
+.room-type span {
+  font-size: 12px;
+  color: var(--rd-muted);
+}
+.room-type__price {
+  font-weight: 800;
+  color: var(--rd-red);
+  margin-top: 4px;
+}
+.room-type__price small {
+  font-weight: 600;
+  color: var(--rd-muted);
+}
+.room-type__strike {
+  text-decoration: line-through;
+}
+.coupon-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.coupon-input {
+  flex: 1;
+  border: 1px solid var(--rd-border);
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-family: inherit;
+}
+.coupon-input:focus {
+  outline: none;
+  border-color: var(--rd-red);
+}
+.coupon-ok {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--rd-teal);
+  margin: 6px 0 10px;
+}
+.price-breakdown {
+  border: 1px solid var(--rd-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 10px 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.price-breakdown__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--rd-text);
+}
+.price-breakdown__save span,
+.price-breakdown__save b {
+  color: var(--rd-teal);
+}
+.price-breakdown__total {
+  border-top: 1px dashed #ddd;
+  padding-top: 8px;
+  margin-top: 2px;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--rd-red);
+}
+.orders-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.status-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  color: var(--rd-teal);
+}
+.status-badge--cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}

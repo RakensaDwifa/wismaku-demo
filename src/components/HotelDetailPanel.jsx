@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { createBooking } from '../services/booking.js'
-import useFocusTrap from '../hooks/useFocusTrap.js'
+import { applyCoupon } from '../services/coupon.js'
+import { getMember } from '../services/member.js'
+import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { srcSet } from '../utils/image.js'
 import FavButton from './FavButton.jsx'
+import Modal from './ui/Modal.jsx'
+
+const MEMBER_DISCOUNT_PCT = 0.1
 
 export default function HotelDetailPanel({ hotel, search, onClose, isPage = false }) {
   const [imgIdx, setImgIdx] = useState(0)
@@ -11,6 +16,12 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
   const [form, setForm] = useState({ name: '', email: '', phone: '' })
   const [error, setError] = useState('')
   const [booking, setBooking] = useState(null)
+  const [roomTypeId, setRoomTypeId] = useState(hotel.roomTypes?.[0]?.id ?? 'standard')
+  const [couponInput, setCouponInput] = useState('')
+  const [coupon, setCoupon] = useState(null)
+  const [couponError, setCouponError] = useState('')
+  const [isMember, setIsMember] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const panelRef = useRef(null)
 
   useFocusTrap(panelRef)
@@ -19,11 +30,21 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
   const guests = search?.guests ?? 0
   const rooms = search?.rooms ?? 1
   const hasDates = Boolean(search?.checkIn && search?.checkOut)
-  const total = nights > 0 ? hotel.price * nights : hotel.price
+  const roomType =
+    hotel.roomTypes?.find((t) => t.id === roomTypeId) ??
+    hotel.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel.price }
+
+  const subtotal = roomType.price * (nights || 1) * rooms
+  const couponAmount = coupon
+    ? Math.min(Math.round((subtotal * coupon.pct) / 100), coupon.maxDiscount)
+    : 0
+  const afterCoupon = subtotal - couponAmount
+  const memberDiscount = isMember ? Math.round(afterCoupon * MEMBER_DISCOUNT_PCT) : 0
+  const total = afterCoupon - memberDiscount
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.()
+      if (e.key === 'Escape' && !lightboxOpen) onClose?.()
     }
     document.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
@@ -32,10 +53,28 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [onClose])
+  }, [onClose, lightboxOpen])
 
   useEffect(() => {
     panelRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    let live = true
+    const sync = async () => {
+      try {
+        const m = await getMember()
+        if (live) setIsMember(Boolean(m))
+      } catch {
+        if (live) setIsMember(false)
+      }
+    }
+    sync()
+    window.addEventListener('wismaku:members-changed', sync)
+    return () => {
+      live = false
+      window.removeEventListener('wismaku:members-changed', sync)
+    }
   }, [])
 
   const goForm = () => {
@@ -46,6 +85,17 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
   const set = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }))
     setError('')
+  }
+
+  const handleCoupon = async () => {
+    setCouponError('')
+    try {
+      setCoupon(await applyCoupon(couponInput, subtotal))
+      setCouponInput('')
+    } catch (err) {
+      setCoupon(null)
+      setCouponError(err.message || 'Kupon tidak valid.')
+    }
   }
 
   const submit = async (e) => {
@@ -66,7 +116,13 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
         nights: nights || 1,
         rooms,
         guests,
-        totalPrice: nights > 0 ? total : hotel.price,
+        roomTypeId: roomType.id,
+        roomTypeName: roomType.name,
+        roomPrice: roomType.price,
+        couponCode: coupon?.code ?? null,
+        couponDiscount: couponAmount,
+        memberDiscount,
+        totalPrice: total,
         guestName: name,
         email,
         phone,
@@ -103,6 +159,8 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
               srcSet={srcSet(hotel.gallery[imgIdx], [400, 800, 1200])}
               sizes="(max-width: 768px) 92vw, 560px"
               alt={`${hotel.name} foto ${imgIdx + 1}`}
+              onClick={() => setLightboxOpen(true)}
+              title="Klik untuk memperbesar foto"
             />
             <div className="modal-gallery__thumbs">
               {hotel.gallery.map((g, i) => (
@@ -143,15 +201,81 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
 
             <p className="modal-desc">{hotel.desc}</p>
 
+            {hotel.reviewList?.length > 0 && (
+              <section className="modal-section">
+                <h4 className="modal-section__title">Ulasan Tamu</h4>
+                <div className="review-summary">
+                  <span className="review-summary__score">{hotel.rating}</span>
+                  <span className="review-summary__meta">
+                    Dari {hotel.reviews} ulasan &middot; {hotel.reviewList.length} ulasan terbaru
+                  </span>
+                </div>
+                <ul className="review-list">
+                  {hotel.reviewList.map((r, i) => (
+                    <li className="review-item" key={i}>
+                      <div className="review-item__head">
+                        <b>{r.name}</b>
+                        <span className="review-item__stars">{'★'.repeat(r.rating)}</span>
+                      </div>
+                      <span className="review-item__date">{fmtDate(r.date)}</span>
+                      <p>{r.text}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {hotel.policy && (
+              <section className="modal-section">
+                <h4 className="modal-section__title">Kebijakan Hotel</h4>
+                <ul className="policy-list">
+                  <li>
+                    <b>Check-in:</b> mulai {hotel.policy.checkIn}
+                  </li>
+                  <li>
+                    <b>Check-out:</b> hingga {hotel.policy.checkOut}
+                  </li>
+                  <li>{hotel.policy.cancelRule}</li>
+                </ul>
+              </section>
+            )}
+
+            {hotel.roomTypes?.length > 0 && (
+              <div className="modal-rooms">
+                <p className="modal-rooms__label">Pilih Tipe Kamar</p>
+                <div className="modal-rooms__grid">
+                  {hotel.roomTypes.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={`room-type${t.id === roomTypeId ? ' is-active' : ''}`}
+                      onClick={() => setRoomTypeId(t.id)}
+                      aria-pressed={t.id === roomTypeId}
+                    >
+                      <b>{t.name}</b>
+                      <span>hingga {t.capacity} tamu</span>
+                      <span className="room-type__price">
+                        {fmtRupiah(t.price)} <small>/ malam</small>
+                      </span>
+                      <span className="room-type__strike">{fmtRupiah(t.originalPrice)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="modal-price">
               <div className="modal-price__left">
                 <span className="modal-price__per">
-                  {fmtRupiah(hotel.price)} <small>/ malam</small>
+                  {fmtRupiah(roomType.price)} <small>/ malam</small>
                 </span>
                 {nights > 0 && (
                   <span className="modal-price__total">
-                    {fmtRupiah(total)} total &middot; {nights} malam
+                    {fmtRupiah(subtotal)} total &middot; {nights} malam &middot; {rooms} kamar
                   </span>
+                )}
+                {isMember && nights > 0 && (
+                  <span className="modal-price__total">Diskon member 10% otomatis diterapkan</span>
                 )}
               </div>
               {!hasDates && nights === 0 && (
@@ -170,7 +294,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
           <div className="modal-head">
             <h3>Pesan {hotel.name}</h3>
             <p className="modal-loc">
-              {hotel.area}, {hotel.city}
+              {hotel.area}, {hotel.city} &middot; {roomType.name}
             </p>
           </div>
           <div className="modal-summary">
@@ -180,9 +304,55 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
               </p>
             )}
             <p>
-              {rooms} kamar &middot; {guests || 1} tamu &middot; {fmtRupiah(nights > 0 ? total : hotel.price)}
+              {rooms} kamar &middot; {guests || 1} tamu &middot; Tipe {roomType.name}
             </p>
           </div>
+
+          <div className="coupon-row">
+            <input
+              className="coupon-input"
+              type="text"
+              value={couponInput}
+              onChange={(e) => {
+                setCouponInput(e.target.value)
+                setCouponError('')
+              }}
+              placeholder="Kode kupon (cth: WISMA20)"
+              aria-label="Kode kupon"
+            />
+            <button className="btn btn-outline btn-sm" type="button" onClick={handleCoupon}>
+              Pakai
+            </button>
+          </div>
+          {couponError && <p className="booking-error">{couponError}</p>}
+          {coupon && <p className="coupon-ok">Kupon {coupon.code} berlaku &mdash; hemat {fmtRupiah(couponAmount)}</p>}
+          {isMember && <p className="coupon-ok">Diskon member WismaClub 10% diterapkan</p>}
+
+          <div className="price-breakdown">
+            <div className="price-breakdown__row">
+              <span>
+                {fmtRupiah(roomType.price)} &times; {nights} malam &times; {rooms} kamar
+              </span>
+              <b>{fmtRupiah(subtotal)}</b>
+            </div>
+            {coupon && (
+              <div className="price-breakdown__row price-breakdown__save">
+                <span>Kupon {coupon.code}</span>
+                <b>-{fmtRupiah(couponAmount)}</b>
+              </div>
+            )}
+            {isMember && (
+              <div className="price-breakdown__row price-breakdown__save">
+                <span>Diskon Member 10%</span>
+                <b>-{fmtRupiah(memberDiscount)}</b>
+              </div>
+            )}
+            <div className="price-breakdown__row price-breakdown__total">
+              <span>Total</span>
+              <b>{fmtRupiah(total)}</b>
+            </div>
+          </div>
+
           <form className="booking-form" onSubmit={submit} noValidate>
             <label>
               Nama Lengkap
@@ -203,7 +373,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
             </label>
             {error && <p className="booking-error">{error}</p>}
             <div className="modal-price">
-              <span className="modal-price__per">{fmtRupiah(nights > 0 ? total : hotel.price)}</span>
+              <span className="modal-price__per">{fmtRupiah(total)}</span>
               <button className="btn btn-primary" type="submit">
                 Konfirmasi Pesanan
               </button>
@@ -228,7 +398,15 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
             </p>
             <p>
               {booking.nights} malam &middot; {booking.rooms} kamar &middot; {booking.guests} tamu
+              &middot; {booking.roomTypeName}
             </p>
+            {(booking.couponDiscount > 0 || booking.memberDiscount > 0) && (
+              <p>
+                Hemat {booking.couponDiscount > 0 ? `${fmtRupiah(booking.couponDiscount)} (kupon)` : ''}
+                {booking.couponDiscount > 0 && booking.memberDiscount > 0 ? ' + ' : ''}
+                {booking.memberDiscount > 0 ? `${fmtRupiah(booking.memberDiscount)} (member)` : ''}
+              </p>
+            )}
             <p className="modal-success__total">{fmtRupiah(booking.totalPrice)}</p>
           </div>
           <p className="modal-hint">Simulasi demo — pesanan tersimpan di perangkat ini (localStorage).</p>
@@ -236,6 +414,42 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
             Selesai
           </button>
         </div>
+      )}
+
+      {lightboxOpen && (
+        <Modal onClose={() => setLightboxOpen(false)} labelledBy="lightbox-title">
+          <div className="modal-body">
+            <h3 id="lightbox-title" style={{ marginBottom: 12 }}>
+              {hotel.name} &mdash; Foto {imgIdx + 1} dari {hotel.gallery.length}
+            </h3>
+            <img
+              className="lightbox__img"
+              src={hotel.gallery[imgIdx]}
+              alt={`${hotel.name} foto ${imgIdx + 1}`}
+            />
+            <div className="lightbox__nav">
+              <button
+                className="btn btn-outline btn-sm"
+                type="button"
+                onClick={() =>
+                  setImgIdx((i) => (i - 1 + hotel.gallery.length) % hotel.gallery.length)
+                }
+              >
+                &larr; Sebelumnya
+              </button>
+              <span>
+                {imgIdx + 1} / {hotel.gallery.length}
+              </span>
+              <button
+                className="btn btn-outline btn-sm"
+                type="button"
+                onClick={() => setImgIdx((i) => (i + 1) % hotel.gallery.length)}
+              >
+                Berikutnya &rarr;
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   )

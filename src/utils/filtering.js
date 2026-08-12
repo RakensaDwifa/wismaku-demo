@@ -24,14 +24,16 @@ export function parseFilters(params) {
     .filter(Boolean)
   const minPrice = Number(params.get('minPrice')) || 0
   const maxPrice = Number(params.get('maxPrice')) || 0
-  return { sort, amenities, minPrice, maxPrice }
+  const minRating = Number(params.get('minRating')) || 0
+  return { sort, amenities, minPrice, maxPrice, minRating }
 }
 
-export function applyFilters(hotels, { amenities, minPrice, maxPrice } = {}) {
+export function applyFilters(hotels, { amenities, minPrice, maxPrice, minRating } = {}) {
   return hotels.filter((h) => {
     if (amenities?.length > 0 && !amenities.every((a) => h.amenities.includes(a))) return false
     if (minPrice > 0 && h.price < minPrice) return false
     if (maxPrice > 0 && h.price > maxPrice) return false
+    if (minRating > 0 && h.rating < minRating) return false
     return true
   })
 }

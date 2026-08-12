@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import DateRangePicker from './DateRangePicker.jsx'
 
-const fmt = (d) => d.toISOString().slice(0, 10)
+const toYMD = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
 const addDays = (d, n) => {
   const x = new Date(d)
   x.setDate(x.getDate() + n)
@@ -8,10 +11,9 @@ const addDays = (d, n) => {
 }
 
 export default function SearchWidget({ cities, onSearch }) {
-  const today = fmt(new Date())
   const [destination, setDestination] = useState('')
-  const [checkIn, setCheckIn] = useState(today)
-  const [checkOut, setCheckOut] = useState(fmt(addDays(new Date(), 1)))
+  const [checkIn, setCheckIn] = useState(new Date())
+  const [checkOut, setCheckOut] = useState(addDays(new Date(), 1))
   const [guestOpen, setGuestOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
   const [rooms, setRooms] = useState(1)
@@ -27,11 +29,13 @@ export default function SearchWidget({ cities, onSearch }) {
     return () => document.removeEventListener('mousedown', close)
   }, [])
 
+  const handleRange = (from, to) => {
+    setCheckIn(from)
+    setCheckOut(to)
+  }
+
   const apply = () => {
-    const checkInD = new Date(checkIn)
-    const checkOutD = new Date(checkOut)
-    if (checkOutD <= checkInD) setCheckOut(fmt(addDays(checkInD, 1)))
-    onSearch({ destination, checkIn, checkOut, rooms, adults, children })
+    onSearch({ destination, checkIn: toYMD(checkIn), checkOut: toYMD(checkOut), rooms, adults, children })
   }
 
   const pickCity = (name) => {
@@ -78,15 +82,7 @@ export default function SearchWidget({ cities, onSearch }) {
         )}
       </div>
 
-      <div className="sw-field">
-        <label className="sw-label">Check-in</label>
-        <input className="sw-value sw-date" type="date" min={today} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
-      </div>
-
-      <div className="sw-field">
-        <label className="sw-label">Check-out</label>
-        <input className="sw-value sw-date" type="date" min={checkIn} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-      </div>
+      <DateRangePicker checkIn={checkIn} checkOut={checkOut} onSelect={handleRange} />
 
       <div className="sw-field sw-guests" ref={guestRef}>
         <label className="sw-label">Tamu &amp; Kamar</label>

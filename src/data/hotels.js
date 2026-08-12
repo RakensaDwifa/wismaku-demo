@@ -10,6 +10,13 @@ export const hotels = [
     originalPrice: 299000,
     discount: 33,
     img: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=60',
+    desc: 'Penginapan syariah yang tenang di kawasan Kelapa Gading, dekat pusat perbelanjaan dan akses tol. Cocok untuk keluarga maupun tamu bisnis yang menginginkan privasi.',
+    amenities: ['WiFi Gratis', 'AC', 'Sarapan', 'Parkir', 'Kamar Mandi Dalam'],
+    gallery: [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 2,
@@ -22,6 +29,13 @@ export const hotels = [
     originalPrice: 250000,
     discount: 30,
     img: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=60',
+    desc: 'Berlokasi strategis hanya beberapa langkah dari Malioboro, cocok untuk wisatawan yang ingin eksplorasi pusat kota. Kamar bersih dengan layanan yang ramah.',
+    amenities: ['WiFi Gratis', 'AC', 'Sarapan', 'TV', 'Kamar Mandi Dalam'],
+    gallery: [
+      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 3,
@@ -34,6 +48,13 @@ export const hotels = [
     originalPrice: 380000,
     discount: 32,
     img: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=60',
+    desc: 'Hotel nyaman di kawasan Dago dengan udara sejuk, dekat taman kota dan tempat kuliner legendaris Bandung.',
+    amenities: ['WiFi Gratis', 'AC', 'Sarapan', 'Parkir', 'TV', 'Kamar Mandi Dalam'],
+    gallery: [
+      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 4,
@@ -46,6 +67,13 @@ export const hotels = [
     originalPrice: 650000,
     discount: 31,
     img: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=60',
+    desc: 'Vila privat dengan pemandangan sawah Ubud, kolam renang pribadi, dan suasana tenang yang sempurna untuk liburan.',
+    amenities: ['WiFi Gratis', 'Kolam Renang', 'Sarapan', 'Dapur', 'AC', 'Parkir'],
+    gallery: [
+      'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 5,
@@ -58,6 +86,13 @@ export const hotels = [
     originalPrice: 240000,
     discount: 31,
     img: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=60',
+    desc: 'Penginapan modern dekat Stasiun Gubeng, praktis untuk tamu bisnis maupun perjalanan singkat di Surabaya.',
+    amenities: ['WiFi Gratis', 'AC', 'TV', 'Sarapan', 'Kamar Mandi Dalam'],
+    gallery: [
+      'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 6,
@@ -70,6 +105,13 @@ export const hotels = [
     originalPrice: 310000,
     discount: 29,
     img: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=60',
+    desc: 'Kamar nyaman dengan nuansa taman, dekat wisata Batu Night Spectacular dan kawasan keluarga Batu.',
+    amenities: ['WiFi Gratis', 'AC', 'Sarapan', 'Parkir', 'TV'],
+    gallery: [
+      'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 7,
@@ -82,6 +124,13 @@ export const hotels = [
     originalPrice: 270000,
     discount: 30,
     img: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=60',
+    desc: 'Dengan desain energik khas Sans, penginapan ini mendukung tamu muda yang ingin stay hemat namun tetap nyaman.',
+    amenities: ['WiFi Gratis', 'AC', 'TV', 'Sarapan', 'Kamar Mandi Dalam'],
+    gallery: [
+      'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 8,
@@ -94,6 +143,13 @@ export const hotels = [
     originalPrice: 399000,
     discount: 29,
     img: 'https://images.unsplash.com/photo-1595576508898-0ad5c879a061?auto=format&fit=crop&w=800&q=60',
+    desc: 'Kost eksklusif di kawasan Sentul City dengan keamanan 24 jam dan suasana hijau, cocok untuk kebutuhan tinggal jangka menengah-panjang.',
+    amenities: ['WiFi Gratis', 'AC', 'Dapur', 'Parkir', 'Keamanan 24 Jam'],
+    gallery: [
+      'https://images.unsplash.com/photo-1595576508898-0ad5c879a061?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 9,
@@ -106,6 +162,13 @@ export const hotels = [
     originalPrice: 700000,
     discount: 29,
     img: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=60',
+    desc: 'Apartemen harian eksekutif di Kemang dengan interior stylish, dapur, dan fasilitas lengkap untuk tinggal nyaman.',
+    amenities: ['WiFi Gratis', 'AC', 'Dapur', 'Kolam Renang', 'Parkir', 'Mesin Cuci'],
+    gallery: [
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 10,
@@ -118,6 +181,13 @@ export const hotels = [
     originalPrice: 210000,
     discount: 29,
     img: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=60',
+    desc: 'Penginapan sederhana dan bersih dekat pusat kota Yogyakarta, ideal untuk backpacker dan perjalanan hemat.',
+    amenities: ['WiFi Gratis', 'AC', 'TV', 'Kamar Mandi Dalam'],
+    gallery: [
+      'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1496412705862-e0088f16f762?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 11,
@@ -130,6 +200,13 @@ export const hotels = [
     originalPrice: 350000,
     discount: 30,
     img: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=800&q=60',
+    desc: 'Hotel strategis di Jalan Cihampelas, dekat pusat oleh-oleh dan tempat hiburan, nyaman untuk keluarga.',
+    amenities: ['WiFi Gratis', 'AC', 'Sarapan', 'Parkir', 'TV'],
+    gallery: [
+      'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=60',
+    ],
   },
   {
     id: 12,
@@ -142,6 +219,13 @@ export const hotels = [
     originalPrice: 550000,
     discount: 30,
     img: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=800&q=60',
+    desc: 'Vila tropis hanya beberapa menit dari Pantai Kuta, dengan taman pribadi dan suasana santai khas Bali.',
+    amenities: ['WiFi Gratis', 'Kolam Renang', 'Sarapan', 'AC', 'Parkir', 'Dapur'],
+    gallery: [
+      'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=800&q=60',
+      'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=60',
+    ],
   },
 ]
 

@@ -1,14 +1,17 @@
 const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
+export default function HotelCard({ hotel, nights = 0, onOpen }) {
+  const total = nights > 0 ? hotel.price * nights : 0
 
-export default function HotelCard({ hotel }) {
   return (
     <article className="hotel-card">
       <a
         href="#hotels"
         className="hotel-card__link"
-        title="Halaman detail segera hadir"
-        onClick={(e) => e.preventDefault()}
-        aria-disabled="true"
+        title="Lihat detail penginapan"
+        onClick={(e) => {
+          e.preventDefault()
+          onOpen?.(hotel)
+        }}
       >
         <div className="hotel-card__media">
           <img src={hotel.img} alt={hotel.name} loading="lazy" />
@@ -32,6 +35,9 @@ export default function HotelCard({ hotel }) {
               <span className="hotel-card__strike">{fmtRupiah(hotel.originalPrice)}</span>
             </div>
             <span className="hotel-card__per">/ malam</span>
+            {total > 0 && (
+              <span className="hotel-card__total">{fmtRupiah(total)} total &middot; {nights} malam</span>
+            )}
           </div>
         </div>
       </a>

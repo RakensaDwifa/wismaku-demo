@@ -1,4 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { getBookings, cancelBooking } from '../services/booking.js'
+
+const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
+
+const fmtDate = (iso) =>
+  iso
+    ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso + 'T00:00:00'))
+    : '-'
 
 const navLinks = [
   { label: 'Hotel di Indonesia', href: '#hotels' },
@@ -9,6 +17,21 @@ const navLinks = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [ordersOpen, setOrdersOpen] = useState(false)
+  const [orders, setOrders] = useState([])
+  const ordersRef = useRef(null)
+
+  const refreshOrders = () => setOrders(getBookings())
+
+  const toggleOrders = () => {
+    if (!ordersOpen) refreshOrders()
+    setOrdersOpen((v) => !v)
+  }
+
+  const removeOrder = (id) => {
+    cancelBooking(id)
+    refreshOrders()
+  }
 
   useEffect(() => {
     const onKey = (e) => {
@@ -16,6 +39,21 @@ export default function Header() {
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
+  useEffect(() => {
+    const close = (e) => {
+      if (ordersRef.current && !ordersRef.current.contains(e.target)) setOrdersOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
+
+  useEffect(() => {
+    const sync = () => setOrders(getBookings())
+    sync()
+    window.addEventListener('wismaku:bookings-changed', sync)
+    return () => window.removeEventListener('wismaku:bookings-changed', sync)
   }, [])
 
   const closeMenu = () => setMenuOpen(false)
@@ -42,6 +80,40 @@ export default function Header() {
           ))}
         </nav>
         <div className="header-actions">
+          <div className="orders-wrap" ref={ordersRef}>
+            {orders.length > 0 && (
+              <span className="orders-count" aria-hidden="true">{orders.length}</span>
+            )}
+            <button className="btn btn-outline btn-sm orders-btn" type="button" onClick={toggleOrders}>
+              Pesanan Saya{orders.length > 0 ? ` (${orders.length})` : ''}
+            </button>
+            {ordersOpen && (
+              <div className="orders-panel" role="dialog" aria-label="Pesanan Saya">
+                <div className="orders-panel__head">
+                  <b>Pesanan Saya</b>
+                  <button type="button" className="drawer-close" onClick={() => setOrdersOpen(false)} aria-label="Tutup">&times;</button>
+                </div>
+                {orders.length === 0 ? (
+                  <p className="orders-empty">Belum ada pesanan.</p>
+                ) : (
+                  <ul className="orders-list">
+                    {orders.map((o) => (
+                      <li className="orders-item" key={o.id}>
+                        <img src={o.hotelImg} alt="" />
+                        <div className="orders-item__info">
+                          <b>{o.hotelName}</b>
+                          <span>{fmtDate(o.checkIn)} &rarr; {fmtDate(o.checkOut)}</span>
+                          <span>{o.nights} malam &middot; {fmtRupiah(o.totalPrice)}</span>
+                          <small>Kode: {o.id}</small>
+                        </div>
+                        <button className="orders-cancel" type="button" onClick={() => removeOrder(o.id)}>Batal</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
           <button className="btn btn-outline is-disabled" type="button" disabled>Masuk</button>
           <button className="btn btn-primary is-disabled" type="button" disabled>Daftar</button>
           <button

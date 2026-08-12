@@ -10,6 +10,7 @@ const STEP = 4
 
 export default function PopularHotels({
   hotels,
+  allHotels,
   isSearch,
   onReset,
   searchParams,
@@ -48,7 +49,12 @@ export default function PopularHotels({
             )}
           </h2>
           {!loading && !error && totals > 0 && (
-            <FilterBar hotels={hotels} filters={filters} onChange={handleFiltersChange} />
+            <FilterBar
+              hotels={hotels}
+              allHotels={allHotels}
+              filters={filters}
+              onChange={handleFiltersChange}
+            />
           )}
         </div>
         {loading ? (

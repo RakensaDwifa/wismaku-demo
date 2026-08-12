@@ -2231,3 +2231,13 @@
   cursor: grab;
   pointer-events: auto;
 }
+
+.filter-range input.range-max {
+  z-index: 2;
+}
+
+.filter-range input.range-min:hover,
+.filter-range input.range-min:active,
+.filter-range input.range-min:focus-visible {
+  z-index: 3;
+}

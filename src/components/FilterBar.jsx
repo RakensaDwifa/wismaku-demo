@@ -9,10 +9,10 @@ const RATING_OPTIONS = [
 
 const DEFAULT_FILTERS = { sort: 'relevance', amenities: [], minPrice: 0, maxPrice: 0, minRating: 0 }
 
-export default function FilterBar({ hotels, filters, onChange }) {
+export default function FilterBar({ hotels, allHotels, filters, onChange }) {
   const [open, setOpen] = useState(false)
   const barRef = useRef(null)
-  const bounds = priceBounds(hotels)
+  const bounds = priceBounds(allHotels || hotels)
   const maxBound = bounds.min === bounds.max ? bounds.min + 1 : bounds.max
   const minPos = filters.minPrice || bounds.min
   const maxPos = filters.maxPrice || maxBound
@@ -43,14 +43,32 @@ export default function FilterBar({ hotels, filters, onChange }) {
 
   const reset = () => onChange(DEFAULT_FILTERS)
 
-  const setMinPrice = (e) => {
-    const v = Math.max(bounds.min, Number(e.target.value))
-    set({ minPrice: v, maxPrice: Math.max(v, maxPos) })
+  const setMinPrice = (v) => {
+    const val = Math.min(Number(v) || 0, maxBound)
+    set({
+      minPrice: val,
+      maxPrice: filters.maxPrice > 0 ? Math.max(filters.maxPrice, val) : 0,
+    })
   }
 
-  const setMaxPrice = (e) => {
-    const v = Math.min(maxBound, Number(e.target.value))
-    set({ maxPrice: v, minPrice: Math.min(v, minPos) })
+  const setMaxPrice = (v) => {
+    const val = Math.min(maxBound, Math.max(0, Number(v) || 0))
+    set({
+      maxPrice: val,
+      minPrice: filters.minPrice > 0 ? Math.min(filters.minPrice, val) : 0,
+    })
+  }
+
+  const onMinInput = (e) => {
+    const v = e.target.value
+    if (v === '') return set({ minPrice: 0 })
+    setMinPrice(v)
+  }
+
+  const onMaxInput = (e) => {
+    const v = e.target.value
+    if (v === '') return set({ maxPrice: 0 })
+    setMaxPrice(v)
   }
 
   return (
@@ -130,7 +148,7 @@ export default function FilterBar({ hotels, filters, onChange }) {
                 min={bounds.min}
                 max={maxBound}
                 value={minPos}
-                onChange={setMinPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
               />
               <input
                 type="range"
@@ -139,7 +157,7 @@ export default function FilterBar({ hotels, filters, onChange }) {
                 min={bounds.min}
                 max={maxBound}
                 value={maxPos}
-                onChange={setMaxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
               />
             </div>
             <div className="filter-prices">
@@ -151,7 +169,7 @@ export default function FilterBar({ hotels, filters, onChange }) {
                   max={maxBound}
                   value={filters.minPrice || ''}
                   placeholder={String(bounds.min)}
-                  onChange={(e) => setMinPrice({ target: { value: e.target.value } })}
+                  onChange={onMinInput}
                 />
               </label>
               <span>&ndash;</span>
@@ -163,7 +181,7 @@ export default function FilterBar({ hotels, filters, onChange }) {
                   max={maxBound}
                   value={filters.maxPrice || ''}
                   placeholder={String(maxBound)}
-                  onChange={(e) => setMaxPrice({ target: { value: e.target.value } })}
+                  onChange={onMaxInput}
                 />
               </label>
             </div>

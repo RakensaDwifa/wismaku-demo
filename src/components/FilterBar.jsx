@@ -11,7 +11,8 @@ export default function FilterBar({ hotels, filters, onChange }) {
     filters.sort !== 'relevance' ||
     filters.amenities.length > 0 ||
     filters.minPrice > 0 ||
-    filters.maxPrice > 0
+    filters.maxPrice > 0 ||
+    filters.minRating > 0
 
   useEffect(() => {
     const close = (e) => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export default function PromoCarousel({ promos }) {
+export default function PromoCarousel({ promos, onShowHotels }) {
   const [active, setActive] = useState(0)
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function PromoCarousel({ promos }) {
       <div className="container">
         <div className="promo-header">
           <h2 className="section-title promo-title">Penawaran Menarik</h2>
-          <button className="btn btn-outline btn-sm is-disabled" type="button" disabled>Lihat Semua Promo</button>
+          <button className="btn btn-outline btn-sm" type="button" onClick={onShowHotels}>Lihat Semua Promo</button>
         </div>
         <div className="carousel">
           {promos.map((p, i) => (
@@ -26,7 +26,7 @@ export default function PromoCarousel({ promos }) {
               <div className="carousel-caption">
                 <h3>{p.title}</h3>
                 <p>{p.subtitle}</p>
-                <span className="carousel-cta is-disabled" title="Halaman promo segera hadir">Pesan Sekarang</span>
+                <button className="carousel-cta" type="button" onClick={onShowHotels} title="Lihat penginapan pilihan">Pesan Sekarang</button>
               </div>
             </div>
           ))}

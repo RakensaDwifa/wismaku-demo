@@ -15,7 +15,7 @@ const columns = [
   },
 ]
 
-export default function Footer() {
+export default function Footer({ onOpenPartner }) {
   const [expanded, setExpanded] = useState(false)
   const seo =
     'WismaKu adalah platform pemesanan penginapan dan hotel berbasis teknologi yang menyediakan akomodasi bersih, nyaman, dan terjangkau di lebih dari 100 kota strategis di Indonesia. Dari hotel budget, apartemen harian, hingga vila, semua bisa dipesan secara online dengan mudah melalui website maupun aplikasi. Temukan penginapan terdekat dengan harga mulai Rp 99rb per malam lengkap dengan promo dan diskon menarik setiap harinya.'
@@ -63,7 +63,19 @@ export default function Footer() {
               <ul>
                 {col.links.map((l) => (
                   <li key={l}>
-                    <a href="#" className="footer-link" aria-disabled="true" onClick={(e) => e.preventDefault()}>{l}</a>
+                    <a
+                      href="#partner"
+                      className="footer-link"
+                      aria-disabled={l !== 'Daftarkan Properti'}
+                      onClick={(e) => {
+                        if (l === 'Daftarkan Properti') {
+                          e.preventDefault()
+                          onOpenPartner?.()
+                        } else {
+                          e.preventDefault()
+                        }
+                      }}
+                    >{l}</a>
                   </li>
                 ))}
               </ul>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getBookings, cancelBooking } from '../services/booking.js'
+import { getMember } from '../services/member.js'
 
 const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
 
@@ -19,6 +20,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [ordersOpen, setOrdersOpen] = useState(false)
   const [orders, setOrders] = useState([])
+  const [member, setMember] = useState(null)
   const ordersRef = useRef(null)
 
   const refreshOrders = () => setOrders(getBookings())
@@ -56,6 +58,13 @@ export default function Header() {
     return () => window.removeEventListener('wismaku:bookings-changed', sync)
   }, [])
 
+  useEffect(() => {
+    const sync = () => setMember(getMember())
+    sync()
+    window.addEventListener('wismaku:members-changed', sync)
+    return () => window.removeEventListener('wismaku:members-changed', sync)
+  }, [])
+
   const closeMenu = () => setMenuOpen(false)
 
   return (
@@ -80,6 +89,9 @@ export default function Header() {
           ))}
         </nav>
         <div className="header-actions">
+          {member && (
+            <span className="member-chip" title={`Member WismaClub: ${member.name}`}>&#9733; Member</span>
+          )}
           <div className="orders-wrap" ref={ordersRef}>
             {orders.length > 0 && (
               <span className="orders-count" aria-hidden="true">{orders.length}</span>

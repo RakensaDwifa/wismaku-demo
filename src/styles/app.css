@@ -519,6 +519,14 @@
   border-radius: 999px;
   font-size: 13.5px;
   font-weight: 800;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.carousel-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--rd-shadow);
 }
 .carousel-arrow {
   position: absolute;
@@ -965,6 +973,15 @@
 /* ============ ORDER PANEL (HEADER) ============ */
 .orders-wrap {
   position: relative;
+}
+.member-chip {
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--rd-gradient);
+  border-radius: 999px;
+  padding: 6px 12px;
+  white-space: nowrap;
 }
 .orders-count {
   position: absolute;

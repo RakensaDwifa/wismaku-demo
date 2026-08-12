@@ -27,7 +27,7 @@ export default function Hero({ cities, onSearch }) {
       <div className="hero-content container">
         <h1 className="hero-title">
           Booking Hotel Murah, <br />
-          <span>Harga Promo Hanya di RedDoo</span>
+          <span>Harga Promo Hanya di WismaKu</span>
         </h1>
         <p className="hero-sub">
           Penginapan bersih, nyaman, dan terjangkau di lebih dari 100 kota strategis di Indonesia.

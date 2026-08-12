@@ -1,4 +1,4 @@
-/* ============ TOP BAR ============ */
+﻿/* ============ TOP BAR ============ */
 .topbar {
   background: var(--rd-white);
   border-bottom: 1px solid #eee;
@@ -137,7 +137,7 @@
   background: #fff;
 }
 .btn-outline:hover {
-  background: #FFF5F5;
+  background: #F0FDFA;
 }
 .btn-sm {
   padding: 8px 16px;
@@ -263,6 +263,9 @@
 .sw-dates .sw-value {
   white-space: nowrap;
 }
+.sw-field-date.is-active .sw-value {
+  color: var(--rd-red);
+}
 
 .date-popup {
   position: absolute;
@@ -291,7 +294,7 @@
 
 .rdp-root {
   --rdp-accent-color: var(--rd-red);
-  --rdp-accent-background-color: #FFE9E9;
+  --rdp-accent-background-color: #CCFBF1;
   font-family: inherit;
   margin: 0;
 }
@@ -310,7 +313,7 @@
   font-weight: 800;
 }
 .rdp-root .rdp-day_range_middle {
-  background-color: #FFE9E9;
+  background-color: #CCFBF1;
 }
 .rdp-root .rdp-day_today:not(.rdp-disabled) {
   color: var(--rd-red);
@@ -426,7 +429,7 @@
 .city-chip:hover {
   transform: translateY(-3px);
   box-shadow: var(--rd-shadow);
-  border-color: #f2caca;
+  border-color: #99F6E4;
 }
 .city-chip img {
   width: 100%;
@@ -835,65 +838,6 @@
   color: var(--rd-muted);
 }
 
-/* ============ APP DOWNLOAD ============ */
-.app-download {
-  background: linear-gradient(120deg, #EC2224 0%, #EC228A 100%);
-  color: #fff;
-}
-.app-download-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 40px;
-  padding: 56px 20px;
-}
-.app-download-info h2 {
-  font-size: 30px;
-  font-weight: 800;
-  line-height: 1.25;
-}
-.app-download-info p {
-  margin: 14px 0 26px;
-  font-size: 15.5px;
-  color: rgba(255, 255, 255, 0.92);
-  max-width: 460px;
-  line-height: 1.6;
-}
-.app-badges {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.app-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  color: #303030;
-  border-radius: 12px;
-  padding: 10px 18px;
-  text-align: left;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.app-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-}
-.app-badge small {
-  display: block;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--rd-muted);
-}
-.app-badge b {
-  font-size: 13.5px;
-  font-weight: 800;
-}
-.app-download-art svg {
-  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.3));
-}
-
 /* ============ FOOTER ============ */
 .footer-seo {
   background: var(--rd-bg-soft);
@@ -924,7 +868,7 @@
   color: #fff;
 }
 .logo--footer .logo-text strong {
-  color: #FF7A7B;
+  color: #5EEAD4;
 }
 .footer-desc {
   font-size: 13px;
@@ -1099,7 +1043,7 @@
 }
 .drawer-link:hover {
   color: var(--rd-red);
-  background: #FFF5F5;
+  background: #F0FDFA;
 }
 .drawer-foot {
   margin-top: auto;
@@ -1319,18 +1263,6 @@
   }
   .assurance-grid {
     grid-template-columns: 1fr;
-  }
-  .app-download-inner {
-    flex-direction: column;
-    text-align: center;
-    padding: 44px 20px;
-  }
-  .app-download-info p {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .app-badges {
-    justify-content: center;
   }
   .footer-grid {
     grid-template-columns: 1fr;

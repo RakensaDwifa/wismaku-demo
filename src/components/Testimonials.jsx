@@ -2,7 +2,7 @@ export default function Testimonials({ items }) {
   return (
     <section className="section testimonials-section">
       <div className="container">
-        <h2 className="section-title">Kata Mereka Tentang RedDoo</h2>
+        <h2 className="section-title">Kata Mereka Tentang WismaKu</h2>
         <div className="testimonials-grid">
           {items.map((t) => (
             <article className="testimonial-card" key={t.name}>

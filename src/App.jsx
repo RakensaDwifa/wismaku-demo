@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { differenceInCalendarDays } from 'date-fns'
 import TopBar from './components/TopBar.jsx'
 import Header from './components/Header.jsx'
 import Hero from './components/Hero.jsx'
@@ -9,6 +10,7 @@ import BrandCards from './components/BrandCards.jsx'
 import AssuranceBar from './components/AssuranceBar.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import Footer from './components/Footer.jsx'
+import HotelDetailModal from './components/HotelDetailModal.jsx'
 import { cities } from './data/cities.js'
 import { hotels, promos, brands, testimonials } from './data/hotels.js'
 import './styles/app.css'
@@ -16,22 +18,35 @@ import './styles/app.css'
 export default function App() {
   const [filtered, setFiltered] = useState(hotels)
   const [searchActive, setSearchActive] = useState(false)
+  const [searchParams, setSearchParams] = useState(null)
+  const [selectedHotel, setSelectedHotel] = useState(null)
   const hotelsRef = useRef(null)
   const heroRef = useRef(null)
 
-  const handleSearch = ({ destination }) => {
+  const handleSearch = ({ destination, checkIn, checkOut, rooms, adults, children }) => {
     const q = (destination || '').trim().toLowerCase()
     const next = q
       ? hotels.filter((h) => h.city.toLowerCase().includes(q) || h.area.toLowerCase().includes(q) || h.name.toLowerCase().includes(q))
       : hotels
+    const hasDates =
+      checkIn && checkOut && new Date(checkOut) > new Date(checkIn)
     setFiltered(next)
     setSearchActive(Boolean(q))
+    setSearchParams({
+      hasDates,
+      nights: hasDates ? differenceInCalendarDays(new Date(checkOut), new Date(checkIn)) : 0,
+      guests: (adults || 0) + (children || 0),
+      rooms: rooms || 1,
+      checkIn: hasDates ? checkIn : null,
+      checkOut: hasDates ? checkOut : null,
+    })
     hotelsRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   const resetSearch = () => {
     setFiltered(hotels)
     setSearchActive(false)
+    setSearchParams(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -46,7 +61,7 @@ export default function App() {
         <CityChips cities={cities} onPick={(c) => handleSearch({ destination: c })} />
         <PromoCarousel promos={promos} />
         <div ref={hotelsRef}>
-          <PopularHotels hotels={filtered} isSearch={searchActive} onReset={resetSearch} />
+          <PopularHotels hotels={filtered} isSearch={searchActive} onReset={resetSearch} searchParams={searchParams} onOpen={setSelectedHotel} />
         </div>
         <BrandCards brands={brands} />
         <section className="redclub" id="redclub">
@@ -83,6 +98,13 @@ export default function App() {
         <Testimonials items={testimonials} />
       </main>
       <Footer />
+      {selectedHotel && (
+        <HotelDetailModal
+          hotel={selectedHotel}
+          search={searchParams}
+          onClose={() => setSelectedHotel(null)}
+        />
+      )}
     </>
   )
 }

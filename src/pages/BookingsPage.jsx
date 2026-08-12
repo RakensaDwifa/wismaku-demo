@@ -5,9 +5,11 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import BookingCard from '../components/BookingCard.jsx'
 import { getBookings, cancelBooking } from '../services/booking.js'
+import { usePageMeta } from '../hooks/usePageMeta.js'
 import '../styles/app.css'
 
 export default function BookingsPage() {
+  usePageMeta('Pemesanan Saya', 'Kelola pemesanan penginapan Anda di WismaKu.')
   const [orders, setOrders] = useState(null)
   const [error, setError] = useState(null)
 

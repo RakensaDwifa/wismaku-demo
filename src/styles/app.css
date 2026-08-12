@@ -2076,3 +2076,23 @@
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }
+
+.error-boundary {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: var(--rd-bg-soft);
+}
+
+.error-boundary h1 {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--rd-text);
+}
+
+.error-boundary p {
+  color: var(--rd-muted);
+  margin-bottom: 24px;
+}

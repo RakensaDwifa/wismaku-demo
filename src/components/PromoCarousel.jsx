@@ -9,7 +9,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
 
   useEffect(() => {
     if (paused || promos.length === 0) return
-    const t = setInterval(() => setActive((i) => (i + 1) % promos.length), 5000)
+    const t = setInterval(() => setActive((i) => (i + 1) % promos.length), 3000)
     return () => clearInterval(t)
   }, [promos.length, paused])
 
@@ -75,7 +75,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
                   loading={i === 0 ? 'eager' : 'lazy'}
                   className="h-full w-full object-cover"
                 />
-                <div className="absolute top-1/2 left-12 z-[2] -translate-y-1/2 text-white max-sm:left-6">
+                <div className="absolute top-1/2 left-20 z-[2] -translate-y-1/2 text-white max-sm:left-6">
                   <h3 className="text-[30px] font-extrabold max-sm:text-[21px]">{p.title}</h3>
                   <p className="mt-2 text-base text-white/90 max-sm:text-[13.5px]">{p.subtitle}</p>
                   <button

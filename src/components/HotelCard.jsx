@@ -7,7 +7,7 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[14px] border border-[#eee] bg-white shadow-rd transition-all hover:-translate-y-1 hover:shadow-rd-lg">
-      <FavButton hotelId={hotel.id} className="absolute top-2.5 right-2.5 z-[2]" />
+      <FavButton hotelId={hotel.id} className="absolute top-3 right-3 z-[2]" />
       <a
         href="#hotels"
         className="block"
@@ -31,7 +31,7 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
               Hemat {hotel.discount}%
             </span>
           )}
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-md bg-white/[0.96] px-2.5 py-[5px] text-xs font-extrabold text-rd-text">
+          <span className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-md bg-white/[0.96] px-2.5 py-[5px] text-xs font-extrabold text-rd-text">
             <svg
               viewBox="0 0 24 24"
               width="12"

@@ -67,6 +67,7 @@ src/
 npm run build      # output di dist/
 npm run preview    # pratinjau build lokal
 npm run lint       # ESLint
+npm run test       # Vitest (unit test utils & services)
 npm run format     # Prettier
 ```
 

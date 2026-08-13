@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Modal from './ui/Modal.jsx'
+import AuthModal from './AuthModal.jsx'
+import MemberModal from './MemberModal.jsx'
+import { getMember, logoutMember } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 function CheckIcon() {
@@ -17,7 +20,28 @@ export default function TopBar() {
   const { lang, setLang, t } = useLanguage()
   const [helpOpen, setHelpOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const [member, setMember] = useState(null)
   const popRef = useRef(null)
+
+  useEffect(() => {
+    let live = true
+    const sync = async () => {
+      try {
+        const m = await getMember()
+        if (live) setMember(m)
+      } catch {
+        if (live) setMember(null)
+      }
+    }
+    sync()
+    window.addEventListener('wismaku:members-changed', sync)
+    return () => {
+      live = false
+      window.removeEventListener('wismaku:members-changed', sync)
+    }
+  }, [])
 
   useEffect(() => {
     if (!langOpen) return
@@ -111,20 +135,37 @@ export default function TopBar() {
             )}
           </div>
           <span className="mx-1 h-3.5 w-px bg-rd-border" />
-          <button
-            className="cursor-not-allowed rounded-md px-2 py-1 opacity-55 transition-colors hover:text-rd"
-            type="button"
-            disabled
-          >
-            {t('topbar.login')}
-          </button>
-          <button
-            className="cursor-not-allowed rounded-md px-2 py-1 font-extrabold text-rd-text opacity-55 transition-colors hover:text-rd"
-            type="button"
-            disabled
-          >
-            {t('topbar.register')}
-          </button>
+          {member ? (
+            <>
+              <span className="px-2 py-1 font-bold text-rd-text">
+                {t('auth.welcome', { name: member.name.split(' ')[0] })}
+              </span>
+              <button
+                className="rounded-md px-2 py-1 font-extrabold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+                type="button"
+                onClick={() => logoutMember()}
+              >
+                {t('auth.logout')}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="rounded-md px-2 py-1 transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+                type="button"
+                onClick={() => setAuthOpen(true)}
+              >
+                {t('topbar.login')}
+              </button>
+              <button
+                className="rounded-md px-2 py-1 font-extrabold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+                type="button"
+                onClick={() => setRegisterOpen(true)}
+              >
+                {t('topbar.register')}
+              </button>
+            </>
+          )}
         </div>
       </div>
       {helpOpen && (
@@ -158,6 +199,16 @@ export default function TopBar() {
           </div>
         </Modal>
       )}
+      {authOpen && (
+        <AuthModal
+          onClose={() => setAuthOpen(false)}
+          onSwitchToRegister={() => {
+            setAuthOpen(false)
+            setRegisterOpen(true)
+          }}
+        />
+      )}
+      {registerOpen && <MemberModal onClose={() => setRegisterOpen(false)} />}
     </div>
   )
 }

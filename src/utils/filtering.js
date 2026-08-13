@@ -5,6 +5,18 @@ export const SORT_OPTIONS = [
   { value: 'rating_desc', label: 'Rating Tertinggi' },
 ]
 
+export const DEFAULT_FILTERS = { sort: 'relevance', amenities: [], minPrice: 0, maxPrice: 0, minRating: 0 }
+
+export function countActiveFilters(filters) {
+  return (
+    (filters.sort !== 'relevance' ? 1 : 0) +
+    filters.amenities.length +
+    (filters.minPrice > 0 ? 1 : 0) +
+    (filters.maxPrice > 0 ? 1 : 0) +
+    (filters.minRating > 0 ? 1 : 0)
+  )
+}
+
 export const ALL_AMENITIES = [
   'WiFi Gratis',
   'AC',

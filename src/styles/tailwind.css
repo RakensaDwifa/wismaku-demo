@@ -24,6 +24,7 @@
   --shadow-rd-lg: 0 6px 24px rgb(0 0 0 / 0.12);
 
   --animate-modal-in: modal-in 0.18s ease-out;
+  --animate-sheet-in: sheet-in 0.24s ease-out;
   --animate-shimmer: shimmer 1.4s infinite;
 
   @keyframes modal-in {
@@ -33,6 +34,15 @@
     }
     to {
       opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+    to {
       transform: none;
     }
   }

@@ -19,7 +19,6 @@ import { parseSearchParams, parseSearchWidgetInitial, buildSearchParams } from '
 import { parseFilters, applyFilters, applySort } from '../utils/filtering.js'
 import { srcSet } from '../utils/image.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
-import '../styles/app.css'
 
 const filterHotels = (hotels, q) => {
   const query = (q || '').trim().toLowerCase()

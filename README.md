@@ -58,7 +58,7 @@ src/
   data/         # Data mock (hotels, cities, coupons)
   schemas/      # Validasi Zod kontrak payload
   utils/        # searchParams, filtering, format, image
-  styles/       # global.css (variabel) + app.css
+  styles/       # tailwind.css (tokens, @utility btn*, CSS datepicker & slider)
 ```
 
 ## Build & Deploy

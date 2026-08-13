@@ -1,12 +1,14 @@
 export default function Testimonials({ items }) {
   return (
-    <section className="section testimonials-section">
-      <div className="container">
-        <h2 className="section-title">Kata Mereka Tentang WismaKu</h2>
-        <div className="testimonials-grid">
+    <section className="py-12 max-[768px]:py-8">
+      <div className="mx-auto w-full max-w-[1200px] px-5">
+        <h2 className="mb-6 text-[26px] font-extrabold text-black max-[768px]:text-xl">
+          Kata Mereka Tentang WismaKu
+        </h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 max-[640px]:grid-cols-1">
           {items.map((t) => (
-            <article className="testimonial-card" key={t.name}>
-              <div className="testimonial-stars" aria-label={`Rating ${t.rating} dari 5`}>
+            <article className="flex flex-col rounded-2xl border border-[#eee] bg-[#fcfcfc] p-5" key={t.name}>
+              <div className="mb-3 flex gap-[3px]" aria-label={`Rating ${t.rating} dari 5`}>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <svg
                     key={i}
@@ -20,14 +22,17 @@ export default function Testimonials({ items }) {
                   </svg>
                 ))}
               </div>
-              <p className="testimonial-text">&ldquo;{t.text}&rdquo;</p>
-              <div className="testimonial-author">
-                <span className="testimonial-avatar" aria-hidden="true">
+              <p className="flex-1 text-sm leading-[1.65] text-rd-text">&ldquo;{t.text}&rdquo;</p>
+              <div className="mt-4 flex items-center gap-3">
+                <span
+                  className="grid size-[42px] place-items-center rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] font-extrabold text-white"
+                  aria-hidden="true"
+                >
                   {t.name.charAt(0)}
                 </span>
                 <div>
-                  <b>{t.name}</b>
-                  <span>{t.city}</span>
+                  <b className="block text-sm">{t.name}</b>
+                  <span className="text-xs text-rd-muted">{t.city}</span>
                 </div>
               </div>
             </article>

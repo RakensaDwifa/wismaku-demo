@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { srcSet } from '../utils/image.js'
 import ErrorBanner from './ErrorBanner.jsx'
+import { Skeleton } from './Skeletons.jsx'
 
 export default function PromoCarousel({ promos, onShowHotels, loading = false, error, onRetry }) {
   const [active, setActive] = useState(0)
@@ -19,15 +20,15 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
 
   if (loading) {
     return (
-      <section className="section promo-section" id="promo">
-        <div className="container">
-          <div className="promo-header">
-            <h2 className="section-title promo-title">Penawaran Menarik</h2>
-          </div>
+      <section className="bg-white py-12 max-[768px]:py-8" id="promo">
+        <div className="mx-auto w-full max-w-[1200px] px-5">
+          <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
+            Penawaran Menarik
+          </h2>
           {error ? (
             <ErrorBanner onRetry={onRetry} message="Gagal memuat promo." />
           ) : (
-            <div className="skeleton" style={{ height: 260, borderRadius: 16 }} aria-hidden="true" />
+            <Skeleton className="mt-6 h-[260px] rounded-2xl" />
           )}
         </div>
       </section>
@@ -35,10 +36,12 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
   }
 
   return (
-    <section className="section promo-section" id="promo">
-      <div className="container">
-        <div className="promo-header">
-          <h2 className="section-title promo-title">Penawaran Menarik</h2>
+    <section className="bg-white py-12 max-[768px]:py-8" id="promo">
+      <div className="mx-auto w-full max-w-[1200px] px-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
+            Penawaran Menarik
+          </h2>
           <button className="btn btn-outline btn-sm" type="button" onClick={onShowHotels}>
             Lihat Semua Promo
           </button>
@@ -47,7 +50,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
           <ErrorBanner onRetry={onRetry} message="Gagal memuat promo." />
         ) : (
           <div
-            className="carousel"
+            className="relative mt-6 aspect-[21/7] overflow-hidden rounded-2xl bg-[#eee]"
             role="region"
             aria-roledescription="carousel"
             aria-label="Penawaran menarik"
@@ -58,7 +61,9 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
           >
             {promos.map((p, i) => (
               <div
-                className={`carousel-slide${i === active ? ' is-active' : ''}`}
+                className={`absolute inset-0 opacity-0 transition-opacity duration-[0.6s] pointer-events-none after:absolute after:inset-0 after:content-[''] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.55),transparent_65%)] ${
+                  i === active ? 'opacity-100 pointer-events-auto' : ''
+                }`}
                 key={p.id}
                 aria-hidden={i !== active}
               >
@@ -68,12 +73,13 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
                   sizes="100vw"
                   alt={p.title}
                   loading={i === 0 ? 'eager' : 'lazy'}
+                  className="h-full w-full object-cover"
                 />
-                <div className="carousel-caption">
-                  <h3>{p.title}</h3>
-                  <p>{p.subtitle}</p>
+                <div className="absolute top-1/2 left-12 z-[2] -translate-y-1/2 text-white max-sm:left-6">
+                  <h3 className="text-[30px] font-extrabold max-sm:text-[21px]">{p.title}</h3>
+                  <p className="mt-2 text-base text-white/90 max-sm:text-[13.5px]">{p.subtitle}</p>
                   <button
-                    className="carousel-cta"
+                    className="mt-[18px] inline-block rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] px-5 py-2.5 text-[13.5px] font-extrabold text-white transition-all hover:-translate-y-0.5 hover:shadow-rd"
                     type="button"
                     onClick={onShowHotels}
                     title="Lihat penginapan pilihan"
@@ -84,7 +90,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
               </div>
             ))}
             <button
-              className="carousel-arrow carousel-arrow--prev"
+              className="absolute top-1/2 left-[18px] z-[5] grid size-[42px] -translate-y-1/2 place-items-center rounded-full bg-white text-[26px] leading-none text-rd-text shadow-rd-lg transition-all hover:bg-rd hover:text-white max-sm:hidden"
               type="button"
               onClick={() => go(-1)}
               aria-label="Sebelumnya"
@@ -92,19 +98,21 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
               &#8249;
             </button>
             <button
-              className="carousel-arrow carousel-arrow--next"
+              className="absolute top-1/2 right-[18px] z-[5] grid size-[42px] -translate-y-1/2 place-items-center rounded-full bg-white text-[26px] leading-none text-rd-text shadow-rd-lg transition-all hover:bg-rd hover:text-white max-sm:hidden"
               type="button"
               onClick={() => go(1)}
               aria-label="Berikutnya"
             >
               &#8250;
             </button>
-            <div className="carousel-dots">
+            <div className="absolute inset-x-0 bottom-4 z-[5] flex justify-center gap-2">
               {promos.map((p, i) => (
                 <button
                   key={p.id}
                   type="button"
-                  className={`dot${i === active ? ' is-active' : ''}`}
+                  className={`relative size-2 rounded-full bg-white/55 transition-all before:absolute before:-inset-2.5 before:content-[''] ${
+                    i === active ? 'w-6 bg-white' : ''
+                  }`}
                   onClick={() => setActive(i)}
                   aria-label={`Slide ${i + 1}`}
                   aria-current={i === active}

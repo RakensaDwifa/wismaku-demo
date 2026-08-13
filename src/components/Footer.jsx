@@ -38,7 +38,7 @@ export default function Footer({ onOpenPartner }) {
       </div>
 
       <div className="bg-rd-footer py-12 text-[#d6d6d6]">
-        <div className="mx-auto grid w-full max-w-[1200px] grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr] gap-9 px-5 max-[992px]:grid-cols-2">
+        <div className="mx-auto grid w-full max-w-[1200px] grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr] gap-9 px-5 max-[992px]:grid-cols-2 max-sm:grid-cols-1">
           <div className="max-[992px]:col-span-2">
             <a className="inline-flex items-center gap-2" href="#top">
               <svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true">
@@ -118,7 +118,7 @@ export default function Footer({ onOpenPartner }) {
       </div>
 
       <div className="bg-[#2e2e2e] py-[18px]">
-        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-5 text-[12.5px] text-[#999]">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-5 text-[12.5px] text-[#999] max-sm:flex-col max-sm:text-center">
           <p>
             &copy; {new Date().getFullYear()} WismaKu. Semua hak dilindungi. Demo tiruan untuk pembelajaran.
           </p>

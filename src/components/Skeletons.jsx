@@ -1,4 +1,4 @@
-function Skeleton({ className = '', style }) {
+export function Skeleton({ className = '', style }) {
   return (
     <div className={`relative overflow-hidden bg-[#e9ecef] ${className}`} style={style} aria-hidden="true">
       <span className="animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/55 to-transparent" />

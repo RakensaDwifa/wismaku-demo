@@ -8,12 +8,22 @@ export default function BookingCard({ booking, onCancel }) {
   const cancelled = booking.status === 'cancelled'
 
   return (
-    <li className="orders-item booking-card">
-      <img src={booking.hotelImg} alt="" />
-      <div className="orders-item__info">
-        <div className="orders-item__head">
-          <b>{booking.hotelName}</b>
-          <span className={`status-badge${cancelled ? ' status-badge--cancelled' : ''}`}>
+    <li className="flex items-center gap-[14px] rounded-[14px] border border-rd-border bg-white p-[14px] max-[768px]:flex-wrap">
+      <img
+        className="h-[76px] w-[110px] shrink-0 rounded-[10px] object-cover max-[768px]:aspect-video max-[768px]:h-auto max-[768px]:w-full"
+        src={booking.hotelImg}
+        alt=""
+      />
+      <div className="flex flex-1 flex-col gap-px text-[12px] text-rd-muted">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <b className="line-clamp-1 text-[12.5px] text-rd-text">{booking.hotelName}</b>
+          <span
+            className={`rounded-full px-[9px] py-[3px] text-[11px] font-extrabold ${
+              cancelled
+                ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
+                : 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
+            }`}
+          >
             {cancelled ? 'Dibatalkan' : 'Dikonfirmasi'}
           </span>
         </div>
@@ -25,29 +35,35 @@ export default function BookingCard({ booking, onCancel }) {
         </span>
         {booking.roomTypeName && <span>Tipe kamar: {booking.roomTypeName}</span>}
         <span>{fmtRupiah(booking.totalPrice)}</span>
-        <small>
+        <small className="font-bold text-rd-teal">
           Kode: {booking.id} &middot; a.n. {booking.guestName}
         </small>
       </div>
-      <div className="booking-card__actions">
+      <div className="ml-auto flex flex-col gap-2 max-[768px]:w-full max-[768px]:flex-row">
         <Link className="btn btn-outline btn-sm" to={`/hotel/${booking.hotelId}`}>
           Lihat Hotel
         </Link>
         {!cancelled && (
-          <button className="orders-cancel" type="button" onClick={() => setConfirmOpen(true)}>
+          <button
+            className="rounded-[7px] border border-rd bg-white px-2.5 py-[5px] text-[12px] font-bold text-rd transition-all duration-150 hover:bg-rd hover:text-white"
+            type="button"
+            onClick={() => setConfirmOpen(true)}
+          >
             Batal
           </button>
         )}
       </div>
       {confirmOpen && (
         <Modal onClose={() => setConfirmOpen(false)} labelledBy="cancel-booking-title">
-          <div className="modal-body">
-            <h3 id="cancel-booking-title">Batalkan Pesanan?</h3>
-            <p className="modal-loc">
+          <div className="px-5 pt-[18px] pb-[22px]">
+            <h3 id="cancel-booking-title" className="text-[19px] font-extrabold leading-[1.3]">
+              Batalkan Pesanan?
+            </h3>
+            <p className="mt-1 mb-2 text-[13px] text-rd-muted">
               Pesanan {booking.id} &mdash; {booking.hotelName} akan dibatalkan dan statusnya berubah menjadi
-              "Dibatalkan".
+              &quot;Dibatalkan&quot;.
             </p>
-            <div className="modal-price">
+            <div className="flex flex-wrap items-center justify-between gap-[14px] border-t border-[#eee] pt-4">
               <button className="btn btn-outline" type="button" onClick={() => setConfirmOpen(false)}>
                 Tidak Jadi
               </button>

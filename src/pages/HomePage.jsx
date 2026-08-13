@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
 import Hero from '../components/Hero.jsx'
@@ -20,6 +20,7 @@ import { buildSearchParams } from '../utils/searchParams.js'
 import { srcSet } from '../utils/image.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { getRecentViews } from '../services/history.js'
+import { scrollToCenter } from '../utils/scroll.js'
 
 export default function HomePage() {
   const { hotels, loading: hotelsLoading, error: hotelsError, refetch: refetchHotels } = useHotels()
@@ -34,6 +35,7 @@ export default function HomePage() {
   } = useTestimonials()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [clubOpen, setClubOpen] = useState(false)
   const [partnerOpen, setPartnerOpen] = useState(false)
@@ -50,6 +52,13 @@ export default function HomePage() {
   useEffect(() => {
     if (legacyQuery) navigate(`/hasil?${searchParams.toString()}`, { replace: true })
   }, [legacyQuery, searchParams, navigate])
+
+  useEffect(() => {
+    const id = location.state?.scrollTo
+    if (!id) return
+    const t = setTimeout(() => scrollToCenter(id), 100)
+    return () => clearTimeout(t)
+  }, [location.state])
 
   const recentHotels = recentIds
     .map((recentId) => hotels.find((h) => String(h.id) === String(recentId)))

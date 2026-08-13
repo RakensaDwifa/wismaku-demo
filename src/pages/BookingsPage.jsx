@@ -8,7 +8,6 @@ import ErrorBanner from '../components/ErrorBanner.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { getBookings, cancelBooking } from '../services/booking.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
-import '../styles/app.css'
 
 export default function BookingsPage() {
   usePageMeta('Pemesanan Saya', 'Kelola pemesanan penginapan Anda di WismaKu.')

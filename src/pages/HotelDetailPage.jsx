@@ -3,7 +3,6 @@ import HotelDetailPanel from '../components/HotelDetailPanel.jsx'
 import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
-import '../styles/app.css'
 
 export default function HotelDetailPage() {
   const { id } = useParams()

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getBookings } from '../services/booking.js'
-import { getMember } from '../services/member.js'
+import { getMember, logoutMember } from '../services/member.js'
 import { getFavorites } from '../services/favorite.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
 import { scrollToCenter } from '../utils/scroll.js'
 import { useLanguage } from '../i18n/useLanguage.js'
+import AuthModal from './AuthModal.jsx'
+import MemberModal from './MemberModal.jsx'
 
 const getNavLinks = (t) => [
   { label: t('nav.hotels'), to: '/hasil' },
@@ -26,6 +28,8 @@ export default function Header() {
   const [orders, setOrders] = useState([])
   const [favCount, setFavCount] = useState(0)
   const [member, setMember] = useState(null)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
   const drawerRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -159,14 +163,6 @@ export default function Header() {
           )}
         </nav>
         <div className="flex items-center gap-2.5">
-          {member && (
-            <span
-              className="whitespace-nowrap rounded-full bg-gradient-to-br from-rd-grad-1 to-rd-grad-2 px-3 py-1.5 text-xs font-extrabold text-white"
-              title={`Member WismaClub: ${member.name}`}
-            >
-              &#9733; Member
-            </span>
-          )}
           <Link
             className="relative inline-flex size-10 items-center justify-center rounded-full bg-[#f2f2f2] text-rd-text transition-colors hover:bg-[#fdecec] hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
             to="/favorites"
@@ -195,20 +191,31 @@ export default function Header() {
           >
             Pesanan Saya{orders.length > 0 ? ` (${orders.length})` : ''}
           </Link>
-          <button
-            className={`${btnBase} hidden cursor-not-allowed border border-rd bg-white text-rd opacity-55 disabled:hover:bg-white min-[993px]:inline-flex`}
-            type="button"
-            disabled
-          >
-            {t('topbar.login')}
-          </button>
-          <button
-            className={`${btnBase} hidden cursor-not-allowed bg-rd text-white opacity-55 min-[993px]:inline-flex`}
-            type="button"
-            disabled
-          >
-            {t('topbar.register')}
-          </button>
+          {member ? (
+            <span
+              className="hidden whitespace-nowrap rounded-full bg-gradient-to-br from-rd-grad-1 to-rd-grad-2 px-3 py-1.5 text-xs font-extrabold text-white min-[993px]:inline-block"
+              title={`Member WismaClub: ${member.name}`}
+            >
+              &#9733; Member
+            </span>
+          ) : (
+            <>
+              <button
+                className={`${btnBase} hidden border border-rd bg-white text-rd hover:bg-[#f0fdfa] min-[993px]:inline-flex`}
+                type="button"
+                onClick={() => setAuthOpen(true)}
+              >
+                {t('topbar.login')}
+              </button>
+              <button
+                className={`${btnBase} hidden bg-rd text-white min-[993px]:inline-flex`}
+                type="button"
+                onClick={() => setRegisterOpen(true)}
+              >
+                {t('topbar.register')}
+              </button>
+            </>
+          )}
           <button
             className={`flex flex-col gap-1 p-1.5 max-[992px]:flex hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd ${menuOpen ? 'is-open' : ''}`}
             type="button"
@@ -298,12 +305,61 @@ export default function Header() {
                 {favCount > 0 ? t('header.favoritesCount', { count: favCount }) : t('header.favorites')}
               </Link>
             </nav>
-            <div className="mt-auto border-t border-gray-100 px-5 py-[18px] text-xs text-rd-muted">
-              <p>{t('header.loginSoon')}</p>
+            <div className="mt-auto border-t border-gray-100 px-5 py-[18px]">
+              {member ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-[13px] font-extrabold text-rd-text">
+                    {t('auth.welcome', { name: member.name.split(' ')[0] })}
+                  </p>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    type="button"
+                    onClick={() => {
+                      closeMenu()
+                      logoutMember()
+                    }}
+                  >
+                    {t('auth.logout')}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <button
+                    className="btn btn-primary w-full"
+                    type="button"
+                    onClick={() => {
+                      closeMenu()
+                      setAuthOpen(true)
+                    }}
+                  >
+                    {t('topbar.login')}
+                  </button>
+                  <button
+                    className="btn btn-outline w-full"
+                    type="button"
+                    onClick={() => {
+                      closeMenu()
+                      setRegisterOpen(true)
+                    }}
+                  >
+                    {t('topbar.register')}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
+      {authOpen && (
+        <AuthModal
+          onClose={() => setAuthOpen(false)}
+          onSwitchToRegister={() => {
+            setAuthOpen(false)
+            setRegisterOpen(true)
+          }}
+        />
+      )}
+      {registerOpen && <MemberModal onClose={() => setRegisterOpen(false)} />}
     </header>
   )
 }

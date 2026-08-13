@@ -3,6 +3,7 @@ import { MemberPayloadSchema, PartnerPayloadSchema, parsePayload } from '../sche
 
 const MEMBER_KEY = 'wismaku_members'
 const PARTNER_KEY = 'wismaku_partners'
+const ACTIVE_KEY = 'wismaku_active_member'
 const CHANGE_EVENT = 'wismaku:members-changed'
 
 const read = (key) => {
@@ -13,14 +14,31 @@ const read = (key) => {
   }
 }
 
+const setActive = (id) => {
+  try {
+    if (id == null) localStorage.removeItem(ACTIVE_KEY)
+    else localStorage.setItem(ACTIVE_KEY, id)
+  } catch {
+    return
+  }
+}
+
 const notify = () => {
   window.dispatchEvent(new Event(CHANGE_EVENT))
 }
 
 export async function getMember() {
   if (USE_MOCK) {
+    const activeId = (() => {
+      try {
+        return localStorage.getItem(ACTIVE_KEY)
+      } catch {
+        return null
+      }
+    })()
+    if (!activeId) return null
     const list = read(MEMBER_KEY)
-    return list.length > 0 ? list[list.length - 1] : null
+    return list.find((m) => m.id === activeId) ?? null
   }
   return request('/member')
 }
@@ -36,12 +54,39 @@ export async function registerMember(payload) {
     const list = read(MEMBER_KEY)
     list.push(member)
     localStorage.setItem(MEMBER_KEY, JSON.stringify(list))
+    setActive(member.id)
     notify()
     return member
   }
   const member = await request('/member', { method: 'POST', body: data })
   notify()
   return member
+}
+
+export async function loginMember(email, password) {
+  const clean = (email || '').trim().toLowerCase()
+  if (USE_MOCK) {
+    const member = read(MEMBER_KEY).find((m) => m.email.toLowerCase() === clean)
+    if (!member || member.password !== password) throw new Error('Kredensial tidak cocok.')
+    setActive(member.id)
+    notify()
+    return member
+  }
+  const member = await request('/member/login', { method: 'POST', body: { email: clean, password } })
+  setActive(member.id)
+  notify()
+  return member
+}
+
+export async function logoutMember() {
+  if (USE_MOCK) {
+    setActive(null)
+    notify()
+    return null
+  }
+  await request('/member/logout', { method: 'POST' })
+  notify()
+  return null
 }
 
 export async function getPartners() {

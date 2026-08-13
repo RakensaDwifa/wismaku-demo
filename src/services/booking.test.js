@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createBooking, getBookings, cancelBooking, payBooking } from './booking.js'
+import { BookingPayloadSchema, parsePayload } from '../schemas/contracts.js'
 
 const validPayload = {
   hotelId: 1,
@@ -45,6 +46,13 @@ describe('createBooking', () => {
     expect(list.length).toBe(2)
     expect(list[0].hotelName).toBe('Hotel Kedua')
   })
+
+  it('hasil booking tetap valid menurut schema setelah dibayar', async () => {
+    const booking = await createBooking(validPayload)
+    const paid = await payBooking(booking.id, 'qris')
+    expect(paid.status).toBe('confirmed')
+    expect(parsePayload(BookingPayloadSchema, paid).totalPrice).toBe(validPayload.totalPrice)
+  })
 })
 
 describe('cancelBooking', () => {
@@ -74,5 +82,48 @@ describe('payBooking', () => {
     expect(paid.paidAt).toBeTruthy()
     const list = await getBookings()
     expect(list[0].status).toBe('confirmed')
+  })
+
+  it('mengembalikan undefined dan tidak mengubah daftar untuk id tak dikenal', async () => {
+    const booking = await createBooking(validPayload)
+    const paid = await payBooking('WK-NOPE', 'va')
+    expect(paid).toBeUndefined()
+    const list = await getBookings()
+    expect(list).toHaveLength(1)
+    expect(list[0].id).toBe(booking.id)
+    expect(list[0].status).toBe('pending')
+    expect(list[0].paymentMethod).toBeUndefined()
+  })
+
+  it('tetap konsisten saat dibayar dua kali', async () => {
+    const booking = await createBooking(validPayload)
+    await payBooking(booking.id, 'va')
+    const paidAgain = await payBooking(booking.id, 'ewallet')
+    expect(paidAgain.status).toBe('confirmed')
+    expect(paidAgain.paymentMethod).toBe('ewallet')
+    expect(paidAgain.paidAt).toBeTruthy()
+    const list = await getBookings()
+    expect(list).toHaveLength(1)
+  })
+
+  it('tidak mengubah data pesanan lain setelah dibayar', async () => {
+    const booking = await createBooking({
+      ...validPayload,
+      couponCode: 'WISMA20',
+      couponDiscount: 39800,
+      memberDiscount: 35820,
+      totalPrice: 322380,
+    })
+    const before = { ...booking }
+    await payBooking(booking.id, 'qris')
+    const list = await getBookings()
+    const after = list[0]
+    expect(after.couponCode).toBe(before.couponCode)
+    expect(after.couponDiscount).toBe(before.couponDiscount)
+    expect(after.memberDiscount).toBe(before.memberDiscount)
+    expect(after.totalPrice).toBe(before.totalPrice)
+    expect(after.guestName).toBe(before.guestName)
+    expect(after.checkIn).toBe(before.checkIn)
+    expect(after.checkOut).toBe(before.checkOut)
   })
 })

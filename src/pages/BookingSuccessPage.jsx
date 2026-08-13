@@ -109,7 +109,7 @@ export default function BookingSuccessPage() {
                         nights: booking.nights,
                         rooms: booking.rooms,
                         guests: booking.guests,
-                        type: booking.roomTypeName,
+                        type: t(`data.roomTypes.${booking.roomTypeId}`) ?? booking.roomTypeName,
                       })}
                     </span>
                     <span className="text-rd-muted">

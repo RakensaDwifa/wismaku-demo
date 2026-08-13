@@ -125,7 +125,7 @@ export default function PaymentPage() {
                             nights: booking.nights,
                             rooms: booking.rooms,
                             guests: booking.guests,
-                            type: booking.roomTypeName,
+                            type: t(`data.roomTypes.${booking.roomTypeId}`) ?? booking.roomTypeName,
                           })}
                         </p>
                         <p className="mt-0.5 text-[12.5px] text-rd-muted">

@@ -163,7 +163,7 @@ export const hotels = [
     roomTypes: [
       { id: 'standard', name: 'Standar', price: 450000, originalPrice: 650000, capacity: 2 },
       { id: 'deluxe', name: 'Deluxe', price: 585000, originalPrice: 845000, capacity: 3 },
-      { id: 'family', name: 'Family Villa', price: 720000, originalPrice: 1040000, capacity: 4 },
+      { id: 'familyVilla', name: 'Family Villa', price: 720000, originalPrice: 1040000, capacity: 4 },
     ],
     policy: {
       checkIn: '15:00',
@@ -398,7 +398,7 @@ export const hotels = [
     roomTypes: [
       { id: 'standard', name: 'Standar', price: 499000, originalPrice: 700000, capacity: 2 },
       { id: 'deluxe', name: 'Deluxe', price: 649000, originalPrice: 910000, capacity: 3 },
-      { id: 'family', name: 'Family Apartemen', price: 798000, originalPrice: 1120000, capacity: 4 },
+      { id: 'familyApartment', name: 'Family Apartemen', price: 798000, originalPrice: 1120000, capacity: 4 },
     ],
     policy: {
       checkIn: '14:00',
@@ -539,7 +539,7 @@ export const hotels = [
     roomTypes: [
       { id: 'standard', name: 'Standar', price: 385000, originalPrice: 550000, capacity: 2 },
       { id: 'deluxe', name: 'Deluxe', price: 501000, originalPrice: 715000, capacity: 3 },
-      { id: 'family', name: 'Family Villa', price: 616000, originalPrice: 880000, capacity: 4 },
+      { id: 'familyVilla', name: 'Family Villa', price: 616000, originalPrice: 880000, capacity: 4 },
     ],
     policy: {
       checkIn: '15:00',

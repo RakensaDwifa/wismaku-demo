@@ -44,8 +44,8 @@ export default function BookingCard({ booking, onCancel }) {
           <div className="modal-body">
             <h3 id="cancel-booking-title">Batalkan Pesanan?</h3>
             <p className="modal-loc">
-              Pesanan {booking.id} &mdash; {booking.hotelName} akan dibatalkan dan statusnya berubah
-              menjadi "Dibatalkan".
+              Pesanan {booking.id} &mdash; {booking.hotelName} akan dibatalkan dan statusnya berubah menjadi
+              "Dibatalkan".
             </p>
             <div className="modal-price">
               <button className="btn btn-outline" type="button" onClick={() => setConfirmOpen(false)}>

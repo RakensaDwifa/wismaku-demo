@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Modal from './ui/Modal.jsx'
-import AuthModal from './AuthModal.jsx'
-import MemberModal from './MemberModal.jsx'
-import { getMember, logoutMember } from '../services/member.js'
+import GoogleModal from './GoogleModal.jsx'
+import { getMember, getGoogleUser, logout } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 function CheckIcon() {
@@ -21,7 +20,7 @@ export default function TopBar() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
-  const [registerOpen, setRegisterOpen] = useState(false)
+  const [user, setUser] = useState(null)
   const [member, setMember] = useState(null)
   const popRef = useRef(null)
 
@@ -29,17 +28,23 @@ export default function TopBar() {
     let live = true
     const sync = async () => {
       try {
-        const m = await getMember()
-        if (live) setMember(m)
+        const [u, m] = await Promise.all([getGoogleUser(), getMember()])
+        if (live) {
+          setUser(u)
+          setMember(m)
+        }
       } catch {
-        if (live) setMember(null)
+        if (live) {
+          setUser(null)
+          setMember(null)
+        }
       }
     }
     sync()
-    window.addEventListener('wismaku:members-changed', sync)
+    window.addEventListener('wismaku:session-changed', sync)
     return () => {
       live = false
-      window.removeEventListener('wismaku:members-changed', sync)
+      window.removeEventListener('wismaku:session-changed', sync)
     }
   }, [])
 
@@ -135,17 +140,17 @@ export default function TopBar() {
             )}
           </div>
           <span className="mx-1 h-3.5 w-px bg-rd-border" />
-          {member ? (
+          {user || member ? (
             <>
               <span className="px-2 py-1 font-bold text-rd-text">
-                {t('auth.welcome', { name: member.name.split(' ')[0] })}
+                {t('topbar.welcome', { name: (user ?? member).name.split(' ')[0] })}
               </span>
               <button
                 className="rounded-md px-2 py-1 font-extrabold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
                 type="button"
-                onClick={() => logoutMember()}
+                onClick={() => logout()}
               >
-                {t('auth.logout')}
+                {t('topbar.logout')}
               </button>
             </>
           ) : (
@@ -160,7 +165,7 @@ export default function TopBar() {
               <button
                 className="rounded-md px-2 py-1 font-extrabold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
                 type="button"
-                onClick={() => setRegisterOpen(true)}
+                onClick={() => setAuthOpen(true)}
               >
                 {t('topbar.register')}
               </button>
@@ -199,16 +204,7 @@ export default function TopBar() {
           </div>
         </Modal>
       )}
-      {authOpen && (
-        <AuthModal
-          onClose={() => setAuthOpen(false)}
-          onSwitchToRegister={() => {
-            setAuthOpen(false)
-            setRegisterOpen(true)
-          }}
-        />
-      )}
-      {registerOpen && <MemberModal onClose={() => setRegisterOpen(false)} />}
+      {authOpen && <GoogleModal onClose={() => setAuthOpen(false)} />}
     </div>
   )
 }

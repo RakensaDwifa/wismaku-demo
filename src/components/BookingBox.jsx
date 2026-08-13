@@ -29,10 +29,10 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
       }
     }
     sync()
-    window.addEventListener('wismaku:members-changed', sync)
+    window.addEventListener('wismaku:session-changed', sync)
     return () => {
       live = false
-      window.removeEventListener('wismaku:members-changed', sync)
+      window.removeEventListener('wismaku:session-changed', sync)
     }
   }, [])
 

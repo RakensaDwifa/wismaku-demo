@@ -19,7 +19,7 @@ Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip Re
 
 | Lapisan  | Pilihan                                       |
 | -------- | --------------------------------------------- |
-| UI       | React 18, React Router 7, Vite 5              |
+| UI       | React 18, React Router 7, Vite 7              |
 | Tanggal  | date-fns, react-day-picker                    |
 | Validasi | Zod                                           |
 | Gaya     | Tailwind CSS v4 (design tokens, @utility)

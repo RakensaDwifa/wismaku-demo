@@ -65,21 +65,36 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
   }
 
   return (
-    <div className="sw-dates" ref={wrapRef}>
-      <div className={`sw-field sw-field-date${active === 'checkin' ? ' is-active' : ''}`}>
-        <label className="sw-label">Check-in</label>
-        <button className="sw-value" type="button" onClick={() => openFor('checkin')}>
+    <div
+      className="relative grid grid-cols-2 items-stretch max-[992px]:col-span-2 max-[992px]:border-b max-[992px]:border-b-[#eee]"
+      ref={wrapRef}
+    >
+      <div className="relative flex flex-col justify-center border-r border-r-[#eee] px-4 py-[14px] last:border-r-0">
+        <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
+          Check-in
+        </label>
+        <button
+          className={`w-full cursor-pointer text-left text-[15px] font-bold whitespace-nowrap text-rd-text transition-colors duration-150 hover:text-rd${active === 'checkin' ? ' text-rd' : ''}`}
+          type="button"
+          onClick={() => openFor('checkin')}
+        >
           {fmtDate(checkIn)}
         </button>
       </div>
-      <div className={`sw-field sw-field-date${active === 'checkout' ? ' is-active' : ''}`}>
-        <label className="sw-label">Check-out</label>
-        <button className="sw-value" type="button" onClick={() => openFor('checkout')}>
+      <div className="relative flex flex-col justify-center border-r border-r-[#eee] px-4 py-[14px] last:border-r-0">
+        <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
+          Check-out
+        </label>
+        <button
+          className={`w-full cursor-pointer text-left text-[15px] font-bold whitespace-nowrap text-rd-text transition-colors duration-150 hover:text-rd${active === 'checkout' ? ' text-rd' : ''}`}
+          type="button"
+          onClick={() => openFor('checkout')}
+        >
           {fmtDate(checkOut)}
         </button>
       </div>
       {open && (
-        <div className="date-popup">
+        <div className="absolute top-[calc(100%+10px)] left-1/2 z-[80] -translate-x-1/2 rounded-[14px] border border-[#eee] bg-white px-[14px] pt-4 pb-[10px] shadow-rd-lg max-[640px]:right-0 max-[640px]:left-0 max-[640px]:translate-x-0">
           <DayPicker
             mode="single"
             numberOfMonths={mobile ? 1 : 2}
@@ -102,9 +117,9 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
             }}
             showOutsideDays
             footer={
-              <div className="date-popup-footer">
+              <div className="mt-2 border-t border-[#f0f0f0] pt-2.5 pb-1 text-center text-[13px] text-rd-muted">
                 {nights > 0 ? (
-                  <b>{nights} malam</b>
+                  <b className="text-[14px] text-rd">{nights} malam</b>
                 ) : (
                   <span>{active === 'checkin' ? 'Pilih tanggal check-in' : 'Pilih tanggal check-out'}</span>
                 )}

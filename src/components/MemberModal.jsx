@@ -28,49 +28,61 @@ export default function MemberModal({ onClose }) {
   return (
     <Modal onClose={onClose} labelledBy="member-modal-title">
       {!member ? (
-        <div className="modal-body">
-          <div className="modal-head">
-            <h3 id="member-modal-title">Gabung WismaClub, Gratis!</h3>
-            <p className="modal-loc">
-              Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out.
-            </p>
-          </div>
-          <form className="booking-form" onSubmit={submit} noValidate>
-            <label>
+        <div className="px-5 pt-[18px] pb-[22px]">
+          <h3 id="member-modal-title" className="text-[19px] font-extrabold leading-[1.3]">
+            Gabung WismaClub, Gratis!
+          </h3>
+          <p className="mt-1 mb-2 text-[13px] text-rd-muted">
+            Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out.
+          </p>
+          <form className="flex flex-col gap-3" onSubmit={submit} noValidate>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
               Nama Lengkap
-              <input type="text" value={form.name} onChange={set('name')} placeholder="cth: Budi Santoso" />
+              <input
+                className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
+                type="text"
+                value={form.name}
+                onChange={set('name')}
+                placeholder="cth: Budi Santoso"
+              />
             </label>
-            <label>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
               Email
               <input
+                className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                 type="email"
                 value={form.email}
                 onChange={set('email')}
                 placeholder="cth: budi@email.com"
               />
             </label>
-            {error && <p className="booking-error">{error}</p>}
+            {error && <p className="text-[12.5px] font-bold text-rd">{error}</p>}
             <button className="btn btn-primary" type="submit">
               Daftar Sekarang
             </button>
           </form>
         </div>
       ) : (
-        <div className="modal-body modal-success">
-          <div className="modal-success__icon" aria-hidden="true">
+        <div className="px-[26px] py-[34px] text-center">
+          <div
+            className="mx-auto mb-[14px] grid size-[54px] place-items-center rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] text-[26px] font-extrabold text-white"
+            aria-hidden="true"
+          >
             &#10003;
           </div>
-          <h3>Selamat, Kamu Anggota WismaClub!</h3>
-          <p className="modal-success__code">
-            ID Member: <b>{member.id}</b>
+          <h3 className="text-[19px] font-extrabold">Selamat, Kamu Anggota WismaClub!</h3>
+          <p className="my-1.5 mb-1 text-[13px] text-rd-muted">
+            ID Member: <b className="text-rd-teal">{member.id}</b>
           </p>
-          <div className="modal-summary">
+          <div className="my-3 mb-4 flex flex-col gap-[3px] rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
             <p>Diskon member hingga 20% di ribuan properti</p>
             <p>Check-in lebih awal (early check-in)</p>
             <p>Fleksibilitas check-out</p>
           </div>
-          <p className="modal-hint">Simulasi demo — data member tersimpan di perangkat ini (localStorage).</p>
-          <button className="btn btn-primary" type="button" onClick={onClose}>
+          <p className="mt-2 text-[12px] text-rd-muted">
+            Simulasi demo — data member tersimpan di perangkat ini (localStorage).
+          </p>
+          <button className="btn btn-primary mt-[18px]" type="button" onClick={onClose}>
             Selesai
           </button>
         </div>

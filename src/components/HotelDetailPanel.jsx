@@ -188,7 +188,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
 
   return (
     <div
-      className="hotel-modal"
+      className="relative w-[min(560px,100%)] max-h-[calc(100vh-40px)] overflow-y-auto rounded-2xl bg-white shadow-rd-lg outline-none animate-modal-in"
       role="dialog"
       aria-modal={String(!isPage)}
       aria-label={`Detail ${hotel.name}`}
@@ -196,17 +196,25 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
       ref={panelRef}
     >
       {onClose && (
-        <button className="modal-close" type="button" onClick={onClose} aria-label="Tutup">
+        <button
+          className="absolute top-2.5 right-2.5 z-10 grid size-[34px] place-items-center rounded-full bg-white/92 text-[22px] leading-none text-rd-text shadow-[0_2px_8px_rgba(0,0,0,0.2)] hover:text-rd"
+          type="button"
+          onClick={onClose}
+          aria-label="Tutup"
+        >
           &times;
         </button>
       )}
-      <FavButton hotelId={hotel.id} className="hotel-modal__fav" />
+      <FavButton
+        hotelId={hotel.id}
+        className={`absolute right-2.5 z-10 ${onClose ? 'top-[54px]' : 'top-2.5'}`}
+      />
 
       {step === 'detail' && (
         <>
-          <div className="modal-gallery">
+          <div className="bg-[#f7f7f7]">
             <img
-              className="modal-gallery__main"
+              className="h-[260px] w-full object-cover"
               src={hotel.gallery[imgIdx]}
               srcSet={srcSet(hotel.gallery[imgIdx], [400, 800, 1200])}
               sizes="(max-width: 768px) 92vw, 560px"
@@ -214,76 +222,87 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
               onClick={() => setLightboxOpen(true)}
               title="Klik untuk memperbesar foto"
             />
-            <div className="modal-gallery__thumbs">
+            <div className="flex gap-2 px-[14px] pt-2.5 pb-3">
               {hotel.gallery.map((g, i) => (
                 <button
                   key={g}
                   type="button"
-                  className={`modal-thumb${i === imgIdx ? ' is-active' : ''}`}
+                  className={`h-[58px] w-[86px] overflow-hidden rounded-lg border-2 border-transparent p-0 aria-pressed:border-rd max-[768px]:h-16 max-[768px]:w-24`}
                   onClick={() => setImgIdx(i)}
                   aria-label={`Foto ${i + 1}`}
                   aria-pressed={i === imgIdx}
                 >
-                  <img src={g} alt="" />
+                  <img className="h-full w-full object-cover" src={g} alt="" />
                 </button>
               ))}
             </div>
           </div>
-          <div className="modal-body">
-            <div className="modal-head">
-              <h3>{hotel.name}</h3>
-              <p className="modal-loc">
-                {hotel.area}, {hotel.city}
-              </p>
-              <span className="modal-rating">
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
-                  <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" />
-                </svg>
-                {hotel.rating} ({hotel.reviews} ulasan)
-              </span>
-            </div>
+          <div className="px-5 pt-[18px] pb-[22px]">
+            <h3 className="text-[19px] font-extrabold leading-[1.3]">{hotel.name}</h3>
+            <p className="mt-1 mb-2 text-[13px] text-rd-muted">
+              {hotel.area}, {hotel.city}
+            </p>
+            <span className="inline-flex items-center gap-[5px] rounded-full bg-rd-soft px-2.5 py-1 text-[12.5px] font-extrabold text-rd-teal">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" />
+              </svg>
+              {hotel.rating} ({hotel.reviews} ulasan)
+            </span>
 
-            <div className="modal-amenities">
+            <div className="mt-[14px] flex flex-wrap gap-2">
               {hotel.amenities.map((a) => (
-                <span className="modal-amenity" key={a}>
+                <span
+                  className="rounded-full border border-rd-border bg-rd-soft px-[11px] py-[5px] text-[12px] font-semibold text-rd-teal"
+                  key={a}
+                >
                   {a}
                 </span>
               ))}
             </div>
 
-            <p className="modal-desc">{hotel.desc}</p>
+            <p className="my-[14px] mb-[18px] text-[13.5px] leading-[1.65] text-rd-muted">{hotel.desc}</p>
 
             {(userReviews.length > 0 || hotel.reviewList?.length > 0) && (
-              <section className="modal-section">
-                <h4 className="modal-section__title">Ulasan Tamu</h4>
-                <div className="review-summary">
-                  <span className="review-summary__score">{hotel.rating}</span>
-                  <span className="review-summary__meta">
+              <section className="mt-[22px]">
+                <h4 className="mb-2.5 text-[15px] font-extrabold">Ulasan Tamu</h4>
+                <div className="mb-[14px] flex items-center gap-3">
+                  <span className="text-[22px] font-extrabold text-rd">{hotel.rating}</span>
+                  <span className="text-[13px] text-rd-muted">
                     Dari {hotel.reviews} ulasan &middot; {hotel.reviewList.length + userReviews.length} ulasan
                     terbaru
                   </span>
                 </div>
-                <ul className="review-list">
+                <ul className="mb-5 flex list-none flex-col gap-[14px] p-0">
                   {[...userReviews, ...(hotel.reviewList ?? [])].map((r, i) => (
-                    <li className="review-item" key={r.id || i}>
-                      <div className="review-item__head">
-                        <b>
+                    <li className="rounded-[10px] bg-rd-soft px-[14px] py-3 text-[13.5px]" key={r.id || i}>
+                      <div className="mb-0.5 flex items-center justify-between gap-2.5">
+                        <b className="inline-flex items-center gap-2 text-[13.5px]">
                           {r.name}
-                          {userReviews.includes(r) && <span className="review-item__badge">Ulasan Anda</span>}
+                          {userReviews.includes(r) && (
+                            <span className="rounded-full bg-[rgba(20,184,166,0.15)] px-2 py-[2px] text-[10.5px] font-extrabold tracking-[0.4px] uppercase text-rd-teal">
+                              Ulasan Anda
+                            </span>
+                          )}
                         </b>
-                        <span className="review-item__stars">{'★'.repeat(r.rating)}</span>
+                        <span className="text-[12px] text-[#f5a623] tracking-[1px]">
+                          {'★'.repeat(r.rating)}
+                        </span>
                       </div>
-                      <span className="review-item__date">{fmtDate(r.date)}</span>
-                      <p>{r.text}</p>
+                      <span className="text-[11.5px] text-rd-muted">{fmtDate(r.date)}</span>
+                      <p className="mt-1.5 leading-[1.55]">{r.text}</p>
                     </li>
                   ))}
                 </ul>
 
                 {userReviews.length === 0 ? (
-                  <form className="review-form" onSubmit={submitReview} noValidate>
-                    <h5 className="review-form__title">Tulis Ulasan</h5>
+                  <form
+                    className="flex flex-col gap-3 rounded-xl border border-dashed border-rd-border p-4"
+                    onSubmit={submitReview}
+                    noValidate
+                  >
+                    <h5 className="text-[14px] font-extrabold">Tulis Ulasan</h5>
                     <div
-                      className="star-input"
+                      className="inline-flex gap-0.5"
                       role="radiogroup"
                       aria-label="Rating bintang"
                       onMouseLeave={() => setHoverRating(0)}
@@ -292,7 +311,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                         <button
                           key={n}
                           type="button"
-                          className={`star-btn${n <= (hoverRating || reviewRating) ? ' is-on' : ''}`}
+                          className={`text-[26px] leading-none text-rd-border transition-[color,transform] duration-100 hover:scale-[1.15]${n <= (hoverRating || reviewRating) ? ' text-[#f5a623]' : ''}`}
                           onClick={() => {
                             setReviewRating(n)
                             setReviewError('')
@@ -306,9 +325,10 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                         </button>
                       ))}
                     </div>
-                    <label>
+                    <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
                       Nama
                       <input
+                        className="rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                         type="text"
                         value={reviewForm.name}
                         onChange={setReviewField('name')}
@@ -316,9 +336,10 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                         maxLength={50}
                       />
                     </label>
-                    <label>
-                      Kota <span className="review-form__opt">(opsional)</span>
+                    <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
+                      Kota <span className="font-medium text-rd-muted">(opsional)</span>
                       <input
+                        className="rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                         type="text"
                         value={reviewForm.city}
                         onChange={setReviewField('city')}
@@ -326,9 +347,10 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                         maxLength={40}
                       />
                     </label>
-                    <label>
+                    <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
                       Ulasan
                       <textarea
+                        className="resize-y rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                         value={reviewForm.text}
                         onChange={setReviewField('text')}
                         placeholder="Ceritakan pengalaman menginapmu..."
@@ -336,21 +358,23 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                         maxLength={500}
                       />
                     </label>
-                    {reviewError && <p className="booking-error">{reviewError}</p>}
+                    {reviewError && <p className="text-[12.5px] font-bold text-rd">{reviewError}</p>}
                     <button className="btn btn-primary btn-sm" type="submit">
                       Kirim Ulasan
                     </button>
                   </form>
                 ) : (
-                  <p className="review-done">Terima kasih, ulasan Anda telah tersimpan.</p>
+                  <p className="rounded-[10px] bg-[rgba(20,184,166,0.1)] px-[14px] py-3 text-[13.5px] font-bold text-rd-teal">
+                    Terima kasih, ulasan Anda telah tersimpan.
+                  </p>
                 )}
               </section>
             )}
 
             {hotel.policy && (
-              <section className="modal-section">
-                <h4 className="modal-section__title">Kebijakan Hotel</h4>
-                <ul className="policy-list">
+              <section className="mt-[22px]">
+                <h4 className="mb-2.5 text-[15px] font-extrabold">Kebijakan Hotel</h4>
+                <ul className="list-none p-0">
                   <li>
                     <b>Check-in:</b> mulai {hotel.policy.checkIn}
                   </li>
@@ -363,45 +387,52 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
             )}
 
             {hotel.roomTypes?.length > 0 && (
-              <div className="modal-rooms">
-                <p className="modal-rooms__label">Pilih Tipe Kamar</p>
-                <div className="modal-rooms__grid">
+              <div className="mt-1 mb-4">
+                <p className="mb-2 text-[12.5px] font-extrabold text-rd-text">Pilih Tipe Kamar</p>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2">
                   {hotel.roomTypes.map((t) => (
                     <button
                       key={t.id}
                       type="button"
-                      className={`room-type${t.id === roomTypeId ? ' is-active' : ''}`}
+                      className={`flex cursor-pointer flex-col gap-0.5 rounded-[10px] border-[1.5px] border-rd-border bg-white p-2.5 text-left transition-[border-color,background] duration-150 hover:border-rd-teal aria-pressed:border-rd-teal aria-pressed:bg-[rgba(20,184,166,0.07)]`}
                       onClick={() => setRoomTypeId(t.id)}
                       aria-pressed={t.id === roomTypeId}
                     >
-                      <b>{t.name}</b>
-                      <span>hingga {t.capacity} tamu</span>
-                      <span className="room-type__price">
-                        {fmtRupiah(t.price)} <small>/ malam</small>
+                      <b className="text-[13.5px] text-rd-text">{t.name}</b>
+                      <span className="text-[12px] text-rd-muted">hingga {t.capacity} tamu</span>
+                      <span className="mt-1 font-extrabold text-rd">
+                        {fmtRupiah(t.price)} <small className="font-semibold text-rd-muted">/ malam</small>
                       </span>
-                      <span className="room-type__strike">{fmtRupiah(t.originalPrice)}</span>
+                      <span className="text-[12px] text-rd-muted line-through">
+                        {fmtRupiah(t.originalPrice)}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="modal-price">
-              <div className="modal-price__left">
-                <span className="modal-price__per">
-                  {fmtRupiah(roomType.price)} <small>/ malam</small>
+            <div className="flex flex-wrap items-center justify-between gap-[14px] border-t border-[#eee] pt-4">
+              <div className="flex flex-col">
+                <span className="text-[19px] font-extrabold text-rd">
+                  {fmtRupiah(roomType.price)}{' '}
+                  <small className="text-[12.5px] font-semibold text-rd-muted">/ malam</small>
                 </span>
                 {nights > 0 && (
-                  <span className="modal-price__total">
+                  <span className="mt-0.5 text-[12.5px] font-extrabold text-rd-teal">
                     {fmtRupiah(subtotal)} total &middot; {nights} malam &middot; {rooms} kamar
                   </span>
                 )}
                 {isMember && nights > 0 && (
-                  <span className="modal-price__total">Diskon member 10% otomatis diterapkan</span>
+                  <span className="mt-0.5 text-[12.5px] font-extrabold text-rd-teal">
+                    Diskon member 10% otomatis diterapkan
+                  </span>
                 )}
               </div>
               {!hasDates && nights === 0 && (
-                <p className="modal-hint">Pilih tanggal lewat pencarian untuk menghitung total</p>
+                <p className="mt-2 text-[12px] text-rd-muted">
+                  Pilih tanggal lewat pencarian untuk menghitung total
+                </p>
               )}
               <button className="btn btn-primary" type="button" onClick={goForm}>
                 Pesan Sekarang
@@ -412,14 +443,12 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
       )}
 
       {step === 'form' && (
-        <div className="modal-body">
-          <div className="modal-head">
-            <h3>Pesan {hotel.name}</h3>
-            <p className="modal-loc">
-              {hotel.area}, {hotel.city} &middot; {roomType.name}
-            </p>
-          </div>
-          <div className="modal-summary">
+        <div className="px-5 pt-[18px] pb-[22px]">
+          <h3 className="text-[19px] font-extrabold leading-[1.3]">Pesan {hotel.name}</h3>
+          <p className="mt-1 mb-2 text-[13px] text-rd-muted">
+            {hotel.area}, {hotel.city} &middot; {roomType.name}
+          </p>
+          <div className="my-3 mb-4 flex flex-col gap-[3px] rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
             {hasDates && (
               <p>
                 {fmtDate(search.checkIn)} &rarr; {fmtDate(search.checkOut)} ({nights} malam)
@@ -430,9 +459,9 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
             </p>
           </div>
 
-          <div className="coupon-row">
+          <div className="mb-1 flex gap-2">
             <input
-              className="coupon-input"
+              className="flex-1 rounded-[9px] border border-rd-border px-3 py-[9px] text-[13.5px] focus:border-rd focus:outline-none"
               type="text"
               value={couponInput}
               onChange={(e) => {
@@ -446,60 +475,77 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
               Pakai
             </button>
           </div>
-          {couponError && <p className="booking-error">{couponError}</p>}
+          {couponError && <p className="text-[12.5px] font-bold text-rd">{couponError}</p>}
           {coupon && (
-            <p className="coupon-ok">
+            <p className="my-1.5 mb-2.5 text-[12.5px] font-bold text-rd-teal">
               Kupon {coupon.code} berlaku &mdash; hemat {fmtRupiah(couponAmount)}
             </p>
           )}
-          {isMember && <p className="coupon-ok">Diskon member WismaClub 10% diterapkan</p>}
+          {isMember && (
+            <p className="my-1.5 mb-2.5 text-[12.5px] font-bold text-rd-teal">
+              Diskon member WismaClub 10% diterapkan
+            </p>
+          )}
 
-          <div className="price-breakdown">
-            <div className="price-breakdown__row">
+          <div className="my-2.5 mb-[14px] flex flex-col gap-1.5 rounded-[10px] border border-rd-border px-[14px] py-2.5">
+            <div className="flex justify-between gap-2.5 text-[13px] text-rd-text">
               <span>
                 {fmtRupiah(roomType.price)} &times; {nights} malam &times; {rooms} kamar
               </span>
               <b>{fmtRupiah(subtotal)}</b>
             </div>
             {coupon && (
-              <div className="price-breakdown__row price-breakdown__save">
+              <div className="flex justify-between gap-2.5 text-[13px] text-rd-teal">
                 <span>Kupon {coupon.code}</span>
                 <b>-{fmtRupiah(couponAmount)}</b>
               </div>
             )}
             {isMember && (
-              <div className="price-breakdown__row price-breakdown__save">
+              <div className="flex justify-between gap-2.5 text-[13px] text-rd-teal">
                 <span>Diskon Member 10%</span>
                 <b>-{fmtRupiah(memberDiscount)}</b>
               </div>
             )}
-            <div className="price-breakdown__row price-breakdown__total">
+            <div className="mt-0.5 flex justify-between gap-2.5 border-t border-dashed border-[#ddd] pt-2 text-[14.5px] font-extrabold text-rd">
               <span>Total</span>
               <b>{fmtRupiah(total)}</b>
             </div>
           </div>
 
-          <form className="booking-form" onSubmit={submit} noValidate>
-            <label>
+          <form className="flex flex-col gap-3" onSubmit={submit} noValidate>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
               Nama Lengkap
-              <input type="text" value={form.name} onChange={set('name')} placeholder="cth: Budi Santoso" />
+              <input
+                className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
+                type="text"
+                value={form.name}
+                onChange={set('name')}
+                placeholder="cth: Budi Santoso"
+              />
             </label>
-            <label>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
               Email
               <input
+                className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                 type="email"
                 value={form.email}
                 onChange={set('email')}
                 placeholder="cth: budi@email.com"
               />
             </label>
-            <label>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
               No. HP
-              <input type="tel" value={form.phone} onChange={set('phone')} placeholder="cth: 081234567890" />
+              <input
+                className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
+                type="tel"
+                value={form.phone}
+                onChange={set('phone')}
+                placeholder="cth: 081234567890"
+              />
             </label>
-            {error && <p className="booking-error">{error}</p>}
-            <div className="modal-price">
-              <span className="modal-price__per">{fmtRupiah(total)}</span>
+            {error && <p className="text-[12.5px] font-bold text-rd">{error}</p>}
+            <div className="flex flex-wrap items-center justify-between gap-[14px] border-t border-[#eee] pt-4">
+              <span className="text-[19px] font-extrabold text-rd">{fmtRupiah(total)}</span>
               <button className="btn btn-primary" type="submit">
                 Konfirmasi Pesanan
               </button>
@@ -509,15 +555,18 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
       )}
 
       {step === 'done' && (
-        <div className="modal-body modal-success">
-          <div className="modal-success__icon" aria-hidden="true">
+        <div className="px-[26px] py-[34px] text-center">
+          <div
+            className="mx-auto mb-[14px] grid size-[54px] place-items-center rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] text-[26px] font-extrabold text-white"
+            aria-hidden="true"
+          >
             &#10003;
           </div>
-          <h3>Pesanan Berhasil Dibuat</h3>
-          <p className="modal-success__code">
-            Kode Booking: <b>{booking.id}</b>
+          <h3 className="text-[19px] font-extrabold">Pesanan Berhasil Dibuat</h3>
+          <p className="my-1.5 mb-1 text-[13px] text-rd-muted">
+            Kode Booking: <b className="text-rd-teal">{booking.id}</b>
           </p>
-          <div className="modal-summary">
+          <div className="my-3 mb-4 flex flex-col gap-[3px] rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
             <p>{booking.hotelName}</p>
             <p>
               {fmtDate(booking.checkIn)} &rarr; {fmtDate(booking.checkOut)}
@@ -533,10 +582,12 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                 {booking.memberDiscount > 0 ? `${fmtRupiah(booking.memberDiscount)} (member)` : ''}
               </p>
             )}
-            <p className="modal-success__total">{fmtRupiah(booking.totalPrice)}</p>
+            <p className="text-[15px] font-extrabold text-rd">{fmtRupiah(booking.totalPrice)}</p>
           </div>
-          <p className="modal-hint">Simulasi demo — pesanan tersimpan di perangkat ini (localStorage).</p>
-          <button className="btn btn-primary" type="button" onClick={onClose}>
+          <p className="mt-2 text-[12px] text-rd-muted">
+            Simulasi demo — pesanan tersimpan di perangkat ini (localStorage).
+          </p>
+          <button className="btn btn-primary mt-[18px]" type="button" onClick={onClose}>
             Selesai
           </button>
         </div>
@@ -544,16 +595,16 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
 
       {lightboxOpen && (
         <Modal onClose={() => setLightboxOpen(false)} labelledBy="lightbox-title">
-          <div className="modal-body">
-            <h3 id="lightbox-title" style={{ marginBottom: 12 }}>
+          <div className="px-5 pt-[18px] pb-[22px]">
+            <h3 id="lightbox-title" className="mb-3 text-[19px] font-extrabold leading-[1.3]">
               {hotel.name} &mdash; Foto {imgIdx + 1} dari {hotel.gallery.length}
             </h3>
             <img
-              className="lightbox__img"
+              className="w-full rounded-lg"
               src={hotel.gallery[imgIdx]}
               alt={`${hotel.name} foto ${imgIdx + 1}`}
             />
-            <div className="lightbox__nav">
+            <div className="mt-3 flex items-center justify-between">
               <button
                 className="btn btn-outline btn-sm"
                 type="button"

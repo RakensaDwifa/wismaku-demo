@@ -21,13 +21,13 @@ export default function HotelDetailPage() {
 
   if (loading) {
     return (
-      <div className="hotel-page">
-        <div className="container hotel-page__bar">
+      <div className="min-h-screen bg-[#f7f7f7] py-6 pb-16">
+        <div className="mx-auto mb-6 w-full max-w-[1200px] px-5">
           <Link className="btn btn-outline btn-sm" to="/">
             &larr; Kembali
           </Link>
         </div>
-        <div className="container">
+        <div className="mx-auto w-full max-w-[1200px] px-5">
           <p>Memuat detail penginapan...</p>
         </div>
       </div>
@@ -36,14 +36,14 @@ export default function HotelDetailPage() {
 
   if (!hotel) {
     return (
-      <div className="hotel-page">
-        <div className="container hotel-page__bar">
+      <div className="min-h-screen bg-[#f7f7f7] py-6 pb-16">
+        <div className="mx-auto mb-6 w-full max-w-[1200px] px-5">
           <Link className="btn btn-outline btn-sm" to="/">
             &larr; Kembali
           </Link>
         </div>
-        <div className="container hotels-empty">
-          <p>Penginapan tidak ditemukan.</p>
+        <div className="mx-auto mt-6 w-full max-w-[1200px] rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
+          <p className="mb-[18px] text-rd-muted">Penginapan tidak ditemukan.</p>
           <Link className="btn btn-primary" to="/">
             Lihat Semua Hotel
           </Link>
@@ -53,8 +53,8 @@ export default function HotelDetailPage() {
   }
 
   return (
-    <div className="hotel-page">
-      <div className="container hotel-page__bar">
+    <div className="min-h-screen bg-[#f7f7f7] py-6 pb-16">
+      <div className="mx-auto mb-6 w-full max-w-[1200px] px-5">
         <Link className="btn btn-outline btn-sm" to="/">
           &larr; Kembali
         </Link>

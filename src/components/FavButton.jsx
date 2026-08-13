@@ -31,7 +31,7 @@ export default function FavButton({ hotelId, className = '' }) {
 
   return (
     <button
-      className={`fav-btn${active ? ' is-active' : ''} ${className}`}
+      className={`grid size-9 place-items-center rounded-full bg-white/92 text-gray-500 shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-[color,transform] duration-150 hover:scale-[1.06] hover:text-rd aria-pressed:text-rd ${className}`}
       type="button"
       onClick={onToggle}
       aria-pressed={active}

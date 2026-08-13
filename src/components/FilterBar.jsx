@@ -72,10 +72,10 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
   }
 
   return (
-    <div className="filter-bar" ref={barRef}>
-      <div className="filter-bar__row">
+    <div className="flex items-center gap-3 max-[768px]:w-full" ref={barRef}>
+      <div className="flex flex-wrap items-center gap-2.5 max-[768px]:w-full">
         <button
-          className="btn btn-outline btn-sm filter-toggle"
+          className="btn btn-outline btn-sm"
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
@@ -83,9 +83,10 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
         >
           Filter{hasFilter ? ' (aktif)' : ''}
         </button>
-        <label className="filter-sort">
+        <label className="inline-flex items-center gap-2 text-[13px] font-bold text-rd-text">
           <span>Urutkan</span>
           <select
+            className="rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[13px] font-semibold text-rd-text max-[768px]:flex-1"
             value={filters.sort}
             onChange={(e) => set({ sort: e.target.value })}
             aria-label="Urutkan hotel"
@@ -105,15 +106,15 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
       </div>
 
       {open && (
-        <div className="filter-panel" id="filter-panel">
-          <fieldset className="filter-group">
-            <legend>Rating</legend>
-            <div className="filter-chips">
+        <div className="mt-4 rounded-[14px] border border-rd-border bg-white p-4" id="filter-panel">
+          <fieldset className="m-0 mb-[14px] border-none p-0">
+            <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">Rating</legend>
+            <div className="flex flex-wrap gap-2">
               {RATING_OPTIONS.map((r) => (
                 <button
                   key={r.value}
                   type="button"
-                  className={`filter-chip${filters.minRating === r.value ? ' is-active' : ''}`}
+                  className="rounded-full border border-rd-border bg-white px-3 py-[7px] text-[13px] font-semibold text-rd-text transition-all duration-150 aria-pressed:border-rd-teal aria-pressed:bg-[#f0fdfa] aria-pressed:text-[#0f766e]"
                   onClick={() => set({ minRating: r.value })}
                   aria-pressed={filters.minRating === r.value}
                 >
@@ -122,14 +123,14 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
               ))}
             </div>
           </fieldset>
-          <fieldset className="filter-group">
-            <legend>Fasilitas</legend>
-            <div className="filter-chips">
+          <fieldset className="m-0 mb-[14px] border-none p-0">
+            <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">Fasilitas</legend>
+            <div className="flex flex-wrap gap-2">
               {ALL_AMENITIES.map((a) => (
                 <button
                   key={a}
                   type="button"
-                  className={`filter-chip${filters.amenities.includes(a) ? ' is-active' : ''}`}
+                  className="rounded-full border border-rd-border bg-white px-3 py-[7px] text-[13px] font-semibold text-rd-text transition-all duration-150 aria-pressed:border-rd-teal aria-pressed:bg-[#f0fdfa] aria-pressed:text-[#0f766e]"
                   onClick={() => toggleAmenity(a)}
                   aria-pressed={filters.amenities.includes(a)}
                 >
@@ -138,8 +139,8 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
               ))}
             </div>
           </fieldset>
-          <fieldset className="filter-group">
-            <legend>Harga / malam</legend>
+          <fieldset className="m-0 mb-[14px] border-none p-0">
+            <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">Harga / malam</legend>
             <div className="filter-range">
               <input
                 type="range"
@@ -160,10 +161,11 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                 onChange={(e) => setMaxPrice(e.target.value)}
               />
             </div>
-            <div className="filter-prices">
-              <label>
+            <div className="flex items-center gap-2.5 max-[768px]:flex-col max-[768px]:items-stretch">
+              <label className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-rd-muted">
                 Min
                 <input
+                  className="w-[110px] rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[14px] text-rd-text max-[768px]:w-full"
                   type="number"
                   min={bounds.min}
                   max={maxBound}
@@ -173,9 +175,10 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                 />
               </label>
               <span>&ndash;</span>
-              <label>
+              <label className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-rd-muted">
                 Maks
                 <input
+                  className="w-[110px] rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[14px] text-rd-text max-[768px]:w-full"
                   type="number"
                   min={bounds.min}
                   max={maxBound}

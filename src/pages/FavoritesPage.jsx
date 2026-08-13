@@ -42,31 +42,36 @@ export default function FavoritesPage() {
     <>
       <TopBar />
       <Header />
-      <main className="section page-main">
-        <div className="container">
-          <div className="promo-header">
-            <h2 className="section-title">Hotel Favorit</h2>
-            <Link className="btn btn-outline btn-sm" to="/">
+      <main className="min-h-[60vh] py-12 max-[768px]:py-8">
+        <div className="mx-auto w-full max-w-[1200px] px-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">Hotel Favorit</h2>
+            <Link className="btn btn-outline btn-sm max-[640px]:hidden" to="/">
               &larr; Kembali ke Beranda
             </Link>
           </div>
           {favError ? (
             <ErrorBanner message="Gagal memuat favorit." />
           ) : hotelsLoading ? (
-            <div className="hotels-grid" aria-hidden="true">
+            <div
+              className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5"
+              aria-hidden="true"
+            >
               {Array.from({ length: 4 }).map((_, i) => (
                 <HotelCardSkeleton key={i} />
               ))}
             </div>
           ) : favorites.length === 0 ? (
-            <div className="hotels-empty">
-              <p>Belum ada hotel favorit. Ketuk ikon hati pada kartu hotel untuk menyimpannya.</p>
+            <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
+              <p className="mb-[18px] text-rd-muted">
+                Belum ada hotel favorit. Ketuk ikon hati pada kartu hotel untuk menyimpannya.
+              </p>
               <Link className="btn btn-primary" to="/">
                 Cari Penginapan
               </Link>
             </div>
           ) : (
-            <div className="hotels-grid">
+            <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5">
               {favorites.map((h) => (
                 <HotelCard key={h.id} hotel={h} onOpen={(hotel) => navigate(`/hotel/${hotel.id}`)} />
               ))}

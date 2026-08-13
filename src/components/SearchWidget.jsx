@@ -149,18 +149,28 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
 
   return (
     <div
-      className="grid max-[640px]:grid-cols-1 grid-cols-[1.5fr_2fr_1.2fr_auto] items-stretch overflow-visible rounded-[14px] border-2 border-rd bg-white shadow-rd-lg"
+      className="grid max-[640px]:grid-cols-1 max-[992px]:grid-cols-2 grid-cols-[1.5fr_2fr_1.2fr_auto] items-stretch overflow-visible rounded-[14px] border-2 border-rd bg-white shadow-rd-lg"
       id="search-widget"
     >
-      <div className="relative flex flex-col justify-center border-r border-r-[#eee] px-4 py-3" ref={cityRef}>
-        <label className="sw-label">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+      <div
+        className="relative flex flex-col justify-center border-r border-r-[#eee] px-4 py-3 max-[992px]:col-span-2 max-[992px]:border-r-0 max-[992px]:border-b max-[992px]:border-b-[#eee]"
+        ref={cityRef}
+      >
+        <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="currentColor"
+            aria-hidden="true"
+            className="text-rd"
+          >
             <path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
           </svg>
           Tujuan
         </label>
         <button
-          className="sw-value"
+          className="w-full cursor-pointer text-left text-[15px] font-bold text-rd-text transition-colors duration-150 hover:text-rd"
           type="button"
           onClick={openCity}
           aria-expanded={cityOpen}
@@ -233,10 +243,12 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
 
       <DateRangePicker checkIn={checkIn} checkOut={checkOut} onSelect={handleRange} />
 
-      <div className="relative flex flex-col justify-center px-4 py-3" ref={guestRef}>
-        <label className="sw-label">Tamu &amp; Kamar</label>
+      <div className="relative flex flex-col justify-center px-4 py-3 max-[992px]:border-r-0" ref={guestRef}>
+        <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
+          Tamu &amp; Kamar
+        </label>
         <button
-          className="sw-value"
+          className="w-full cursor-pointer text-left text-[15px] font-bold text-rd-text transition-colors duration-150 hover:text-rd"
           type="button"
           onClick={() => setGuestOpen((v) => !v)}
           aria-expanded={guestOpen}
@@ -288,7 +300,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
       </div>
 
       <button
-        className="rounded-e-xl bg-[linear-gradient(95deg,#10b981,#0d9488)] px-[30px] text-base font-extrabold whitespace-nowrap text-white transition-[filter] hover:brightness-[1.08] max-[640px]:mx-3 max-[640px]:mb-3 max-[640px]:rounded-lg"
+        className="rounded-e-xl bg-[linear-gradient(95deg,#10b981,#0d9488)] px-[30px] text-base font-extrabold whitespace-nowrap text-white transition-[filter] hover:brightness-[1.08] max-[640px]:mx-3 max-[640px]:mb-3 max-[640px]:rounded-lg max-[992px]:col-span-2 max-[992px]:rounded-none max-[992px]:rounded-b-[10px] max-[992px]:py-[15px]"
         type="button"
         onClick={apply}
       >

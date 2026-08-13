@@ -13,6 +13,7 @@ import Footer from '../components/Footer.jsx'
 import MemberModal from '../components/MemberModal.jsx'
 import PartnerModal from '../components/PartnerModal.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
+import { Skeleton } from '../components/Skeletons.jsx'
 import { useHotels, useCities, usePromos, useBrands, useTestimonials } from '../hooks/useCatalog.js'
 import { parseSearchParams, parseSearchWidgetInitial, buildSearchParams } from '../utils/searchParams.js'
 import { parseFilters, applyFilters, applySort } from '../utils/filtering.js'
@@ -135,49 +136,57 @@ export default function HomePage() {
           />
         </div>
         {brandsLoading ? (
-          <div className="container" aria-hidden="true">
-            <div className="skeleton" style={{ height: 28, width: '45%', margin: '48px auto 20px' }} />
-            <div className="brands-grid">
+          <div className="mx-auto w-full max-w-[1200px] px-5" aria-hidden="true">
+            <Skeleton className="mx-auto mt-12 mb-5 h-7 w-[45%]" />
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-5">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div className="skeleton" key={i} style={{ height: 300, borderRadius: 16 }} />
+                <Skeleton key={i} className="h-[300px] rounded-2xl" />
               ))}
             </div>
           </div>
         ) : brandsError ? (
-          <div className="container">
+          <div className="mx-auto w-full max-w-[1200px] px-5">
             <ErrorBanner onRetry={refetchBrands} message="Gagal memuat brand." />
           </div>
         ) : (
           <BrandCards brands={brands} />
         )}
-        <section className="redclub" id="redclub">
-          <div className="container redclub-inner">
-            <div className="redclub-text">
-              <h2>Gabung WismaClub, Gratis!</h2>
-              <p>
+        <section className="bg-rd-soft py-11" id="redclub">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-6 px-5 max-[768px]:justify-center max-[768px]:text-center">
+            <div>
+              <h2 className="text-2xl font-extrabold">Gabung WismaClub, Gratis!</h2>
+              <p className="mt-2 max-w-[560px] text-sm leading-[1.6] text-rd-muted max-[768px]:mx-auto">
                 Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out di ribuan properti.
               </p>
             </div>
-            <button className="btn btn-primary" type="button" onClick={() => setClubOpen(true)}>
+            <button
+              className="btn btn-primary max-[768px]:mx-auto"
+              type="button"
+              onClick={() => setClubOpen(true)}
+            >
               Daftar WismaClub
             </button>
           </div>
         </section>
-        <section className="partner" id="partner">
-          <div className="container partner-inner">
-            <div className="partner-text">
-              <h2>Punya Penginapan? Jadi Partner Kami</h2>
-              <p className="gray_color">
+        <section className="bg-white py-12" id="partner">
+          <div className="mx-auto grid w-full max-w-[1200px] grid-cols-[1fr_1.4fr] overflow-hidden rounded-[14px] border border-rd-border bg-white max-[768px]:grid-cols-1">
+            <div className="flex flex-col justify-center p-10 max-[768px]:p-7">
+              <h2 className="text-2xl font-extrabold leading-[1.3]">Punya Penginapan? Jadi Partner Kami</h2>
+              <p className="my-3 mb-1 text-sm text-rd-muted">
                 Gabung jaringan 3500+ properti dan naikkan okupansi hingga 2x lipat.
               </p>
-              <p className="dark_gray">
+              <p className="mt-1.5 mb-5 text-[13.5px] leading-[1.6] text-rd-muted">
                 Mitra kami dapat distribusi, teknologi, dan pendampingan pemasaran dari tim WismaKu.
               </p>
-              <button className="btn btn-outline" type="button" onClick={() => setPartnerOpen(true)}>
+              <button
+                className="btn btn-outline self-start"
+                type="button"
+                onClick={() => setPartnerOpen(true)}
+              >
                 Pelajari Lebih Lanjut
               </button>
             </div>
-            <div className="partner-media">
+            <div className="min-h-[280px] max-[768px]:order-first max-[768px]:min-h-[200px]">
               <img
                 src="https://images.unsplash.com/photo-1517840901100-8179e982acb7?auto=format&fit=crop&w=900&q=60"
                 srcSet={srcSet(
@@ -187,22 +196,23 @@ export default function HomePage() {
                 sizes="(max-width: 768px) 100vw, 45vw"
                 alt="Pemilik penginapan bersama tim"
                 loading="lazy"
+                className="h-full w-full object-cover"
               />
             </div>
           </div>
         </section>
         <AssuranceBar />
         {testimonialsLoading ? (
-          <div className="container" aria-hidden="true">
-            <div className="skeleton" style={{ height: 28, width: '40%', margin: '48px auto 20px' }} />
-            <div className="testimonials-grid">
+          <div className="mx-auto w-full max-w-[1200px] px-5" aria-hidden="true">
+            <Skeleton className="mx-auto mt-12 mb-5 h-7 w-[40%]" />
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 max-[640px]:grid-cols-1">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div className="skeleton" key={i} style={{ height: 140, borderRadius: 16 }} />
+                <Skeleton key={i} className="h-[140px] rounded-2xl" />
               ))}
             </div>
           </div>
         ) : testimonialsError ? (
-          <div className="container">
+          <div className="mx-auto w-full max-w-[1200px] px-5">
             <ErrorBanner onRetry={refetchTestimonials} message="Gagal memuat testimoni." />
           </div>
         ) : (

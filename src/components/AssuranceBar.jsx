@@ -29,16 +29,23 @@ const items = [
 
 export default function AssuranceBar() {
   return (
-    <section className="assurance">
-      <div className="container assurance-grid">
+    <section className="bg-rd-soft py-[42px]">
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-4 gap-[26px] px-5 max-[640px]:grid-cols-1">
         {items.map((it) => (
-          <div className="assurance-item" key={it.title}>
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true">
+          <div className="flex items-start gap-3.5" key={it.title}>
+            <svg
+              viewBox="0 0 24 24"
+              width="30"
+              height="30"
+              fill="currentColor"
+              aria-hidden="true"
+              className="mt-0.5 shrink-0 text-rd-teal"
+            >
               {it.icon}
             </svg>
             <div>
-              <h3>{it.title}</h3>
-              <p>{it.desc}</p>
+              <h3 className="mb-1 text-[15px] font-extrabold">{it.title}</h3>
+              <p className="text-[12.5px] leading-[1.55] text-rd-muted">{it.desc}</p>
             </div>
           </div>
         ))}

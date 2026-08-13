@@ -37,13 +37,13 @@ export default function PopularHotels({
   const guests = searchParams?.guests ?? 0
 
   return (
-    <section className="section hotels-section" id="hotels">
-      <div className="container">
-        <div className="promo-header">
-          <h2 className="section-title">
+    <section className="bg-[#f7f7f7] py-12 max-[768px]:py-8" id="hotels">
+      <div className="mx-auto w-full max-w-[1200px] px-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
             {isSearch ? `Hasil Pencarian (${totals})` : 'Hotel Populer'}
             {isSearch && nights > 0 && (
-              <span className="search-meta">
+              <span className="ml-2.5 text-[13.5px] font-bold text-rd-teal">
                 {nights} malam &middot; {guests} tamu
               </span>
             )}
@@ -58,7 +58,7 @@ export default function PopularHotels({
           )}
         </div>
         {loading ? (
-          <div className="hotels-grid" aria-hidden="true">
+          <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5" aria-hidden="true">
             {Array.from({ length: 4 }).map((_, i) => (
               <HotelCardSkeleton key={i} />
             ))}
@@ -66,15 +66,15 @@ export default function PopularHotels({
         ) : error ? (
           <ErrorBanner onRetry={onRetry} message="Gagal memuat penginapan." />
         ) : totals === 0 ? (
-          <div className="hotels-empty">
+          <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
             {isSearch && query ? (
               <>
-                <p>
+                <p className="mb-[18px] text-rd-muted">
                   Tidak ada penginapan cocok untuk &quot;{query}&quot;
                   {nights > 0 ? ` selama ${nights} malam` : ''}.
                 </p>
-                <p className="hotels-empty__hint">Coba ubah kata kunci atau jelajahi kota populer:</p>
-                <div className="hotels-empty__cities">
+                <p className="mb-3.5 text-sm">Coba ubah kata kunci atau jelajahi kota populer:</p>
+                <div className="mb-[22px] flex flex-wrap justify-center gap-2">
                   {cities.slice(0, 6).map((c) => (
                     <button
                       key={c.name}
@@ -88,7 +88,7 @@ export default function PopularHotels({
                 </div>
               </>
             ) : (
-              <p>Tidak ada penginapan ditemukan.</p>
+              <p className="mb-[18px] text-rd-muted">Tidak ada penginapan ditemukan.</p>
             )}
             <button className="btn btn-primary" type="button" onClick={onReset}>
               Ubah Pencarian
@@ -96,13 +96,13 @@ export default function PopularHotels({
           </div>
         ) : (
           <>
-            <div className="hotels-grid">
+            <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5">
               {visible.map((h) => (
                 <HotelCard key={h.id} hotel={h} nights={nights} onOpen={onOpen} />
               ))}
             </div>
             {remaining > 0 && (
-              <div className="load-more">
+              <div className="mt-7 flex justify-center">
                 <button
                   className="btn btn-outline"
                   type="button"

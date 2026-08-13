@@ -6,6 +6,15 @@ import Modal from './ui/Modal.jsx'
 export default function BookingCard({ booking, onCancel }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const cancelled = booking.status === 'cancelled'
+  const pending = booking.status === 'pending'
+
+  const badgeClass = cancelled
+    ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
+    : pending
+      ? 'bg-[rgba(245,158,11,0.12)] text-[#b45309]'
+      : 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
+
+  const badgeLabel = cancelled ? 'Dibatalkan' : pending ? 'Menunggu Pembayaran' : 'Dikonfirmasi'
 
   return (
     <li className="flex items-center gap-[14px] rounded-[14px] border border-rd-border bg-white p-[14px] max-[768px]:flex-wrap">
@@ -18,14 +27,8 @@ export default function BookingCard({ booking, onCancel }) {
       <div className="flex flex-1 flex-col gap-px text-[12px] text-rd-muted">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <b className="line-clamp-1 text-[12.5px] text-rd-text">{booking.hotelName}</b>
-          <span
-            className={`rounded-full px-[9px] py-[3px] text-[11px] font-extrabold ${
-              cancelled
-                ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
-                : 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
-            }`}
-          >
-            {cancelled ? 'Dibatalkan' : 'Dikonfirmasi'}
+          <span className={`rounded-full px-[9px] py-[3px] text-[11px] font-extrabold ${badgeClass}`}>
+            {badgeLabel}
           </span>
         </div>
         <span>
@@ -44,6 +47,11 @@ export default function BookingCard({ booking, onCancel }) {
         <Link className="btn btn-outline btn-sm" to={`/hotel/${booking.hotelId}`}>
           Lihat Hotel
         </Link>
+        {pending && (
+          <Link className="btn btn-primary btn-sm" to={`/bayar/${booking.id}`}>
+            Bayar Sekarang
+          </Link>
+        )}
         {!cancelled && (
           <button
             className="rounded-[7px] border border-rd bg-white px-2.5 py-[5px] text-[12px] font-bold text-rd transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:bg-rd hover:text-white"

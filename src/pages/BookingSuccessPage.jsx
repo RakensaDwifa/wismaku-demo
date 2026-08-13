@@ -8,6 +8,24 @@ import { Skeleton } from '../components/Skeletons.jsx'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 
+const PAYMENT_LABELS = {
+  va: 'Transfer Bank / Virtual Account',
+  qris: 'QRIS',
+  ewallet: 'E-Wallet',
+}
+
+const statusBadge = (status) => {
+  if (status === 'cancelled') return 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
+  if (status === 'pending') return 'bg-[rgba(245,158,11,0.12)] text-[#b45309]'
+  return 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
+}
+
+const statusLabel = (status) => {
+  if (status === 'cancelled') return 'Dibatalkan'
+  if (status === 'pending') return 'Menunggu Pembayaran'
+  return 'Dikonfirmasi'
+}
+
 export default function BookingSuccessPage() {
   usePageMeta('Pesanan Berhasil', 'Detail pemesanan Anda di WismaKu.')
   const { id } = useParams()
@@ -65,13 +83,9 @@ export default function BookingSuccessPage() {
                   <p className="text-[13px] text-rd-muted">
                     Kode Booking: <b className="text-rd-teal">{booking.id}</b> &middot;{' '}
                     <span
-                      className={`rounded-full px-[9px] py-[3px] text-[11px] font-extrabold ${
-                        booking.status === 'cancelled'
-                          ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
-                          : 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
-                      }`}
+                      className={`rounded-full px-[9px] py-[3px] text-[11px] font-extrabold ${statusBadge(booking.status)}`}
                     >
-                      {booking.status === 'cancelled' ? 'Dibatalkan' : 'Dikonfirmasi'}
+                      {statusLabel(booking.status)}
                     </span>
                   </p>
                 </div>
@@ -136,6 +150,14 @@ export default function BookingSuccessPage() {
                       </span>
                       <span>Email: {booking.email}</span>
                       <span>No. HP: {booking.phone}</span>
+                      {booking.paymentMethod && (
+                        <span>
+                          Metode bayar:{' '}
+                          <b className="text-rd-text">
+                            {PAYMENT_LABELS[booking.paymentMethod] ?? booking.paymentMethod}
+                          </b>
+                        </span>
+                      )}
                       <span>Dibuat: {fmtDate(booking.createdAt)}</span>
                     </div>
                   </div>
@@ -143,6 +165,11 @@ export default function BookingSuccessPage() {
               </div>
 
               <div className="mt-5 flex flex-wrap gap-2.5">
+                {booking.status === 'pending' && (
+                  <Link className="btn btn-primary" to={`/bayar/${booking.id}`}>
+                    Lanjutkan Pembayaran
+                  </Link>
+                )}
                 <Link className="btn btn-primary" to="/">
                   Kembali ke Beranda
                 </Link>

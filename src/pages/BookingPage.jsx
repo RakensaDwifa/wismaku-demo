@@ -118,7 +118,7 @@ export default function BookingPage() {
         email,
         phone,
       })
-      navigate(`/pesanan/sukses/${booking.id}`)
+      navigate(`/bayar/${booking.id}`)
     } catch (err) {
       setError(err.message || 'Gagal membuat pesanan.')
       setBusy(false)

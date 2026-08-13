@@ -9,7 +9,7 @@ import { useLanguage } from '../i18n/useLanguage.js'
 
 const getNavLinks = (t) => [
   { label: t('nav.hotels'), to: '/hasil' },
-  { label: t('nav.promo'), href: '#promo' },
+  { label: t('nav.promo'), to: '/promo' },
   { label: t('nav.club'), href: '#redclub' },
   { label: t('nav.partner'), href: '#partner' },
 ]

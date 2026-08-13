@@ -1,8 +1,11 @@
 import { request, USE_MOCK } from './api.js'
 import { BookingPayloadSchema, parsePayload } from '../schemas/contracts.js'
+import { hotels } from '../data/hotels.js'
 
 const STORAGE_KEY = 'wismaku_bookings'
 const CHANGE_EVENT = 'wismaku:bookings-changed'
+const IMG_FALLBACK =
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=60'
 
 const notify = () => {
   window.dispatchEvent(new Event(CHANGE_EVENT))
@@ -23,8 +26,18 @@ const toLocal = (payload) => ({
   ...payload,
 })
 
+const migrateImg = (booking) => {
+  if (/^https?:\/\//.test(booking.hotelImg || '')) return booking
+  const hotel = hotels.find((h) => String(h.id) === String(booking.hotelId))
+  return { ...booking, hotelImg: hotel?.img ?? IMG_FALLBACK }
+}
+
 export async function getBookings() {
-  if (USE_MOCK) return bookRef()
+  if (USE_MOCK) {
+    const list = bookRef().map(migrateImg)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    return list
+  }
   return request('/bookings')
 }
 

@@ -55,6 +55,55 @@ describe('createBooking', () => {
   })
 })
 
+describe('migrasi hotelImg booking lama', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('memperbaiki hotelImg lokal dengan gambar hotel saat ini', async () => {
+    localStorage.setItem(
+      'wismaku_bookings',
+      JSON.stringify([
+        {
+          id: 'WK-LAMA01',
+          hotelId: 1,
+          hotelName: 'Rumah Tandur Syariah Near Kelapa Gading',
+          hotelImg: '/img/hotels/1.jpg',
+          checkIn: '2026-08-01',
+          checkOut: '2026-08-03',
+          status: 'pending',
+        },
+      ]),
+    )
+    const list = await getBookings()
+    expect(list[0].hotelImg).toMatch(/^https:\/\//)
+    const stored = JSON.parse(localStorage.getItem('wismaku_bookings'))
+    expect(stored[0].hotelImg).toBe(list[0].hotelImg)
+  })
+
+  it('menggunakan gambar fallback bila hotel tidak ditemukan', async () => {
+    localStorage.setItem(
+      'wismaku_bookings',
+      JSON.stringify([
+        { id: 'WK-LAMA02', hotelId: 999, hotelName: 'Hotel Hilang', hotelImg: 'img/hotels/x.jpg' },
+      ]),
+    )
+    const list = await getBookings()
+    expect(list[0].hotelImg).toMatch(/^https:\/\/images\.unsplash\.com\//)
+  })
+
+  it('tidak mengubah hotelImg yang sudah berupa URL', async () => {
+    localStorage.setItem(
+      'wismaku_bookings',
+      JSON.stringify([
+        { id: 'WK-BARU01', hotelId: 1, hotelName: 'Hotel Test', hotelImg: 'https://example.com/x.jpg' },
+      ]),
+    )
+    const list = await getBookings()
+    expect(list[0].hotelImg).toBe('https://example.com/x.jpg')
+  })
+})
+
 describe('cancelBooking', () => {
   beforeEach(() => {
     localStorage.clear()

@@ -24,9 +24,9 @@ export default function Modal({ onClose, labelledBy, children }) {
   }, [])
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] grid place-items-center bg-black/55 p-5" onClick={onClose}>
       <div
-        className="hotel-modal"
+        className="animate-modal-in relative max-h-[calc(100vh-40px)] w-[min(560px,100%)] overflow-y-auto rounded-2xl bg-white shadow-rd-lg outline-none"
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
@@ -34,7 +34,12 @@ export default function Modal({ onClose, labelledBy, children }) {
         ref={panelRef}
         onClick={(e) => e.stopPropagation()}
       >
-        <button className="modal-close" type="button" onClick={onClose} aria-label="Tutup">
+        <button
+          className="absolute right-2.5 top-2.5 z-10 grid size-[34px] place-items-center rounded-full bg-white/90 text-[22px] leading-none text-rd-text shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-colors hover:text-rd"
+          type="button"
+          onClick={onClose}
+          aria-label="Tutup"
+        >
           &times;
         </button>
         {children}

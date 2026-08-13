@@ -22,21 +22,25 @@ export default function Footer({ onOpenPartner }) {
 
   return (
     <footer className="footer">
-      <div className="footer-seo">
-        <div className="container">
-          <p className={expanded ? 'footer-seo-text expanded' : 'footer-seo-text'}>
+      <div className="bg-rd-soft py-7">
+        <div className="mx-auto w-full max-w-[1200px] px-5">
+          <p className="text-[12.5px] leading-[1.75] text-[#4c515a]">
             {expanded ? seo : seo.slice(0, 220) + '...'}
           </p>
-          <button className="footer-seo-toggle" type="button" onClick={() => setExpanded((v) => !v)}>
+          <button
+            className="mt-2.5 text-[12.5px] font-extrabold text-rd-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+          >
             {expanded ? 'Sembunyikan' : 'Baca selengkapnya'}
           </button>
         </div>
       </div>
 
-      <div className="footer-main">
-        <div className="container footer-grid">
-          <div className="footer-brand">
-            <a className="logo logo--footer" href="#top">
+      <div className="bg-rd-footer py-12 text-[#d6d6d6]">
+        <div className="mx-auto grid w-full max-w-[1200px] grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr] gap-9 px-5 max-[992px]:grid-cols-2">
+          <div className="max-[992px]:col-span-2">
+            <a className="inline-flex items-center gap-2" href="#top">
               <svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true">
                 <rect x="6" y="4" width="36" height="40" rx="6" fill="#14B8A6" />
                 <rect x="10" y="8" width="28" height="32" rx="3" fill="#FFF" />
@@ -45,29 +49,29 @@ export default function Footer({ onOpenPartner }) {
                 <rect x="27" y="20" width="5" height="7" rx="1.5" fill="#14B8A6" />
                 <circle cx="33" cy="23.5" r="1.6" fill="#FFF" />
               </svg>
-              <span className="logo-text">
-                Wisma<strong>Ku</strong>
+              <span className="text-2xl font-medium tracking-tight text-white">
+                Wisma<strong className="font-extrabold text-[#5eead4]">Ku</strong>
               </span>
             </a>
-            <p className="footer-desc">
+            <p className="my-3.5 text-[13px] leading-[1.65] text-[#b9b9b9]">
               Platform pemesanan penginapan terjangkau untuk perjalanan bisnis maupun liburan. Kamar bersih,
               free WiFi, dan harga transparan.
             </p>
-            <p className="footer-contact">
+            <p className="text-[13px] leading-[1.75] text-[#c9c9c9]">
               Layanan Pelanggan: 021-8063-5835
               <br />
               cs-indonesia@wismaku.id
             </p>
           </div>
           {columns.map((col) => (
-            <div className="footer-col" key={col.title}>
-              <h4>{col.title}</h4>
-              <ul>
+            <div key={col.title}>
+              <h4 className="mb-4 text-[15px] font-extrabold text-white">{col.title}</h4>
+              <ul className="list-none">
                 {col.links.map((l) => (
-                  <li key={l}>
+                  <li className="mb-2.5" key={l}>
                     <a
                       href="#partner"
-                      className="footer-link"
+                      className="cursor-not-allowed text-[13px] text-[#b9b9b9] opacity-65"
                       aria-disabled={l !== 'Daftarkan Properti'}
                       onClick={(e) => {
                         if (l === 'Daftarkan Properti') {
@@ -85,14 +89,14 @@ export default function Footer({ onOpenPartner }) {
               </ul>
             </div>
           ))}
-          <div className="footer-col">
-            <h4>Ikuti Kami</h4>
-            <div className="footer-social">
+          <div>
+            <h4 className="mb-4 text-[15px] font-extrabold text-white">Ikuti Kami</h4>
+            <div className="flex gap-2.5">
               {['Facebook', 'Instagram', 'X', 'YouTube'].map((s) => (
                 <a
                   key={s}
                   href="#"
-                  className="footer-social-btn is-disabled"
+                  className="grid size-9 cursor-not-allowed place-items-center rounded-full bg-[#555] text-sm font-extrabold text-white transition-colors hover:bg-[#555]"
                   aria-label={s}
                   title={s}
                   onClick={(e) => e.preventDefault()}
@@ -101,18 +105,20 @@ export default function Footer({ onOpenPartner }) {
                 </a>
               ))}
             </div>
-            <h4 className="footer-pay-title">Metode Pembayaran</h4>
-            <div className="footer-pay">
+            <h4 className="mt-[22px] mb-4 text-[15px] font-extrabold text-white">Metode Pembayaran</h4>
+            <div className="flex flex-wrap gap-2">
               {['Bank Transfer', 'Kartu Kredit', 'Alfamart', 'e-Wallet', 'Pay at Hotel'].map((m) => (
-                <span key={m}>{m}</span>
+                <span className="rounded-md border border-[#666] px-2 py-1 text-[11.5px] text-[#ccc]" key={m}>
+                  {m}
+                </span>
               ))}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="footer-bottom">
-        <div className="container footer-bottom-inner">
+      <div className="bg-[#2e2e2e] py-[18px]">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-5 text-[12.5px] text-[#999]">
           <p>
             &copy; {new Date().getFullYear()} WismaKu. Semua hak dilindungi. Demo tiruan untuk pembelajaran.
           </p>

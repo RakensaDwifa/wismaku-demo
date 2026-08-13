@@ -1,11 +1,22 @@
+function Skeleton({ className = '', style }) {
+  return (
+    <div className={`relative overflow-hidden bg-[#e9ecef] ${className}`} style={style} aria-hidden="true">
+      <span className="animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/55 to-transparent" />
+    </div>
+  )
+}
+
 export function HotelCardSkeleton() {
   return (
-    <article className="hotel-card" aria-hidden="true">
-      <div className="skeleton hotel-card__media" style={{ height: 160 }} />
-      <div className="hotel-card__body">
-        <div className="skeleton" style={{ height: 16, width: '80%', marginBottom: 10 }} />
-        <div className="skeleton" style={{ height: 12, width: '50%', marginBottom: 14 }} />
-        <div className="skeleton" style={{ height: 18, width: '60%' }} />
+    <article
+      className="flex flex-col overflow-hidden rounded-[14px] border border-gray-100 bg-white shadow-rd"
+      aria-hidden="true"
+    >
+      <Skeleton className="h-40 w-full rounded-none" style={{ height: 160 }} />
+      <div className="flex flex-col gap-2.5 px-4 pb-4 pt-3.5">
+        <Skeleton className="h-4 w-4/5 rounded-md" />
+        <Skeleton className="h-3 w-1/2 rounded-md" />
+        <Skeleton className="h-[18px] w-3/5 rounded-md" />
       </div>
     </article>
   )
@@ -13,9 +24,9 @@ export function HotelCardSkeleton() {
 
 export function CityChipsSkeleton() {
   return (
-    <div className="city-chips" aria-hidden="true">
+    <div className="grid grid-cols-8 gap-3.5 max-[992px]:grid-cols-4 max-sm:grid-cols-2" aria-hidden="true">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div className="skeleton" key={i} style={{ height: 104, borderRadius: 14 }} />
+        <Skeleton key={i} className="rounded-[14px]" style={{ height: 104, borderRadius: 14 }} />
       ))}
     </div>
   )
@@ -24,8 +35,8 @@ export function CityChipsSkeleton() {
 export function PromoSkeleton() {
   return (
     <div aria-hidden="true">
-      <div className="skeleton" style={{ height: 28, width: '40%', marginBottom: 20 }} />
-      <div className="skeleton" style={{ height: 260, borderRadius: 16 }} />
+      <Skeleton className="mb-5 h-7 w-2/5 rounded-xl" style={{ height: 28, width: '40%' }} />
+      <Skeleton className="h-64 rounded-2xl" style={{ height: 260, borderRadius: 16 }} />
     </div>
   )
 }

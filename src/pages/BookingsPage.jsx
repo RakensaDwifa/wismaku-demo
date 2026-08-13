@@ -75,6 +75,18 @@ export default function BookingsPage() {
             </div>
           ) : orders.length === 0 ? (
             <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
+              <svg
+                className="mx-auto mb-4 text-rd-border"
+                viewBox="0 0 24 24"
+                width="48"
+                height="48"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4" />
+              </svg>
               <p className="mb-[18px] text-rd-muted">Belum ada pemesanan.</p>
               <Link className="btn btn-primary" to="/">
                 Cari Penginapan

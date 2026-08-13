@@ -86,7 +86,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
         <label className="inline-flex items-center gap-2 text-[13px] font-bold text-rd-text">
           <span>Urutkan</span>
           <select
-            className="rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[13px] font-semibold text-rd-text max-[768px]:flex-1"
+            className="rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[13px] font-semibold text-rd-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd max-[768px]:flex-1"
             value={filters.sort}
             onChange={(e) => set({ sort: e.target.value })}
             aria-label="Urutkan hotel"
@@ -114,7 +114,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                 <button
                   key={r.value}
                   type="button"
-                  className="rounded-full border border-rd-border bg-white px-3 py-[7px] text-[13px] font-semibold text-rd-text transition-all duration-150 aria-pressed:border-rd-teal aria-pressed:bg-[#f0fdfa] aria-pressed:text-[#0f766e]"
+                  className="rounded-full border border-rd-border bg-white px-3 py-[7px] text-[13px] font-semibold text-rd-text transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd aria-pressed:border-rd-teal aria-pressed:bg-[#f0fdfa] aria-pressed:text-[#0f766e]"
                   onClick={() => set({ minRating: r.value })}
                   aria-pressed={filters.minRating === r.value}
                 >
@@ -130,7 +130,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                 <button
                   key={a}
                   type="button"
-                  className="rounded-full border border-rd-border bg-white px-3 py-[7px] text-[13px] font-semibold text-rd-text transition-all duration-150 aria-pressed:border-rd-teal aria-pressed:bg-[#f0fdfa] aria-pressed:text-[#0f766e]"
+                  className="rounded-full border border-rd-border bg-white px-3 py-[7px] text-[13px] font-semibold text-rd-text transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd aria-pressed:border-rd-teal aria-pressed:bg-[#f0fdfa] aria-pressed:text-[#0f766e]"
                   onClick={() => toggleAmenity(a)}
                   aria-pressed={filters.amenities.includes(a)}
                 >
@@ -165,7 +165,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
               <label className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-rd-muted">
                 Min
                 <input
-                  className="w-[110px] rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[14px] text-rd-text max-[768px]:w-full"
+                  className="w-[110px] rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[14px] text-rd-text focus:border-rd focus:outline-none max-[768px]:w-full"
                   type="number"
                   min={bounds.min}
                   max={maxBound}
@@ -178,7 +178,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
               <label className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-rd-muted">
                 Maks
                 <input
-                  className="w-[110px] rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[14px] text-rd-text max-[768px]:w-full"
+                  className="w-[110px] rounded-lg border border-rd-border bg-white px-2.5 py-2 text-[14px] text-rd-text focus:border-rd focus:outline-none max-[768px]:w-full"
                   type="number"
                   min={bounds.min}
                   max={maxBound}

@@ -276,7 +276,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
                 <span>{r.label}</span>
                 <div className="flex items-center gap-3">
                   <button
-                    className="grid size-8 max-[768px]:size-10 place-items-center rounded-full border border-rd-border text-base leading-none text-rd-text transition-all hover:border-rd hover:text-rd"
+                    className="grid size-8 max-[768px]:size-10 place-items-center rounded-full border border-rd-border text-base leading-none text-rd-text transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:border-rd hover:text-rd"
                     type="button"
                     onClick={down(r.set, r.val, r.min)}
                     aria-label={`Kurangi ${r.label}`}
@@ -285,7 +285,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
                   </button>
                   <b className="min-w-4 text-center">{r.val}</b>
                   <button
-                    className="grid size-8 max-[768px]:size-10 place-items-center rounded-full border border-rd-border text-base leading-none text-rd-text transition-all hover:border-rd hover:text-rd"
+                    className="grid size-8 max-[768px]:size-10 place-items-center rounded-full border border-rd-border text-base leading-none text-rd-text transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:border-rd hover:text-rd"
                     type="button"
                     onClick={step(r.set, r.val, r.min, r.max)}
                     aria-label={`Tambah ${r.label}`}
@@ -300,7 +300,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
       </div>
 
       <button
-        className="rounded-e-xl bg-[linear-gradient(95deg,#10b981,#0d9488)] px-[30px] text-base font-extrabold whitespace-nowrap text-white transition-[filter] hover:brightness-[1.08] max-[640px]:mx-3 max-[640px]:mb-3 max-[640px]:rounded-lg max-[992px]:col-span-2 max-[992px]:rounded-none max-[992px]:rounded-b-[10px] max-[992px]:py-[15px]"
+        className="rounded-e-xl bg-[linear-gradient(95deg,#10b981,#0d9488)] px-[30px] text-base font-extrabold whitespace-nowrap text-white transition-[filter] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white hover:brightness-[1.08] max-[640px]:mx-3 max-[640px]:mb-3 max-[640px]:rounded-lg max-[992px]:col-span-2 max-[992px]:rounded-none max-[992px]:rounded-b-[10px] max-[992px]:py-[15px]"
         type="button"
         onClick={apply}
       >

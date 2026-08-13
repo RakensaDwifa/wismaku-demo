@@ -69,6 +69,19 @@ export default function PopularHotels({
           <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
             {isSearch && query ? (
               <>
+                <svg
+                  className="mx-auto mb-4 text-rd-border"
+                  viewBox="0 0 24 24"
+                  width="48"
+                  height="48"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
                 <p className="mb-[18px] text-rd-muted">
                   Tidak ada penginapan cocok untuk &quot;{query}&quot;
                   {nights > 0 ? ` selama ${nights} malam` : ''}.
@@ -88,7 +101,27 @@ export default function PopularHotels({
                 </div>
               </>
             ) : (
-              <p className="mb-[18px] text-rd-muted">Tidak ada penginapan ditemukan.</p>
+              <>
+                <svg
+                  className="mx-auto mb-4 text-rd-border"
+                  viewBox="0 0 24 24"
+                  width="48"
+                  height="48"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden="true"
+                >
+                  <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                  <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                  <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                  <path d="M10 6h4" />
+                  <path d="M10 10h4" />
+                  <path d="M10 14h4" />
+                  <path d="M10 18h4" />
+                </svg>
+                <p className="mb-[18px] text-rd-muted">Tidak ada penginapan ditemukan.</p>
+              </>
             )}
             <button className="btn btn-primary" type="button" onClick={onReset}>
               Ubah Pencarian

@@ -13,6 +13,7 @@ export default function BookingCard({ booking, onCancel }) {
         className="h-[76px] w-[110px] shrink-0 rounded-[10px] object-cover max-[768px]:aspect-video max-[768px]:h-auto max-[768px]:w-full"
         src={booking.hotelImg}
         alt=""
+        loading="lazy"
       />
       <div className="flex flex-1 flex-col gap-px text-[12px] text-rd-muted">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -45,7 +46,7 @@ export default function BookingCard({ booking, onCancel }) {
         </Link>
         {!cancelled && (
           <button
-            className="rounded-[7px] border border-rd bg-white px-2.5 py-[5px] text-[12px] font-bold text-rd transition-all duration-150 hover:bg-rd hover:text-white"
+            className="rounded-[7px] border border-rd bg-white px-2.5 py-[5px] text-[12px] font-bold text-rd transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:bg-rd hover:text-white"
             type="button"
             onClick={() => setConfirmOpen(true)}
           >

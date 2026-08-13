@@ -197,7 +197,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
     >
       {onClose && (
         <button
-          className="absolute top-2.5 right-2.5 z-10 grid size-[34px] place-items-center rounded-full bg-white/92 text-[22px] leading-none text-rd-text shadow-[0_2px_8px_rgba(0,0,0,0.2)] hover:text-rd"
+          className="absolute top-2.5 right-2.5 z-10 grid size-[34px] place-items-center rounded-full bg-white/92 text-[22px] leading-none text-rd-text shadow-[0_2px_8px_rgba(0,0,0,0.2)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:text-rd"
           type="button"
           onClick={onClose}
           aria-label="Tutup"
@@ -227,7 +227,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                 <button
                   key={g}
                   type="button"
-                  className={`h-[58px] w-[86px] overflow-hidden rounded-lg border-2 border-transparent p-0 aria-pressed:border-rd max-[768px]:h-16 max-[768px]:w-24`}
+                  className={`h-[58px] w-[86px] overflow-hidden rounded-lg border-2 border-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd aria-pressed:border-rd max-[768px]:h-16 max-[768px]:w-24`}
                   onClick={() => setImgIdx(i)}
                   aria-label={`Foto ${i + 1}`}
                   aria-pressed={i === imgIdx}
@@ -311,7 +311,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                         <button
                           key={n}
                           type="button"
-                          className={`text-[26px] leading-none text-rd-border transition-[color,transform] duration-100 hover:scale-[1.15]${n <= (hoverRating || reviewRating) ? ' text-[#f5a623]' : ''}`}
+                          className={`text-[26px] leading-none text-rd-border transition-[color,transform] duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:scale-[1.15]${n <= (hoverRating || reviewRating) ? ' text-[#f5a623]' : ''}`}
                           onClick={() => {
                             setReviewRating(n)
                             setReviewError('')
@@ -394,7 +394,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                     <button
                       key={t.id}
                       type="button"
-                      className={`flex cursor-pointer flex-col gap-0.5 rounded-[10px] border-[1.5px] border-rd-border bg-white p-2.5 text-left transition-[border-color,background] duration-150 hover:border-rd-teal aria-pressed:border-rd-teal aria-pressed:bg-[rgba(20,184,166,0.07)]`}
+                      className={`flex cursor-pointer flex-col gap-0.5 rounded-[10px] border-[1.5px] border-rd-border bg-white p-2.5 text-left transition-[border-color,background] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:border-rd-teal aria-pressed:border-rd-teal aria-pressed:bg-[rgba(20,184,166,0.07)]`}
                       onClick={() => setRoomTypeId(t.id)}
                       aria-pressed={t.id === roomTypeId}
                     >

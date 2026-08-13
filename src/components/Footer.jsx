@@ -21,7 +21,7 @@ export default function Footer({ onOpenPartner }) {
     'WismaKu adalah platform pemesanan penginapan dan hotel berbasis teknologi yang menyediakan akomodasi bersih, nyaman, dan terjangkau di lebih dari 100 kota strategis di Indonesia. Dari hotel budget, apartemen harian, hingga vila, semua bisa dipesan secara online dengan mudah melalui website maupun aplikasi. Temukan penginapan terdekat dengan harga mulai Rp 99rb per malam lengkap dengan promo dan diskon menarik setiap harinya.'
 
   return (
-    <footer className="footer">
+    <footer>
       <div className="bg-rd-soft py-7">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <p className="text-[12.5px] leading-[1.75] text-[#4c515a]">

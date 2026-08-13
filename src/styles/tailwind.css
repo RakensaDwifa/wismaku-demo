@@ -85,6 +85,11 @@
   font-size: 14px;
   font-weight: 700;
   transition: all 0.15s;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-rd);
+    outline-offset: 2px;
+  }
 }
 
 @utility btn-primary {

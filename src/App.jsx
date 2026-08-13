@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import PageLoader from './components/PageLoader.jsx'
 import SkipLink from './components/SkipLink.jsx'
+import { LanguageProvider } from './i18n/index.jsx'
 import HomePage from './pages/HomePage.jsx'
 
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage.jsx'))
@@ -15,7 +16,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'))
 
 export default function App() {
   return (
-    <>
+    <LanguageProvider>
       <SkipLink />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -30,6 +31,6 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
-    </>
+    </LanguageProvider>
   )
 }

@@ -378,6 +378,17 @@ export const en = {
     next: 'Next',
     slide: 'Slide {{n}}',
   },
+  promoPage: {
+    title: 'Promos & Discounts',
+    subtitle: 'The best WismaKu offers — active coupon codes and stays with attractive discounts.',
+    couponsTitle: 'Active Coupon Codes',
+    couponsSubtitle: 'Copy a coupon code and apply it at checkout to save more.',
+    copy: 'Copy',
+    copied: 'Copied!',
+    discountTitle: 'Discounted Stays',
+    discountSubtitle: 'Featured stays at special prices.',
+    viewAllStays: 'View All Stays',
+  },
   nav: {
     hotels: 'Hotels in Indonesia',
     promo: 'Promo',
@@ -433,6 +444,16 @@ export const en = {
     hoursValue: 'Every day, 08.00 – 21.00 WIB',
   },
   data: {
+    coupons: {
+      WISMA20: {
+        label: '20% Discount',
+        desc: 'Save up to {{amount}} on any stay.',
+      },
+      NEWUSER: {
+        label: '10% Discount for New Guests',
+        desc: 'Valid for your first booking.',
+      },
+    },
     roomTypes: {
       standard: 'Standard',
       deluxe: 'Deluxe',

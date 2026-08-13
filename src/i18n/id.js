@@ -378,6 +378,17 @@ export const id = {
     next: 'Berikutnya',
     slide: 'Slide {{n}}',
   },
+  promoPage: {
+    title: 'Promo & Diskon',
+    subtitle: 'Kumpulan penawaran terbaik WismaKu — kode kupon aktif dan penginapan dengan diskon menarik.',
+    couponsTitle: 'Kode Kupon Aktif',
+    couponsSubtitle: 'Salin kode kupon dan pakai saat checkout untuk hemat lebih.',
+    copy: 'Salin',
+    copied: 'Tersalin!',
+    discountTitle: 'Penginapan Berdiskon',
+    discountSubtitle: 'Penginapan pilihan dengan harga spesial.',
+    viewAllStays: 'Lihat Semua Penginapan',
+  },
   nav: {
     hotels: 'Hotel di Indonesia',
     promo: 'Promo',
@@ -439,6 +450,16 @@ export const id = {
     hoursValue: 'Setiap hari, 08.00 – 21.00 WIB',
   },
   data: {
+    coupons: {
+      WISMA20: {
+        label: 'Diskon 20%',
+        desc: 'Potongan hingga {{amount}} untuk semua penginapan.',
+      },
+      NEWUSER: {
+        label: 'Diskon 10% untuk tamu baru',
+        desc: 'Berlaku untuk pemesanan pertama Anda.',
+      },
+    },
     roomTypes: {
       standard: 'Standar',
       deluxe: 'Deluxe',

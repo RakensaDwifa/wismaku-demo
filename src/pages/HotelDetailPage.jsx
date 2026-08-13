@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import HotelDetailPanel from '../components/HotelDetailPanel.jsx'
 import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
+import { addRecentView } from '../services/history.js'
 
 export default function HotelDetailPage() {
   const { id } = useParams()
@@ -10,6 +12,11 @@ export default function HotelDetailPage() {
   const navigate = useNavigate()
   const { hotels, loading } = useHotels()
   const hotel = hotels.find((h) => String(h.id) === String(id))
+
+  const hotelId = hotel?.id
+  useEffect(() => {
+    if (hotelId != null) addRecentView(hotelId)
+  }, [hotelId])
 
   usePageMeta(
     hotel ? `${hotel.name} - ${hotel.city}` : 'Detail Penginapan',

@@ -6,6 +6,7 @@ import Hero from '../components/Hero.jsx'
 import CityChips from '../components/CityChips.jsx'
 import PromoCarousel from '../components/PromoCarousel.jsx'
 import PopularHotels from '../components/PopularHotels.jsx'
+import RecentHotels from '../components/RecentHotels.jsx'
 import BrandCards from '../components/BrandCards.jsx'
 import AssuranceBar from '../components/AssuranceBar.jsx'
 import Testimonials from '../components/Testimonials.jsx'
@@ -19,6 +20,7 @@ import { parseSearchParams, parseSearchWidgetInitial, buildSearchParams } from '
 import { parseFilters, applyFilters, applySort } from '../utils/filtering.js'
 import { srcSet } from '../utils/image.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
+import { getRecentViews } from '../services/history.js'
 
 const filterHotels = (hotels, q) => {
   const query = (q || '').trim().toLowerCase()
@@ -48,6 +50,7 @@ export default function HomePage() {
 
   const [clubOpen, setClubOpen] = useState(false)
   const [partnerOpen, setPartnerOpen] = useState(false)
+  const [recentIds] = useState(() => getRecentViews())
   const hotelsRef = useRef(null)
   const heroRef = useRef(null)
 
@@ -62,6 +65,9 @@ export default function HomePage() {
   const filtered = isSearch ? filterHotels(hotels, query) : hotels
   const list = applySort(applyFilters(filtered, filters), filters.sort)
   const derivedSearch = isSearch ? parseSearchParams(searchParams) : null
+  const recentHotels = recentIds
+    .map((recentId) => hotels.find((h) => String(h.id) === String(recentId)))
+    .filter(Boolean)
 
   const setFilterParams = (nextFilters) => {
     const params = Object.fromEntries(searchParams.entries())
@@ -134,6 +140,7 @@ export default function HomePage() {
             onCityPick={handleCityPick}
           />
         </div>
+        {!isSearch && <RecentHotels hotels={recentHotels} onOpen={openHotel} />}
         {brandsLoading ? (
           <div className="mx-auto w-full max-w-[1200px] px-5" aria-hidden="true">
             <Skeleton className="mx-auto mt-12 mb-5 h-7 w-[45%]" />

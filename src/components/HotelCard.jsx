@@ -1,8 +1,10 @@
 import { fmtRupiah } from '../utils/format.js'
 import { srcSet } from '../utils/image.js'
 import FavButton from './FavButton.jsx'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function HotelCard({ hotel, nights = 0, onOpen }) {
+  const { t } = useLanguage()
   const total = nights > 0 ? hotel.price * nights : 0
 
   return (
@@ -11,7 +13,7 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
       <a
         href="#hotels"
         className="block"
-        title="Lihat detail penginapan"
+        title={t('hotelCard.viewDetail')}
         onClick={(e) => {
           e.preventDefault()
           onOpen?.(hotel)
@@ -28,7 +30,7 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
           />
           {hotel.discount > 0 && (
             <span className="absolute top-3 left-3 rounded-md bg-rd px-2.5 py-[5px] text-xs font-extrabold text-white">
-              Hemat {hotel.discount}%
+              {t('hotelCard.save', { discount: hotel.discount })}
             </span>
           )}
           <span className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-md bg-white/[0.96] px-2.5 py-[5px] text-xs font-extrabold text-rd-text">
@@ -53,17 +55,17 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
             {hotel.area}, {hotel.city}
           </p>
           <div>
-            <span className="block text-xs text-rd-muted">Mulai dari</span>
+            <span className="block text-xs text-rd-muted">{t('hotelCard.from')}</span>
             <div className="mt-0.5 flex items-baseline gap-2">
               <strong className="text-[19px] font-extrabold text-rd">{fmtRupiah(hotel.price)}</strong>
               <span className="text-[13px] text-[#9a9a9a] line-through">
                 {fmtRupiah(hotel.originalPrice)}
               </span>
             </div>
-            <span className="text-xs text-rd-muted">/ malam</span>
+            <span className="text-xs text-rd-muted">{t('hotelCard.perNight')}</span>
             {total > 0 && (
               <span className="mt-1.5 block text-[12.5px] font-extrabold text-rd-teal">
-                {fmtRupiah(total)} total &middot; {nights} malam
+                {t('hotelCard.total', { total: fmtRupiah(total), nights })}
               </span>
             )}
           </div>

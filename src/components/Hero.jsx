@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import SearchWidget from './SearchWidget.jsx'
 import { srcSet } from '../utils/image.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function Hero({ cities, hotels, onSearch, initial }) {
+  const { t } = useLanguage()
   const heroRef = useRef(null)
   const wrapperRef = useRef(null)
   const hideTimer = useRef(null)
@@ -63,7 +65,7 @@ export default function Hero({ cities, hotels, onSearch, initial }) {
           src={heroImg}
           srcSet={srcSet(heroImg, [800, 1200, 1800])}
           sizes="100vw"
-          alt="Suasana penginapan yang nyaman"
+          alt={t('hero.imgAlt')}
           fetchpriority="high"
           className="h-full w-full object-cover"
         />
@@ -71,13 +73,13 @@ export default function Hero({ cities, hotels, onSearch, initial }) {
       </div>
       <div className="relative z-[2] mx-auto w-full max-w-[1200px] px-5 pt-24 text-white max-sm:pt-14">
         <h1 className="text-[40px] font-extrabold leading-[1.2] max-sm:text-[27px]">
-          Booking Hotel Murah, <br />
+          {t('hero.title1')} <br />
           <span className="bg-[linear-gradient(95deg,#10b981,#0d9488)] bg-clip-text text-transparent">
-            Harga Promo Hanya di WismaKu
+            {t('hero.title2')}
           </span>
         </h1>
         <p className="mt-3.5 max-w-[640px] text-base leading-[1.6] text-white/[0.88] max-sm:text-[14.5px]">
-          Penginapan bersih, nyaman, dan terjangkau di lebih dari 100 kota strategis di Indonesia.
+          {t('hero.subtitle')}
         </p>
       </div>
       <div

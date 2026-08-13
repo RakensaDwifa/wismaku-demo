@@ -3,6 +3,7 @@ import DateRangePicker from './DateRangePicker.jsx'
 import { toYMD } from '../utils/format.js'
 import { buildSuggestions, highlightParts } from '../utils/suggestions.js'
 import { getRecentSearches, addRecentSearch } from '../services/history.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 const addDays = (d, n) => {
   const x = new Date(d)
@@ -25,6 +26,7 @@ const Highlight = ({ text, query }) => {
 }
 
 export default function SearchWidget({ cities, hotels = [], onSearch, initial = {} }) {
+  const { t } = useLanguage()
   const [destination, setDestination] = useState(initial.destination || '')
   const [checkIn, setCheckIn] = useState(initial.checkIn || new Date())
   const [checkOut, setCheckOut] = useState(initial.checkOut || addDays(new Date(), 1))
@@ -167,7 +169,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
           >
             <path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
           </svg>
-          Tujuan
+          {t('widget.destination')}
         </label>
         <button
           className="w-full cursor-pointer text-left text-[15px] font-bold text-rd-text transition-colors duration-150 hover:text-rd"
@@ -177,14 +179,14 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
           aria-controls="sw-suggest-box"
           aria-haspopup="listbox"
         >
-          {destination || 'Mau ke mana?'}
+          {destination || t('widget.destinationPlaceholder')}
         </button>
         {cityOpen && (
           <div className="absolute top-[calc(100%+10px)] left-0 z-[60] min-w-[280px] overflow-hidden rounded-xl border border-[#eee] bg-white shadow-rd-lg">
             <input
               ref={inputRef}
               className="w-full border-b border-[#eee] px-4 py-3 text-sm text-rd-text"
-              placeholder="Cari kota, area, atau penginapan..."
+              placeholder={t('widget.searchPlaceholder')}
               value={destination}
               onChange={(e) => {
                 setDestination(e.target.value)
@@ -197,17 +199,15 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
               aria-activedescendant={activeIndex >= 0 ? itemId(rows[activeIndex]) : undefined}
               autoFocus
             />
-            <div id="sw-suggest-box" role="listbox" aria-label="Saran destinasi">
+            <div id="sw-suggest-box" role="listbox" aria-label={t('widget.suggestLabel')}>
               {rows.length === 0 ? (
-                <p className="px-4 py-3 text-sm text-rd-muted">
-                  Tidak ada hasil untuk &quot;{destination}&quot;
-                </p>
+                <p className="px-4 py-3 text-sm text-rd-muted">{t('widget.noResults', { q: destination })}</p>
               ) : (
                 <>
                   {destination === '' && recents.length > 0 && (
                     <>
                       <p className="px-4 pt-2.5 pb-1 text-[11px] font-bold uppercase tracking-[0.4px] text-rd-muted">
-                        Pencarian Terakhir
+                        {t('widget.recentTitle')}
                       </p>
                       <ul className="max-h-[280px] list-none overflow-y-auto">
                         {recents.map((r, i) => renderRow(r, i))}
@@ -217,7 +217,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
                   {citiesRow.length > 0 && (
                     <>
                       <p className="px-4 pt-2.5 pb-1 text-[11px] font-bold uppercase tracking-[0.4px] text-rd-muted">
-                        Kota
+                        {t('widget.cityTitle')}
                       </p>
                       <ul className="max-h-[280px] list-none overflow-y-auto">
                         {citiesRow.map((r, i) => renderRow(r, recents.length + i))}
@@ -227,7 +227,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
                   {hotelsRow.length > 0 && (
                     <>
                       <p className="px-4 pt-2.5 pb-1 text-[11px] font-bold uppercase tracking-[0.4px] text-rd-muted">
-                        Penginapan &amp; Area
+                        {t('widget.hotelsTitle')}
                       </p>
                       <ul className="max-h-[280px] list-none overflow-y-auto">
                         {hotelsRow.map((r, i) => renderRow(r, recents.length + citiesRow.length + i))}
@@ -245,7 +245,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
 
       <div className="relative flex flex-col justify-center px-4 py-3 max-[992px]:border-r-0" ref={guestRef}>
         <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
-          Tamu &amp; Kamar
+          {t('widget.guests')}
         </label>
         <button
           className="w-full cursor-pointer text-left text-[15px] font-bold text-rd-text transition-colors duration-150 hover:text-rd"
@@ -255,19 +255,19 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
           aria-controls="sw-guest-box"
           aria-haspopup="group"
         >
-          {rooms} kamar &middot; {adults + children} tamu
+          {t('widget.roomsGuests', { rooms, guests: adults + children })}
         </button>
         {guestOpen && (
           <div
             className="absolute top-[calc(100%+10px)] left-0 z-[60] min-w-[260px] rounded-xl border border-[#eee] bg-white p-4 shadow-rd-lg"
             id="sw-guest-box"
             role="group"
-            aria-label="Jumlah tamu dan kamar"
+            aria-label={t('widget.guestLabel')}
           >
             {[
-              { label: 'Kamar', val: rooms, min: 1, max: 9, set: setRooms },
-              { label: 'Dewasa', val: adults, min: 1, max: 9, set: setAdults },
-              { label: 'Anak-anak', val: children, min: 0, max: 6, set: setChildren },
+              { label: t('widget.rooms'), val: rooms, min: 1, max: 9, set: setRooms },
+              { label: t('widget.adults'), val: adults, min: 1, max: 9, set: setAdults },
+              { label: t('widget.children'), val: children, min: 0, max: 6, set: setChildren },
             ].map((r) => (
               <div
                 className="mb-3 flex items-center justify-between gap-5 text-sm font-bold last:mb-0"
@@ -279,7 +279,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
                     className="grid size-8 max-[768px]:size-10 place-items-center rounded-full border border-rd-border text-base leading-none text-rd-text transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:border-rd hover:text-rd"
                     type="button"
                     onClick={down(r.set, r.val, r.min)}
-                    aria-label={`Kurangi ${r.label}`}
+                    aria-label={t('widget.decrease', { label: r.label })}
                   >
                     &minus;
                   </button>
@@ -287,8 +287,8 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
                   <button
                     className="grid size-8 max-[768px]:size-10 place-items-center rounded-full border border-rd-border text-base leading-none text-rd-text transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:border-rd hover:text-rd"
                     type="button"
-                    onClick={step(r.set, r.val, r.min, r.max)}
-                    aria-label={`Tambah ${r.label}`}
+                    onClick={step(r.set, r.val, r.max)}
+                    aria-label={t('widget.increase', { label: r.label })}
                   >
                     +
                   </button>
@@ -304,7 +304,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
         type="button"
         onClick={apply}
       >
-        Cari Hotel
+        {t('widget.search')}
       </button>
     </div>
   )

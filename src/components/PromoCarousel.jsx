@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { srcSet } from '../utils/image.js'
 import ErrorBanner from './ErrorBanner.jsx'
 import { Skeleton } from './Skeletons.jsx'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function PromoCarousel({ promos, onShowHotels, loading = false, error, onRetry }) {
+  const { t } = useLanguage()
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
 
@@ -23,10 +25,10 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
       <section className="bg-white py-12 max-[768px]:py-8" id="promo">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
-            Penawaran Menarik
+            {t('promo.title')}
           </h2>
           {error ? (
-            <ErrorBanner onRetry={onRetry} message="Gagal memuat promo." />
+            <ErrorBanner onRetry={onRetry} message={t('errors.loadPromos')} />
           ) : (
             <Skeleton className="mt-6 h-[260px] rounded-2xl" />
           )}
@@ -40,10 +42,10 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
       <div className="mx-auto w-full max-w-[1200px] px-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
-            Penawaran Menarik
+            {t('promo.title')}
           </h2>
           <button className="btn btn-outline btn-sm" type="button" onClick={onShowHotels}>
-            Lihat Semua Promo
+            {t('promo.viewAll')}
           </button>
         </div>
         {error ? (
@@ -82,9 +84,9 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
                     className="mt-[18px] inline-block rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] px-5 py-2.5 text-[13.5px] font-extrabold text-white transition-all hover:-translate-y-0.5 hover:shadow-rd"
                     type="button"
                     onClick={onShowHotels}
-                    title="Lihat penginapan pilihan"
+                    title={t('promo.bookTitle')}
                   >
-                    Pesan Sekarang
+                    {t('promo.bookNow')}
                   </button>
                 </div>
               </div>
@@ -93,7 +95,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
               className="absolute top-1/2 left-[18px] z-[5] grid size-[42px] -translate-y-1/2 place-items-center rounded-full bg-white text-[26px] leading-none text-rd-text shadow-rd-lg transition-all hover:bg-rd hover:text-white max-sm:hidden"
               type="button"
               onClick={() => go(-1)}
-              aria-label="Sebelumnya"
+              aria-label={t('promo.prev')}
             >
               &#8249;
             </button>
@@ -101,7 +103,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
               className="absolute top-1/2 right-[18px] z-[5] grid size-[42px] -translate-y-1/2 place-items-center rounded-full bg-white text-[26px] leading-none text-rd-text shadow-rd-lg transition-all hover:bg-rd hover:text-white max-sm:hidden"
               type="button"
               onClick={() => go(1)}
-              aria-label="Berikutnya"
+              aria-label={t('promo.next')}
             >
               &#8250;
             </button>
@@ -114,7 +116,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
                     i === active ? 'w-6 bg-white' : ''
                   }`}
                   onClick={() => setActive(i)}
-                  aria-label={`Slide ${i + 1}`}
+                  aria-label={t('promo.slide', { n: i + 1 })}
                   aria-current={i === active}
                 />
               ))}

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { registerMember } from '../services/member.js'
 import Modal from './ui/Modal.jsx'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function MemberModal({ onClose }) {
+  const { t } = useLanguage()
   const [form, setForm] = useState({ name: '', email: '' })
   const [error, setError] = useState('')
   const [member, setMember] = useState(null)
@@ -16,12 +18,12 @@ export default function MemberModal({ onClose }) {
     e.preventDefault()
     const name = form.name.trim()
     const email = form.email.trim()
-    if (name.length < 3) return setError('Nama lengkap minimal 3 karakter.')
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Format email tidak valid.')
+    if (name.length < 3) return setError(t('member.nameTooShort'))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError(t('member.emailInvalid'))
     try {
       setMember(await registerMember({ name, email }))
     } catch (err) {
-      setError(err.message || 'Gagal menyimpan data member.')
+      setError(err.message || t('member.saveFailed'))
     }
   }
 
@@ -30,35 +32,33 @@ export default function MemberModal({ onClose }) {
       {!member ? (
         <div className="px-5 pt-[18px] pb-[22px]">
           <h3 id="member-modal-title" className="text-[19px] font-extrabold leading-[1.3]">
-            Gabung WismaClub, Gratis!
+            {t('member.title')}
           </h3>
-          <p className="mt-1 mb-2 text-[13px] text-rd-muted">
-            Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out.
-          </p>
+          <p className="mt-1 mb-2 text-[13px] text-rd-muted">{t('member.subtitle')}</p>
           <form className="flex flex-col gap-3" onSubmit={submit} noValidate>
             <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-              Nama Lengkap
+              {t('member.name')}
               <input
                 className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                 type="text"
                 value={form.name}
                 onChange={set('name')}
-                placeholder="cth: Budi Santoso"
+                placeholder={t('member.namePlaceholder')}
               />
             </label>
             <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-              Email
+              {t('member.email')}
               <input
                 className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                 type="email"
                 value={form.email}
                 onChange={set('email')}
-                placeholder="cth: budi@email.com"
+                placeholder={t('member.emailPlaceholder')}
               />
             </label>
             {error && <p className="text-[12.5px] font-bold text-rd">{error}</p>}
             <button className="btn btn-primary" type="submit">
-              Daftar Sekarang
+              {t('member.join')}
             </button>
           </form>
         </div>
@@ -70,20 +70,18 @@ export default function MemberModal({ onClose }) {
           >
             &#10003;
           </div>
-          <h3 className="text-[19px] font-extrabold">Selamat, Kamu Anggota WismaClub!</h3>
+          <h3 className="text-[19px] font-extrabold">{t('member.successTitle')}</h3>
           <p className="my-1.5 mb-1 text-[13px] text-rd-muted">
-            ID Member: <b className="text-rd-teal">{member.id}</b>
+            {t('member.memberId')} <b className="text-rd-teal">{member.id}</b>
           </p>
           <div className="my-3 mb-4 flex flex-col gap-[3px] rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
-            <p>Diskon member hingga 20% di ribuan properti</p>
-            <p>Check-in lebih awal (early check-in)</p>
-            <p>Fleksibilitas check-out</p>
+            {t('member.perks').map((perk) => (
+              <p key={perk}>{perk}</p>
+            ))}
           </div>
-          <p className="mt-2 text-[12px] text-rd-muted">
-            Simulasi demo — data member tersimpan di perangkat ini (localStorage).
-          </p>
+          <p className="mt-2 text-[12px] text-rd-muted">{t('member.demoNote')}</p>
           <button className="btn btn-primary mt-[18px]" type="button" onClick={onClose}>
-            Selesai
+            {t('member.done')}
           </button>
         </div>
       )}

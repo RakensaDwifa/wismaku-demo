@@ -1,9 +1,9 @@
 export const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
 
-export const fmtDate = (iso) => {
+export const fmtDate = (iso, lang = 'id') => {
   if (!iso) return '-'
   const d = iso.includes('T') ? new Date(iso) : new Date(iso + 'T00:00:00')
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'id-ID', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

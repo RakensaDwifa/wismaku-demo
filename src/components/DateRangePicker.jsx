@@ -1,18 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { addDays } from 'date-fns'
-import { id } from 'date-fns/locale'
+import { enUS, id as idFns } from 'date-fns/locale'
 import 'react-day-picker/style.css'
-
-const fmtDate = (d) =>
-  d
-    ? new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).format(d)
-    : 'Pilih tanggal'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
+  const { lang, t } = useLanguage()
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('checkin')
   const wrapRef = useRef(null)
+
+  const locale = lang === 'en' ? enUS : idFns
+
+  const fmtDate = (d) =>
+    d
+      ? new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'id-ID', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        }).format(d)
+      : t('dateRange.pickDate')
 
   useEffect(() => {
     const close = (e) => {
@@ -76,11 +84,11 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
         <button
           className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
           type="button"
-          aria-label="Pilih tanggal check-in"
+          aria-label={t('dateRange.pickCheckin')}
           onClick={() => openFor('checkin')}
         />
         <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
-          Check-in
+          {t('dateRange.checkin')}
         </label>
         <span
           className={`w-full text-left text-[15px] font-bold whitespace-nowrap text-rd-text${active === 'checkin' ? ' text-rd' : ''}`}
@@ -92,11 +100,11 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
         <button
           className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
           type="button"
-          aria-label="Pilih tanggal check-out"
+          aria-label={t('dateRange.pickCheckout')}
           onClick={() => openFor('checkout')}
         />
         <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
-          Check-out
+          {t('dateRange.checkout')}
         </label>
         <span
           className={`w-full text-left text-[15px] font-bold whitespace-nowrap text-rd-text${active === 'checkout' ? ' text-rd' : ''}`}
@@ -110,7 +118,7 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
             mode="single"
             numberOfMonths={1}
             defaultMonth={active === 'checkin' ? checkIn : checkOut}
-            locale={id}
+            locale={locale}
             today={today}
             selected={active === 'checkin' ? checkIn : checkOut}
             onSelect={(d) => (active === 'checkin' ? pickCheckIn(d) : pickCheckOut(d))}
@@ -131,9 +139,11 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
             footer={
               <div className="mt-2 border-t border-[#f0f0f0] pt-2.5 pb-1 text-center text-[13px] text-rd-muted">
                 {nights > 0 ? (
-                  <b className="text-[14px] text-rd">{nights} malam</b>
+                  <b className="text-[14px] text-rd">{t('dateRange.nights', { nights })}</b>
                 ) : (
-                  <span>{active === 'checkin' ? 'Pilih tanggal check-in' : 'Pilih tanggal check-out'}</span>
+                  <span>
+                    {active === 'checkin' ? t('dateRange.pickCheckin') : t('dateRange.pickCheckout')}
+                  </span>
                 )}
               </div>
             }

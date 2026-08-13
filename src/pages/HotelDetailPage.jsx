@@ -11,8 +11,10 @@ import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { addRecentView } from '../services/history.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function HotelDetailPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -25,10 +27,15 @@ export default function HotelDetailPage() {
   }, [hotelId])
 
   usePageMeta(
-    hotel ? `${hotel.name} - ${hotel.city}` : 'Detail Penginapan',
+    hotel ? `${hotel.name} - ${hotel.city}` : t('hotelDetailPage.metaTitleFallback'),
     hotel
-      ? `Pesan ${hotel.name} di ${hotel.area}, ${hotel.city} mulai ${hotel.price} rupiah per malam.`
-      : 'Detail penginapan di WismaKu.',
+      ? t('hotelDetailPage.metaDescHotel', {
+          name: hotel.name,
+          area: hotel.area,
+          city: hotel.city,
+          price: hotel.price,
+        })
+      : t('hotelDetailPage.metaDescFallback'),
   )
 
   if (loading) {
@@ -67,9 +74,9 @@ export default function HotelDetailPage() {
         <main id="main" className="min-h-[60vh] py-8">
           <div className="mx-auto w-full max-w-[1200px] px-5">
             <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
-              <p className="mb-[18px] text-rd-muted">Penginapan tidak ditemukan.</p>
+              <p className="mb-[18px] text-rd-muted">{t('booking.notFound')}</p>
               <Link className="btn btn-primary" to="/hasil">
-                Lihat Semua Hotel
+                {t('booking.viewAllHotels')}
               </Link>
             </div>
           </div>
@@ -92,14 +99,14 @@ export default function HotelDetailPage() {
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <nav
             className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-rd-muted"
-            aria-label="Breadcrumb"
+            aria-label={t('booking.breadcrumbAria')}
           >
             <Link className="font-semibold text-rd-muted transition-colors hover:text-rd" to="/">
-              Beranda
+              {t('booking.crumbHome')}
             </Link>
             <span aria-hidden="true">&rsaquo;</span>
             <Link className="font-semibold text-rd-muted transition-colors hover:text-rd" to="/hasil">
-              Penginapan
+              {t('booking.crumbStays')}
             </Link>
             <span aria-hidden="true">&rsaquo;</span>
             <span className="font-bold text-rd-text" aria-current="page">
@@ -108,11 +115,11 @@ export default function HotelDetailPage() {
           </nav>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <button className="btn btn-outline btn-sm" type="button" onClick={() => navigate(-1)}>
-              &larr; Kembali
+              {t('hotelDetailPage.back')}
             </button>
             {search.nights > 0 && (
               <span className="rounded-full bg-rd px-3 py-1 text-[12.5px] font-extrabold text-white">
-                {search.nights} malam &middot; {search.guests} tamu
+                {t('resultsPage.metaNights', { nights: search.nights, guests: search.guests })}
               </span>
             )}
           </div>
@@ -131,7 +138,7 @@ export default function HotelDetailPage() {
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
                   <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" />
                 </svg>
-                {hotel.rating} ({hotel.reviews} ulasan)
+                {hotel.rating} ({t('hotelDetailPage.reviewCount', { count: hotel.reviews })})
               </span>
               <FavButton hotelId={hotel.id} />
             </div>

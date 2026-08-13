@@ -1,24 +1,15 @@
 import { useState } from 'react'
-
-const columns = [
-  {
-    title: 'Perusahaan',
-    links: ['Tentang Kami', 'Karier', 'Blog Travel', 'Daftarkan Properti', 'WismaClub'],
-  },
-  {
-    title: 'Bantuan',
-    links: ['Pusat Bantuan / FAQ', 'Hubungi Kami', 'Cara Booking', 'Kebijakan Privasi', 'Syarat & Ketentuan'],
-  },
-  {
-    title: 'Populer',
-    links: ['Hotel Jakarta', 'Hotel Bandung', 'Hotel Yogyakarta', 'Hotel Bali', 'Hotel Surabaya'],
-  },
-]
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function Footer({ onOpenPartner }) {
+  const { t } = useLanguage()
   const [expanded, setExpanded] = useState(false)
-  const seo =
-    'WismaKu adalah platform pemesanan penginapan dan hotel berbasis teknologi yang menyediakan akomodasi bersih, nyaman, dan terjangkau di lebih dari 100 kota strategis di Indonesia. Dari hotel budget, apartemen harian, hingga vila, semua bisa dipesan secara online dengan mudah melalui website maupun aplikasi. Temukan penginapan terdekat dengan harga mulai Rp 99rb per malam lengkap dengan promo dan diskon menarik setiap harinya.'
+  const seo = t('footer.seo')
+  const columns = [
+    { title: t('footer.about'), links: t('footer.aboutLinks') },
+    { title: t('footer.help'), links: t('footer.helpLinks') },
+    { title: t('footer.popular'), links: t('footer.popularLinks') },
+  ]
 
   return (
     <footer>
@@ -32,7 +23,7 @@ export default function Footer({ onOpenPartner }) {
             type="button"
             onClick={() => setExpanded((v) => !v)}
           >
-            {expanded ? 'Sembunyikan' : 'Baca selengkapnya'}
+            {expanded ? t('footer.hide') : t('footer.readMore')}
           </button>
         </div>
       </div>
@@ -53,14 +44,11 @@ export default function Footer({ onOpenPartner }) {
                 Wisma<strong className="font-extrabold text-[#5eead4]">Ku</strong>
               </span>
             </a>
-            <p className="my-3.5 text-[13px] leading-[1.65] text-[#b9b9b9]">
-              Platform pemesanan penginapan terjangkau untuk perjalanan bisnis maupun liburan. Kamar bersih,
-              free WiFi, dan harga transparan.
-            </p>
+            <p className="my-3.5 text-[13px] leading-[1.65] text-[#b9b9b9]">{t('footer.desc')}</p>
             <p className="text-[13px] leading-[1.75] text-[#c9c9c9]">
-              Layanan Pelanggan: 021-8063-5835
+              {t('topbar.supportPhone')}
               <br />
-              cs-indonesia@wismaku.id
+              {t('footer.email')}
             </p>
           </div>
           {columns.map((col) => (
@@ -72,9 +60,9 @@ export default function Footer({ onOpenPartner }) {
                     <a
                       href="#partner"
                       className="cursor-not-allowed text-[13px] text-[#b9b9b9] opacity-65"
-                      aria-disabled={l !== 'Daftarkan Properti'}
+                      aria-disabled={l !== t('nav.partner')}
                       onClick={(e) => {
-                        if (l === 'Daftarkan Properti') {
+                        if (l === t('nav.partner')) {
                           e.preventDefault()
                           onOpenPartner?.()
                         } else {
@@ -90,7 +78,7 @@ export default function Footer({ onOpenPartner }) {
             </div>
           ))}
           <div>
-            <h4 className="mb-4 text-[15px] font-extrabold text-white">Ikuti Kami</h4>
+            <h4 className="mb-4 text-[15px] font-extrabold text-white">{t('footer.followUs')}</h4>
             <div className="flex gap-2.5">
               {['Facebook', 'Instagram', 'X', 'YouTube'].map((s) => (
                 <a
@@ -105,9 +93,9 @@ export default function Footer({ onOpenPartner }) {
                 </a>
               ))}
             </div>
-            <h4 className="mt-[22px] mb-4 text-[15px] font-extrabold text-white">Metode Pembayaran</h4>
+            <h4 className="mt-[22px] mb-4 text-[15px] font-extrabold text-white">{t('footer.payment')}</h4>
             <div className="flex flex-wrap gap-2">
-              {['Bank Transfer', 'Kartu Kredit', 'Alfamart', 'e-Wallet', 'Pay at Hotel'].map((m) => (
+              {t('footer.payments').map((m) => (
                 <span className="rounded-md border border-[#666] px-2 py-1 text-[11.5px] text-[#ccc]" key={m}>
                   {m}
                 </span>
@@ -119,9 +107,7 @@ export default function Footer({ onOpenPartner }) {
 
       <div className="bg-[#2e2e2e] py-[18px]">
         <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-5 text-[12.5px] text-[#999] max-sm:flex-col max-sm:text-center">
-          <p>
-            &copy; {new Date().getFullYear()} WismaKu. Semua hak dilindungi. Demo tiruan untuk pembelajaran.
-          </p>
+          <p>{t('footer.rights', { year: new Date().getFullYear() })}</p>
         </div>
       </div>
     </footer>

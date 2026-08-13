@@ -11,10 +11,12 @@ import { Skeleton } from '../components/Skeletons.jsx'
 import { createBooking } from '../services/booking.js'
 import { applyCoupon } from '../services/coupon.js'
 import { getMember } from '../services/member.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 const MEMBER_DISCOUNT_PCT = 0.1
 
 export default function BookingPage() {
+  const { t, lang } = useLanguage()
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -48,10 +50,10 @@ export default function BookingPage() {
   const total = afterCoupon - memberDiscount
 
   usePageMeta(
-    hotel ? `Pesan ${hotel.name}` : 'Pemesanan Penginapan',
+    hotel ? t('booking.metaTitle', { name: hotel.name }) : t('booking.metaTitleFallback'),
     hotel
-      ? `Selesaikan pemesanan ${hotel.name} di ${hotel.area}, ${hotel.city} melalui WismaKu.`
-      : 'Selesaikan pemesanan penginapan di WismaKu.',
+      ? t('booking.metaDescHotel', { name: hotel.name, area: hotel.area, city: hotel.city })
+      : t('booking.metaDesc'),
   )
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function BookingPage() {
       setCouponInput('')
     } catch (err) {
       setCoupon(null)
-      setCouponError(err.message || 'Kupon tidak valid.')
+      setCouponError(err.message || t('booking.couponInvalid'))
     }
   }
 
@@ -93,9 +95,9 @@ export default function BookingPage() {
     const name = form.name.trim()
     const email = form.email.trim()
     const phone = form.phone.trim()
-    if (name.length < 3) return setError('Nama lengkap minimal 3 karakter.')
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Format email tidak valid.')
-    if (!/^[0-9+\-\s]{8,15}$/.test(phone)) return setError('Nomor HP minimal 8 digit angka.')
+    if (name.length < 3) return setError(t('booking.nameTooShort'))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError(t('booking.emailInvalid'))
+    if (!/^[0-9+\-\s]{8,15}$/.test(phone)) return setError(t('booking.phoneInvalid'))
     setBusy(true)
     try {
       const booking = await createBooking({
@@ -120,7 +122,7 @@ export default function BookingPage() {
       })
       navigate(`/bayar/${booking.id}`)
     } catch (err) {
-      setError(err.message || 'Gagal membuat pesanan.')
+      setError(err.message || t('booking.createFailed'))
       setBusy(false)
     }
   }
@@ -156,9 +158,9 @@ export default function BookingPage() {
         <main id="main" className="min-h-[60vh] py-8">
           <div className="mx-auto w-full max-w-[1200px] px-5">
             <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
-              <p className="mb-[18px] text-rd-muted">Penginapan tidak ditemukan.</p>
+              <p className="mb-[18px] text-rd-muted">{t('booking.notFound')}</p>
               <Link className="btn btn-primary" to="/hasil">
-                Lihat Semua Hotel
+                {t('booking.viewAllHotels')}
               </Link>
             </div>
           </div>
@@ -176,14 +178,14 @@ export default function BookingPage() {
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <nav
             className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-rd-muted"
-            aria-label="Breadcrumb"
+            aria-label={t('booking.breadcrumbAria')}
           >
             <Link className="font-semibold text-rd-muted transition-colors hover:text-rd" to="/">
-              Beranda
+              {t('booking.crumbHome')}
             </Link>
             <span aria-hidden="true">&rsaquo;</span>
             <Link className="font-semibold text-rd-muted transition-colors hover:text-rd" to="/hasil">
-              Penginapan
+              {t('booking.crumbStays')}
             </Link>
             <span aria-hidden="true">&rsaquo;</span>
             <Link
@@ -194,15 +196,15 @@ export default function BookingPage() {
             </Link>
             <span aria-hidden="true">&rsaquo;</span>
             <span className="font-bold text-rd-text" aria-current="page">
-              Pemesanan
+              {t('booking.crumbBooking')}
             </span>
           </nav>
-          <h1 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">Pemesanan Penginapan</h1>
+          <h1 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">{t('booking.title')}</h1>
 
           <div className="mt-6 grid items-start gap-6 min-[993px]:grid-cols-[1fr_360px]">
             <div className="flex min-w-0 flex-col gap-6">
               <section className="rounded-2xl border border-rd-border bg-white p-5">
-                <h2 className="text-[18px] font-extrabold">Detail Pemesanan</h2>
+                <h2 className="text-[18px] font-extrabold">{t('booking.detailTitle')}</h2>
                 <div className="mt-4 flex gap-4">
                   <img
                     className="h-[84px] w-[120px] shrink-0 rounded-[10px] object-cover"
@@ -215,25 +217,26 @@ export default function BookingPage() {
                       {hotel.area}, {hotel.city}
                     </p>
                     <p className="mt-1 text-[12.5px] font-bold text-rd-teal">
-                      {hotel.rating} &#9733; ({hotel.reviews} ulasan)
+                      {hotel.rating} &#9733; ({t('booking.reviewCount', { count: hotel.reviews })})
                     </p>
                   </div>
                 </div>
                 <div className="mt-4 flex flex-col gap-1.5 rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
                   {hasDates ? (
                     <p>
-                      {fmtDate(search.checkIn)} &rarr; {fmtDate(search.checkOut)} ({nights} malam)
+                      {fmtDate(search.checkIn, lang)} &rarr; {fmtDate(search.checkOut, lang)}{' '}
+                      {t('bookingBox.nightsShort', { nights })}
                     </p>
                   ) : (
-                    <p className="text-rd-muted">Tanpa tanggal terpilih &mdash; estimasi {nights} malam.</p>
+                    <p className="text-rd-muted">{t('booking.noDates', { nights })}</p>
                   )}
-                  <p>
-                    {rooms} kamar &middot; {guests} tamu &middot; Tipe {roomType.name}
-                  </p>
+                  <p>{t('booking.summary', { rooms, guests, type: roomType.name })}</p>
                 </div>
 
                 <div className="mt-4">
-                  <p className="mb-1.5 text-[12.5px] font-extrabold text-rd-text">Kode Kupon</p>
+                  <p className="mb-1.5 text-[12.5px] font-extrabold text-rd-text">
+                    {t('booking.couponLabel')}
+                  </p>
                   <div className="flex gap-2">
                     <input
                       className="flex-1 rounded-[9px] border border-rd-border px-3 py-[9px] text-[13.5px] focus:border-rd focus:outline-none"
@@ -243,91 +246,95 @@ export default function BookingPage() {
                         setCouponInput(e.target.value)
                         setCouponError('')
                       }}
-                      placeholder="cth: WISMA20"
-                      aria-label="Kode kupon"
+                      placeholder={t('booking.couponPlaceholder')}
+                      aria-label={t('booking.couponAria')}
                     />
                     <button className="btn btn-outline btn-sm" type="button" onClick={handleCoupon}>
-                      Pakai
+                      {t('booking.couponApply')}
                     </button>
                   </div>
                   {couponError && <p className="mt-1 text-[12.5px] font-bold text-rd">{couponError}</p>}
                   {coupon && (
                     <p className="mt-1 text-[12.5px] font-bold text-rd-teal">
-                      Kupon {coupon.code} berlaku &mdash; hemat {fmtRupiah(couponAmount)}
+                      {t('booking.couponApplied', { code: coupon.code, amount: fmtRupiah(couponAmount) })}
                     </p>
                   )}
                   {isMember && (
-                    <p className="mt-1 text-[12.5px] font-bold text-rd-teal">
-                      &#9733; Diskon member WismaClub 10% diterapkan
-                    </p>
+                    <p className="mt-1 text-[12.5px] font-bold text-rd-teal">{t('booking.memberApplied')}</p>
                   )}
                 </div>
               </section>
 
               <section className="rounded-2xl border border-rd-border bg-white p-5">
-                <h2 className="text-[18px] font-extrabold">Data Pemesan</h2>
+                <h2 className="text-[18px] font-extrabold">{t('booking.guestData')}</h2>
                 <form className="mt-4 flex flex-col gap-3" onSubmit={submit} noValidate id="booking-form">
                   <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-                    Nama Lengkap
+                    {t('booking.fullName')}
                     <input
                       className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                       type="text"
                       value={form.name}
                       onChange={set('name')}
-                      placeholder="cth: Budi Santoso"
+                      placeholder={t('booking.namePlaceholder')}
                     />
                   </label>
                   <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-                    Email
+                    {t('booking.email')}
                     <input
                       className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                       type="email"
                       value={form.email}
                       onChange={set('email')}
-                      placeholder="cth: budi@email.com"
+                      placeholder={t('booking.emailPlaceholder')}
                     />
                   </label>
                   <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-                    No. HP
+                    {t('booking.phone')}
                     <input
                       className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                       type="tel"
                       value={form.phone}
                       onChange={set('phone')}
-                      placeholder="cth: 081234567890"
+                      placeholder={t('booking.phonePlaceholder')}
                     />
                   </label>
                   {error && <p className="text-[12.5px] font-bold text-rd">{error}</p>}
                   <button className="btn btn-primary min-[993px]:hidden" type="submit" disabled={busy}>
-                    {busy ? 'Memproses...' : `Konfirmasi Pesanan - ${fmtRupiah(total)}`}
+                    {busy
+                      ? t('booking.processing')
+                      : t('booking.confirmWithTotal', { total: fmtRupiah(total) })}
                   </button>
                 </form>
               </section>
             </div>
 
             <aside className="h-fit rounded-2xl border border-rd-border bg-white p-4 shadow-rd min-[993px]:sticky min-[993px]:top-[90px]">
-              <p className="text-[15px] font-extrabold">Ringkasan Harga</p>
+              <p className="text-[15px] font-extrabold">{t('booking.priceSummary')}</p>
               <div className="mt-3 flex flex-col gap-1.5">
                 <div className="flex justify-between gap-2.5 text-[13px] text-rd-text">
                   <span>
-                    {fmtRupiah(roomType.price)} &times; {nights} malam &times; {rooms} kamar
+                    {t('booking.calc', {
+                      price: fmtRupiah(roomType.price),
+                      nights,
+                      rooms,
+                    })}
                   </span>
                   <b>{fmtRupiah(subtotal)}</b>
                 </div>
                 {coupon && (
                   <div className="flex justify-between gap-2.5 text-[13px] text-rd-teal">
-                    <span>Kupon {coupon.code}</span>
+                    <span>{t('booking.couponLine', { code: coupon.code })}</span>
                     <b>-{fmtRupiah(couponAmount)}</b>
                   </div>
                 )}
                 {isMember && (
                   <div className="flex justify-between gap-2.5 text-[13px] text-rd-teal">
-                    <span>Diskon Member 10%</span>
+                    <span>{t('booking.memberLine')}</span>
                     <b>-{fmtRupiah(memberDiscount)}</b>
                   </div>
                 )}
                 <div className="mt-0.5 flex justify-between gap-2.5 border-t border-dashed border-[#ddd] pt-2 text-[16px] font-extrabold text-rd">
-                  <span>Total</span>
+                  <span>{t('booking.total')}</span>
                   <b>{fmtRupiah(total)}</b>
                 </div>
               </div>
@@ -337,10 +344,10 @@ export default function BookingPage() {
                 form="booking-form"
                 disabled={busy}
               >
-                {busy ? 'Memproses...' : 'Konfirmasi Pesanan'}
+                {busy ? t('booking.processing') : t('booking.confirm')}
               </button>
               <p className="mt-3 text-center text-[11.5px] leading-[1.5] text-rd-muted">
-                Simulasi demo &mdash; pesanan tersimpan di perangkat ini (localStorage).
+                {t('booking.demoNote')}
               </p>
             </aside>
           </div>

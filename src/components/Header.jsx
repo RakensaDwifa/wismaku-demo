@@ -5,12 +5,13 @@ import { getMember } from '../services/member.js'
 import { getFavorites } from '../services/favorite.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
 import { scrollToCenter } from '../utils/scroll.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
-const navLinks = [
-  { label: 'Hotel di Indonesia', to: '/hasil' },
-  { label: 'Promo', href: '#promo' },
-  { label: 'WismaClub', href: '#redclub' },
-  { label: 'Daftarkan Properti', href: '#partner' },
+const getNavLinks = (t) => [
+  { label: t('nav.hotels'), to: '/hasil' },
+  { label: t('nav.promo'), href: '#promo' },
+  { label: t('nav.club'), href: '#redclub' },
+  { label: t('nav.partner'), href: '#partner' },
 ]
 
 const navLinkCls =
@@ -20,6 +21,7 @@ const btnBase =
   'inline-flex items-center justify-center rounded-lg px-[22px] py-2.5 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd'
 
 export default function Header() {
+  const { t } = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [favCount, setFavCount] = useState(0)
@@ -27,6 +29,7 @@ export default function Header() {
   const drawerRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
+  const navLinks = getNavLinks(t)
 
   const goSection = (e, id) => {
     e.preventDefault()
@@ -119,7 +122,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-100 bg-white shadow-[0_1px_6px_rgba(0,0,0,0.07)]">
       <div className="mx-auto flex min-h-[68px] w-full max-w-[1200px] items-center justify-between gap-6 px-5">
-        <Link className="inline-flex shrink-0 items-center gap-2" to="/" aria-label="WismaKu Beranda">
+        <Link className="inline-flex shrink-0 items-center gap-2" to="/" aria-label={t('header.homeAria')}>
           <svg viewBox="0 0 48 48" width="38" height="38" aria-hidden="true">
             <rect x="6" y="4" width="36" height="40" rx="6" fill="#14B8A6" />
             <rect x="10" y="8" width="28" height="32" rx="3" fill="#FFF" />
@@ -167,7 +170,9 @@ export default function Header() {
           <Link
             className="relative inline-flex size-10 items-center justify-center rounded-full bg-[#f2f2f2] text-rd-text transition-colors hover:bg-[#fdecec] hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
             to="/favorites"
-            aria-label={`Hotel favorit${favCount > 0 ? ` (${favCount})` : ''}`}
+            aria-label={
+              favCount > 0 ? t('header.favoritesCount', { count: favCount }) : t('header.favorites')
+            }
           >
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path
@@ -195,19 +200,19 @@ export default function Header() {
             type="button"
             disabled
           >
-            Masuk
+            {t('topbar.login')}
           </button>
           <button
             className={`${btnBase} hidden cursor-not-allowed bg-rd text-white opacity-55 min-[993px]:inline-flex`}
             type="button"
             disabled
           >
-            Daftar
+            {t('topbar.register')}
           </button>
           <button
             className={`flex flex-col gap-1 p-1.5 max-[992px]:flex hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd ${menuOpen ? 'is-open' : ''}`}
             type="button"
-            aria-label={menuOpen ? 'Tutup menu' : 'Buka menu'}
+            aria-label={menuOpen ? t('header.closeMenu') : t('header.openMenu')}
             aria-expanded={menuOpen}
             aria-controls="drawer-nav"
             onClick={() => setMenuOpen((v) => !v)}
@@ -230,7 +235,7 @@ export default function Header() {
           <div
             className="absolute right-0 top-0 flex h-full w-[min(320px,82vw)] flex-col bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.18)]"
             role="dialog"
-            aria-label="Menu navigasi"
+            aria-label={t('header.navAria')}
             id="drawer-nav"
             ref={drawerRef}
             tabIndex={-1}
@@ -242,7 +247,7 @@ export default function Header() {
               <button
                 className="p-0.5 text-[26px] leading-none text-rd-muted transition-colors hover:text-rd"
                 type="button"
-                aria-label="Tutup menu"
+                aria-label={t('header.closeMenu')}
                 onClick={closeMenu}
               >
                 &times;
@@ -281,18 +286,20 @@ export default function Header() {
                 to="/bookings"
                 onClick={closeMenu}
               >
-                Pesanan Saya{orders.length > 0 ? ` (${orders.length})` : ''}
+                {orders.length > 0
+                  ? t('header.bookingsCount', { count: orders.length })
+                  : t('header.bookings')}
               </Link>
               <Link
                 className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
                 to="/favorites"
                 onClick={closeMenu}
               >
-                Hotel Favorit{favCount > 0 ? ` (${favCount})` : ''}
+                {favCount > 0 ? t('header.favoritesCount', { count: favCount }) : t('header.favorites')}
               </Link>
             </nav>
             <div className="mt-auto border-t border-gray-100 px-5 py-[18px] text-xs text-rd-muted">
-              <p>Login &amp; pendaftaran segera hadir</p>
+              <p>{t('header.loginSoon')}</p>
             </div>
           </div>
         </div>

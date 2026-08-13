@@ -2,11 +2,13 @@ import { useState } from 'react'
 import HotelCard from './HotelCard.jsx'
 import { HotelCardSkeleton } from './Skeletons.jsx'
 import ErrorBanner from './ErrorBanner.jsx'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 const INITIAL_LIMIT = 8
 const STEP = 4
 
 export default function PopularHotels({ hotels, onOpen, loading = false, error, onRetry }) {
+  const { t } = useLanguage()
   const [visibleCount, setVisibleCount] = useState(INITIAL_LIMIT)
   const visible = hotels.slice(0, visibleCount)
   const remaining = hotels.length - visibleCount
@@ -14,7 +16,9 @@ export default function PopularHotels({ hotels, onOpen, loading = false, error, 
   return (
     <section className="bg-[#f7f7f7] py-12 max-[768px]:py-8" id="hotels">
       <div className="mx-auto w-full max-w-[1200px] px-5">
-        <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">Hotel Populer</h2>
+        <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
+          {t('home.popularTitle')}
+        </h2>
         {loading ? (
           <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5" aria-hidden="true">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -22,7 +26,7 @@ export default function PopularHotels({ hotels, onOpen, loading = false, error, 
             ))}
           </div>
         ) : error ? (
-          <ErrorBanner onRetry={onRetry} message="Gagal memuat penginapan." />
+          <ErrorBanner onRetry={onRetry} message={t('errors.loadStays')} />
         ) : hotels.length === 0 ? (
           <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
             <svg
@@ -43,7 +47,7 @@ export default function PopularHotels({ hotels, onOpen, loading = false, error, 
               <path d="M10 14h4" />
               <path d="M10 18h4" />
             </svg>
-            <p className="mb-[18px] text-rd-muted">Tidak ada penginapan ditemukan.</p>
+            <p className="mb-[18px] text-rd-muted">{t('home.noStays')}</p>
           </div>
         ) : (
           <>
@@ -59,7 +63,7 @@ export default function PopularHotels({ hotels, onOpen, loading = false, error, 
                   type="button"
                   onClick={() => setVisibleCount((v) => v + STEP)}
                 >
-                  Muat Lebih Banyak ({remaining})
+                  {t('home.loadMore', { count: remaining })}
                 </button>
               </div>
             )}

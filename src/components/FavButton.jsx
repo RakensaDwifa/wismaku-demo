@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { isFavorite, toggleFavorite } from '../services/favorite.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function FavButton({ hotelId, className = '' }) {
+  const { t } = useLanguage()
   const [active, setActive] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -35,7 +37,7 @@ export default function FavButton({ hotelId, className = '' }) {
       type="button"
       onClick={onToggle}
       aria-pressed={active}
-      aria-label={active ? 'Hapus dari favorit' : 'Tambahkan ke favorit'}
+      aria-label={active ? t('favorites.remove') : t('favorites.add')}
     >
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
         {active ? (

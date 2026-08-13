@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { createBooking } from '../services/booking.js'
 import { applyCoupon } from '../services/coupon.js'
 import { getMember } from '../services/member.js'
@@ -10,8 +11,10 @@ import FavButton from './FavButton.jsx'
 import Modal from './ui/Modal.jsx'
 
 const MEMBER_DISCOUNT_PCT = 0.1
+const REVIEW_PAGE_SIZE = 6
 
 export default function HotelDetailPanel({ hotel, search, onClose, isPage = false }) {
+  const navigate = useNavigate()
   const [imgIdx, setImgIdx] = useState(0)
   const [step, setStep] = useState('detail')
   const [form, setForm] = useState({ name: '', email: '', phone: '' })
@@ -28,6 +31,8 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
   const [reviewRating, setReviewRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [reviewError, setReviewError] = useState('')
+  const [reviewsOpen, setReviewsOpen] = useState(false)
+  const [reviewPage, setReviewPage] = useState(0)
   const panelRef = useRef(null)
 
   useFocusTrap(panelRef)
@@ -44,10 +49,12 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
   const afterCoupon = subtotal - couponAmount
   const memberDiscount = isMember ? Math.round(afterCoupon * MEMBER_DISCOUNT_PCT) : 0
   const total = afterCoupon - memberDiscount
+  const allReviews = [...userReviews, ...(hotel.reviewList ?? [])]
+  const reviewTotalPages = Math.max(1, Math.ceil(allReviews.length / REVIEW_PAGE_SIZE))
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape' && !lightboxOpen) onClose?.()
+      if (e.key === 'Escape' && !lightboxOpen && !reviewsOpen) onClose?.()
     }
     document.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
@@ -56,7 +63,7 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [onClose, lightboxOpen])
+  }, [onClose, lightboxOpen, reviewsOpen])
 
   useEffect(() => {
     panelRef.current?.focus()
@@ -262,6 +269,27 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
 
             <p className="my-[14px] mb-[18px] text-[13.5px] leading-[1.65] text-rd-muted">{hotel.desc}</p>
 
+            {hotel.lat != null && hotel.lng != null && (
+              <section className="mt-[22px]">
+                <h4 className="mb-2.5 text-[15px] font-extrabold">Lokasi</h4>
+                <div className="overflow-hidden rounded-[10px] border border-rd-border">
+                  <iframe
+                    title={`Peta lokasi ${hotel.name}`}
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${hotel.lng - 0.005}%2C${
+                      hotel.lat - 0.0035
+                    }%2C${hotel.lng + 0.005}%2C${hotel.lat + 0.0035}&layer=mapnik&marker=${hotel.lat}%2C${
+                      hotel.lng
+                    }`}
+                    className="h-[220px] w-full border-0"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="mt-2 text-[12px] text-rd-muted">
+                  {hotel.area}, {hotel.city} &middot; Sumber: OpenStreetMap
+                </p>
+              </section>
+            )}
+
             {(userReviews.length > 0 || hotel.reviewList?.length > 0) && (
               <section className="mt-[22px]">
                 <h4 className="mb-2.5 text-[15px] font-extrabold">Ulasan Tamu</h4>
@@ -293,7 +321,18 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
                     </li>
                   ))}
                 </ul>
-
+                {allReviews.length > 3 && (
+                  <button
+                    className="btn btn-outline btn-sm"
+                    type="button"
+                    onClick={() => {
+                      setReviewPage(0)
+                      setReviewsOpen(true)
+                    }}
+                  >
+                    Lihat Semua Ulasan ({allReviews.length})
+                  </button>
+                )}
                 {userReviews.length === 0 ? (
                   <form
                     className="flex flex-col gap-3 rounded-xl border border-dashed border-rd-border p-4"
@@ -584,13 +623,88 @@ export default function HotelDetailPanel({ hotel, search, onClose, isPage = fals
             )}
             <p className="text-[15px] font-extrabold text-rd">{fmtRupiah(booking.totalPrice)}</p>
           </div>
-          <p className="mt-2 text-[12px] text-rd-muted">
+          <div className="mt-2 text-[12px] text-rd-muted">
             Simulasi demo — pesanan tersimpan di perangkat ini (localStorage).
-          </p>
-          <button className="btn btn-primary mt-[18px]" type="button" onClick={onClose}>
-            Selesai
-          </button>
+          </div>
+          <div className="mt-[18px] flex flex-wrap justify-center gap-2.5">
+            <button className="btn btn-outline" type="button" onClick={onClose}>
+              Selesai
+            </button>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => {
+                navigate(`/pesanan/sukses/${booking.id}`)
+                onClose?.()
+              }}
+            >
+              Lihat Detail Pesanan
+            </button>
+          </div>
         </div>
+      )}
+
+      {reviewsOpen && (
+        <Modal onClose={() => setReviewsOpen(false)} labelledBy="all-reviews-title">
+          <div className="px-5 pt-[18px] pb-[22px]">
+            <h3 id="all-reviews-title" className="text-[19px] font-extrabold leading-[1.3]">
+              Semua Ulasan ({allReviews.length})
+            </h3>
+            <div className="mt-1 mb-3 flex items-center gap-2">
+              <span className="text-[18px] font-extrabold text-rd">{hotel.rating}</span>
+              <span className="text-[12.5px] text-rd-muted">Dari {hotel.reviews} ulasan</span>
+            </div>
+            <ul className="flex list-none flex-col gap-3 p-0">
+              {allReviews
+                .slice(reviewPage * REVIEW_PAGE_SIZE, (reviewPage + 1) * REVIEW_PAGE_SIZE)
+                .map((r, i) => (
+                  <li
+                    className="rounded-[10px] bg-rd-soft px-[14px] py-3 text-[13.5px]"
+                    key={r.id ?? `r-${reviewPage}-${i}`}
+                  >
+                    <div className="mb-0.5 flex items-center justify-between gap-2.5">
+                      <b className="inline-flex items-center gap-2 text-[13.5px]">
+                        {r.name}
+                        {userReviews.includes(r) && (
+                          <span className="rounded-full bg-[rgba(20,184,166,0.15)] px-2 py-[2px] text-[10.5px] font-extrabold tracking-[0.4px] uppercase text-rd-teal">
+                            Ulasan Anda
+                          </span>
+                        )}
+                      </b>
+                      <span className="text-[12px] text-[#f5a623] tracking-[1px]">
+                        {'★'.repeat(r.rating)}
+                      </span>
+                    </div>
+                    <span className="text-[11.5px] text-rd-muted">{fmtDate(r.date)}</span>
+                    <p className="mt-1.5 leading-[1.55]">{r.text}</p>
+                  </li>
+                ))}
+            </ul>
+            {reviewTotalPages > 1 && (
+              <div className="mt-3 flex items-center justify-between">
+                <button
+                  className="btn btn-outline btn-sm"
+                  type="button"
+                  disabled={reviewPage === 0}
+                  onClick={() => setReviewPage((p) => Math.max(0, p - 1))}
+                >
+                  &larr; Sebelumnya
+                </button>
+                <span className="text-[13px] font-bold text-rd-muted">
+                  Halaman {reviewPage + 1} / {reviewTotalPages}
+                </span>
+                <button
+                  className="btn btn-outline btn-sm"
+                  type="button"
+                  disabled={reviewPage === reviewTotalPages - 1}
+                  onClick={() => setReviewPage((p) => Math.min(reviewTotalPages - 1, p + 1))}
+                >
+                  Berikutnya &rarr;
+                </button>
+              </div>
+            )}
+          </div>
+        </Modal>
       )}
 
       {lightboxOpen && (

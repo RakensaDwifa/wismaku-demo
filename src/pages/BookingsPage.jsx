@@ -8,9 +8,11 @@ import ErrorBanner from '../components/ErrorBanner.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { getBookings, cancelBooking } from '../services/booking.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function BookingsPage() {
-  usePageMeta('Pemesanan Saya', 'Kelola pemesanan penginapan Anda di WismaKu.')
+  const { t } = useLanguage()
+  usePageMeta(t('pages.bookingsTitle'), t('pages.bookingsDesc'))
   const [orders, setOrders] = useState(null)
   const [error, setError] = useState(null)
 
@@ -57,13 +59,15 @@ export default function BookingsPage() {
       <main id="main" className="min-h-[60vh] py-12 max-[768px]:py-8">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">Pemesanan Saya</h2>
+            <h2 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">
+              {t('pages.bookingsTitle')}
+            </h2>
             <Link className="btn btn-outline btn-sm max-[640px]:hidden" to="/">
-              &larr; Kembali ke Beranda
+              {t('common.backHome')}
             </Link>
           </div>
           {error ? (
-            <ErrorBanner message="Gagal memuat pesanan." onRetry={load} />
+            <ErrorBanner message={t('errors.loadBookings')} onRetry={load} />
           ) : !orders ? (
             <div
               className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5"
@@ -87,9 +91,9 @@ export default function BookingsPage() {
               >
                 <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4" />
               </svg>
-              <p className="mb-[18px] text-rd-muted">Belum ada pemesanan.</p>
+              <p className="mb-[18px] text-rd-muted">{t('pages.bookingsEmpty')}</p>
               <Link className="btn btn-primary" to="/">
-                Cari Penginapan
+                {t('pages.searchStays')}
               </Link>
             </div>
           ) : (

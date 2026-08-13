@@ -1,8 +1,8 @@
 export const SORT_OPTIONS = [
-  { value: 'relevance', label: 'Terpopuler' },
-  { value: 'price_asc', label: 'Harga Terendah' },
-  { value: 'price_desc', label: 'Harga Tertinggi' },
-  { value: 'rating_desc', label: 'Rating Tertinggi' },
+  { value: 'relevance', labelKey: 'filter.sortPopular' },
+  { value: 'price_asc', labelKey: 'filter.sortPriceAsc' },
+  { value: 'price_desc', labelKey: 'filter.sortPriceDesc' },
+  { value: 'rating_desc', labelKey: 'filter.sortRatingDesc' },
 ]
 
 export const DEFAULT_FILTERS = { sort: 'relevance', amenities: [], minPrice: 0, maxPrice: 0, minRating: 0 }

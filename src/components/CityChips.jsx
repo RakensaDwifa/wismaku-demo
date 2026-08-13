@@ -1,14 +1,16 @@
 import { srcSet } from '../utils/image.js'
 import { CityChipsSkeleton } from './Skeletons.jsx'
 import ErrorBanner from './ErrorBanner.jsx'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function CityChips({ cities, onPick, loading = false, error, onRetry }) {
+  const { t } = useLanguage()
   if (loading) {
     return (
       <section className="py-12 max-[768px]:py-8">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <h2 className="mb-6 text-[26px] font-extrabold text-black max-[768px]:text-xl">
-            Cari Penginapan di Kota Favoritmu
+            {t('home.cityTitle')}
           </h2>
           <CityChipsSkeleton />
         </div>
@@ -21,9 +23,9 @@ export default function CityChips({ cities, onPick, loading = false, error, onRe
       <section className="py-12 max-[768px]:py-8">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <h2 className="mb-6 text-[26px] font-extrabold text-black max-[768px]:text-xl">
-            Cari Penginapan di Kota Favoritmu
+            {t('home.cityTitle')}
           </h2>
-          <ErrorBanner onRetry={onRetry} message="Gagal memuat kota." />
+          <ErrorBanner onRetry={onRetry} message={t('errors.loadCities')} />
         </div>
       </section>
     )
@@ -33,7 +35,7 @@ export default function CityChips({ cities, onPick, loading = false, error, onRe
     <section className="py-12 max-[768px]:py-8">
       <div className="mx-auto w-full max-w-[1200px] px-5">
         <h2 className="mb-6 text-[26px] font-extrabold text-black max-[768px]:text-xl">
-          Cari Penginapan di Kota Favoritmu
+          {t('home.cityTitle')}
         </h2>
         <div className="grid grid-cols-8 gap-3.5 max-[992px]:grid-cols-4 max-sm:grid-cols-2">
           {cities.map((c) => (

@@ -19,6 +19,7 @@ import {
   DEFAULT_FILTERS,
 } from '../utils/filtering.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 const INITIAL_LIMIT = 8
 const STEP = 4
@@ -36,6 +37,7 @@ const filterHotels = (hotels, q) => {
 }
 
 export default function SearchResultsPage() {
+  const { t } = useLanguage()
   const { hotels, loading, error, refetch } = useHotels()
   const { cities } = useCities()
   const navigate = useNavigate()
@@ -58,10 +60,8 @@ export default function SearchResultsPage() {
   const activeFilterCount = countActiveFilters(filters)
 
   usePageMeta(
-    query ? `Hasil Pencarian: ${query}` : 'Semua Penginapan',
-    query
-      ? `Cari penginapan untuk "${query}" di WismaKu.`
-      : 'Jelajahi semua penginapan yang tersedia di WismaKu.',
+    query ? t('resultsPage.metaTitleQuery', { q: query }) : t('resultsPage.metaTitleAll'),
+    query ? t('resultsPage.metaDescQuery', { q: query }) : t('resultsPage.metaDescAll'),
   )
 
   const setFilterParams = (nextFilters) => {
@@ -110,11 +110,11 @@ export default function SearchResultsPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
                 {query
-                  ? `Hasil Pencarian untuk "${query}" (${list.length})`
-                  : `Semua Penginapan (${list.length})`}
+                  ? t('resultsPage.headingQuery', { q: query, count: list.length })
+                  : t('resultsPage.headingAll', { count: list.length })}
                 {derived.nights > 0 && (
                   <span className="ml-2.5 text-[13.5px] font-bold text-rd-teal">
-                    {derived.nights} malam &middot; {derived.guests} tamu
+                    {t('resultsPage.metaNights', { nights: derived.nights, guests: derived.guests })}
                   </span>
                 )}
               </h2>
@@ -124,13 +124,14 @@ export default function SearchResultsPage() {
                   type="button"
                   onClick={() => setFilterOpen(true)}
                 >
-                  Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                  {t('filter.title')}
+                  {activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                 </button>
               )}
             </div>
 
             <div className="mt-6 grid items-start gap-6 min-[993px]:grid-cols-[300px_1fr]">
-              <aside className="hidden min-[993px]:block" aria-label="Filter penginapan">
+              <aside className="hidden min-[993px]:block" aria-label={t('resultsPage.asideAria')}>
                 {loading || error ? (
                   <Skeleton className="rounded-2xl" style={{ height: 440, borderRadius: 16 }} />
                 ) : (
@@ -156,7 +157,7 @@ export default function SearchResultsPage() {
                     ))}
                   </div>
                 ) : error ? (
-                  <ErrorBanner onRetry={refetch} message="Gagal memuat penginapan." />
+                  <ErrorBanner onRetry={refetch} message={t('errors.loadStays')} />
                 ) : list.length === 0 ? (
                   <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
                     <svg
@@ -173,10 +174,12 @@ export default function SearchResultsPage() {
                       <path d="m21 21-4.3-4.3" />
                     </svg>
                     <p className="mb-[18px] text-rd-muted">
-                      {query
-                        ? `Tidak ada penginapan cocok untuk "${query}"`
-                        : 'Tidak ada penginapan ditemukan.'}
-                      {query && derived.nights > 0 ? ` selama ${derived.nights} malam.` : query ? '.' : ''}
+                      {query ? t('resultsPage.emptyQuery', { q: query }) : t('resultsPage.emptyAll')}
+                      {query && derived.nights > 0
+                        ? t('resultsPage.emptyDuration', { nights: derived.nights })
+                        : query
+                          ? '.'
+                          : ''}
                     </p>
                     <div className="flex flex-wrap justify-center gap-2.5">
                       {activeFilterCount > 0 && (
@@ -185,11 +188,11 @@ export default function SearchResultsPage() {
                           type="button"
                           onClick={() => setFilterParams(DEFAULT_FILTERS)}
                         >
-                          Reset Filter
+                          {t('resultsPage.resetFilter')}
                         </button>
                       )}
                       <button className="btn btn-primary" type="button" onClick={resetSearch}>
-                        Ubah Pencarian
+                        {t('resultsPage.changeSearch')}
                       </button>
                     </div>
                   </div>
@@ -212,7 +215,7 @@ export default function SearchResultsPage() {
                           type="button"
                           onClick={() => setVisibleCount((v) => v + STEP)}
                         >
-                          Muat Lebih Banyak ({remaining})
+                          {t('home.loadMore', { count: remaining })}
                         </button>
                       </div>
                     )}
@@ -227,7 +230,7 @@ export default function SearchResultsPage() {
       {filterOpen && !loading && !error && (
         <Modal variant="sheet" onClose={() => setFilterOpen(false)} labelledBy="filter-sheet-title">
           <h2 id="filter-sheet-title" className="sr-only">
-            Filter Penginapan
+            {t('resultsPage.sheetTitle')}
           </h2>
           <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-[#dfe2e8]" aria-hidden="true" />
           <div className="overflow-y-auto px-5 py-4">
@@ -235,7 +238,7 @@ export default function SearchResultsPage() {
           </div>
           <div className="shrink-0 border-t border-rd-border bg-white px-5 py-4">
             <button className="btn btn-primary w-full" type="button" onClick={() => setFilterOpen(false)}>
-              Tampilkan {list.length} Penginapan
+              {t('resultsPage.showStays', { count: list.length })}
             </button>
           </div>
         </Modal>

@@ -19,6 +19,11 @@ describe('fmtDate', () => {
     expect(fmtDate('2026-08-13T00:00:00.000Z')).toContain('Agu')
   })
 
+  it('memformat tanggal ISO ke bahasa Inggris', () => {
+    expect(fmtDate('2026-08-13', 'en')).toContain('2026')
+    expect(fmtDate('2026-08-13', 'en')).toContain('Aug')
+  })
+
   it('mengembalikan tanda strip untuk nilai kosong', () => {
     expect(fmtDate('')).toBe('-')
     expect(fmtDate(null)).toBe('-')

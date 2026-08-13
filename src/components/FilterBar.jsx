@@ -5,14 +5,16 @@ import {
   DEFAULT_FILTERS,
   countActiveFilters,
 } from '../utils/filtering.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 const RATING_OPTIONS = [
-  { value: 0, label: 'Semua' },
-  { value: 3, label: '3+ Bintang' },
-  { value: 4, label: '4+ Bintang' },
+  { value: 0, labelKey: 'filter.ratingAll' },
+  { value: 3, labelKey: 'filter.rating3' },
+  { value: 4, labelKey: 'filter.rating4' },
 ]
 
 export default function FilterBar({ hotels, allHotels, filters, onChange }) {
+  const { t } = useLanguage()
   const bounds = priceBounds(allHotels || hotels)
   const maxBound = bounds.min === bounds.max ? bounds.min + 1 : bounds.max
   const minPos = filters.minPrice || bounds.min
@@ -62,7 +64,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
     <div className="rounded-2xl border border-rd-border bg-white p-5">
       <div className="flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-[16px] font-extrabold text-rd-text">
-          Filter
+          {t('filter.title')}
           {activeCount > 0 && (
             <span className="grid min-w-[20px] place-items-center rounded-full bg-rd px-1.5 py-[2px] text-[11px] font-extrabold text-white">
               {activeCount}
@@ -75,7 +77,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
             type="button"
             onClick={reset}
           >
-            Reset Semua
+            {t('filter.resetAll')}
           </button>
         )}
       </div>
@@ -83,7 +85,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
       <div className="mt-5 flex flex-col gap-5">
         <div>
           <label className="mb-1.5 block text-[13px] font-extrabold text-rd-muted" htmlFor="filter-sort">
-            Urutkan
+            {t('filter.sort')}
           </label>
           <select
             className="w-full rounded-[10px] border border-rd-border bg-white px-3 py-2.5 text-[13.5px] font-semibold text-rd-text transition-[border-color] duration-150 focus:border-rd focus:outline-none"
@@ -93,14 +95,14 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
-                {o.label}
+                {t(o.labelKey)}
               </option>
             ))}
           </select>
         </div>
 
         <fieldset className="m-0 border-none p-0">
-          <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">Rating</legend>
+          <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">{t('filter.rating')}</legend>
           <div className="flex flex-col gap-2">
             {RATING_OPTIONS.map((r) => {
               const active = filters.minRating === r.value
@@ -130,7 +132,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                   <span
                     className={`text-[13.5px] font-semibold ${active ? 'text-[#0f766e]' : 'text-rd-text'}`}
                   >
-                    {r.label}
+                    {t(r.labelKey)}
                   </span>
                 </label>
               )
@@ -139,7 +141,9 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
         </fieldset>
 
         <fieldset className="m-0 border-none p-0">
-          <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">Fasilitas</legend>
+          <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">
+            {t('filter.facilities')}
+          </legend>
           <div className="flex flex-col gap-2">
             {ALL_AMENITIES.map((a) => {
               const active = filters.amenities.includes(a)
@@ -178,7 +182,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                   <span
                     className={`text-[13.5px] font-semibold ${active ? 'text-[#0f766e]' : 'text-rd-text'}`}
                   >
-                    {a}
+                    {t('filter.amenities')[a] ?? a}
                   </span>
                 </label>
               )
@@ -187,12 +191,14 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
         </fieldset>
 
         <fieldset className="m-0 border-none p-0">
-          <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">Harga / malam</legend>
+          <legend className="mb-2 p-0 text-[13px] font-extrabold text-rd-muted">
+            {t('filter.pricePerNight')}
+          </legend>
           <div className="filter-range">
             <input
               type="range"
               className="range-min"
-              aria-label="Harga minimum"
+              aria-label={t('filter.minAria')}
               min={bounds.min}
               max={maxBound}
               value={minPos}
@@ -201,7 +207,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
             <input
               type="range"
               className="range-max"
-              aria-label="Harga maksimum"
+              aria-label={t('filter.maxAria')}
               min={bounds.min}
               max={maxBound}
               value={maxPos}
@@ -210,7 +216,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
           </div>
           <div className="flex items-center gap-2.5">
             <label className="flex flex-1 flex-col gap-1 text-[12px] font-semibold text-rd-muted">
-              Min
+              {t('filter.min')}
               <input
                 className="rounded-[10px] border border-rd-border bg-white px-3 py-2 text-[14px] text-rd-text focus:border-rd focus:outline-none"
                 type="number"
@@ -223,7 +229,7 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
             </label>
             <span className="pt-[18px] text-[13px] text-rd-muted">&ndash;</span>
             <label className="flex flex-1 flex-col gap-1 text-[12px] font-semibold text-rd-muted">
-              Maks
+              {t('filter.max')}
               <input
                 className="rounded-[10px] border border-rd-border bg-white px-3 py-2 text-[14px] text-rd-text focus:border-rd focus:outline-none"
                 type="number"

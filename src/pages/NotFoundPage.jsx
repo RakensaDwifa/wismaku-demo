@@ -3,9 +3,11 @@ import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import { usePageMeta } from '../hooks/usePageMeta.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function NotFoundPage() {
-  usePageMeta('Halaman Tidak Ditemukan', 'Halaman yang Anda cari tidak ditemukan di WismaKu.')
+  const { t } = useLanguage()
+  usePageMeta(t('notFoundPage.title'), t('notFoundPage.desc'))
 
   return (
     <>
@@ -29,13 +31,11 @@ export default function NotFoundPage() {
               <path d="M12 16h.01" />
             </svg>
             <h2 className="mb-2 text-[26px] font-extrabold text-black max-[768px]:text-xl">
-              Halaman Tidak Ditemukan
+              {t('notFoundPage.title')}
             </h2>
-            <p className="mb-[18px] text-rd-muted">
-              Alamat halaman tidak tersedia atau sudah dipindahkan. Yuk kembali ke beranda.
-            </p>
+            <p className="mb-[18px] text-rd-muted">{t('notFoundPage.message')}</p>
             <Link className="btn btn-primary" to="/">
-              Ke Beranda
+              {t('notFoundPage.goHome')}
             </Link>
           </div>
         </div>

@@ -20,8 +20,10 @@ import { srcSet } from '../utils/image.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { getRecentViews } from '../services/history.js'
 import { scrollToCenter } from '../utils/scroll.js'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function HomePage() {
+  const { t } = useLanguage()
   const { hotels, loading: hotelsLoading, error: hotelsError, refetch: refetchHotels } = useHotels()
   const { cities, loading: citiesLoading, error: citiesError, refetch: refetchCities } = useCities()
   const { data: promos, loading: promosLoading, error: promosError, refetch: refetchPromos } = usePromos()
@@ -41,10 +43,7 @@ export default function HomePage() {
   const hotelsRef = useRef(null)
   const heroRef = useRef(null)
 
-  usePageMeta(
-    null,
-    'Booking hotel murah dengan harga promo di WismaKu - website demo tiruan tampilan ala RedDoorz.',
-  )
+  usePageMeta(null, t('home.metaDesc'))
 
   const legacyQuery = searchParams.get('q')
   useEffect(() => {
@@ -108,9 +107,9 @@ export default function HomePage() {
         <section className="bg-rd-soft py-11" id="redclub">
           <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-6 px-5 max-[768px]:justify-center max-[768px]:text-center">
             <div>
-              <h2 className="text-2xl font-extrabold">Gabung WismaClub, Gratis!</h2>
+              <h2 className="text-2xl font-extrabold">{t('member.title')}</h2>
               <p className="mt-2 max-w-[560px] text-sm leading-[1.6] text-rd-muted max-[768px]:mx-auto">
-                Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out di ribuan properti.
+                {t('home.clubSubtitle')}
               </p>
             </div>
             <button
@@ -118,26 +117,22 @@ export default function HomePage() {
               type="button"
               onClick={() => setClubOpen(true)}
             >
-              Daftar WismaClub
+              {t('home.joinClub')}
             </button>
           </div>
         </section>
         <section className="bg-white py-12" id="partner">
           <div className="mx-auto grid w-full max-w-[1200px] grid-cols-[1fr_1.4fr] overflow-hidden rounded-[14px] border border-rd-border bg-white max-[768px]:grid-cols-1">
             <div className="flex flex-col justify-center p-10 max-[768px]:p-7">
-              <h2 className="text-2xl font-extrabold leading-[1.3]">Punya Penginapan? Jadi Partner Kami</h2>
-              <p className="my-3 mb-1 text-sm text-rd-muted">
-                Gabung jaringan 3500+ properti dan naikkan okupansi hingga 2x lipat.
-              </p>
-              <p className="mt-1.5 mb-5 text-[13.5px] leading-[1.6] text-rd-muted">
-                Mitra kami dapat distribusi, teknologi, dan pendampingan pemasaran dari tim WismaKu.
-              </p>
+              <h2 className="text-2xl font-extrabold leading-[1.3]">{t('partner.title')}</h2>
+              <p className="my-3 mb-1 text-sm text-rd-muted">{t('partner.subtitle')}</p>
+              <p className="mt-1.5 mb-5 text-[13.5px] leading-[1.6] text-rd-muted">{t('partner.extra')}</p>
               <button
                 className="btn btn-outline self-start"
                 type="button"
                 onClick={() => setPartnerOpen(true)}
               >
-                Pelajari Lebih Lanjut
+                {t('partner.learnMore')}
               </button>
             </div>
             <div className="min-h-[280px] max-[768px]:order-first max-[768px]:min-h-[200px]">
@@ -148,7 +143,7 @@ export default function HomePage() {
                   [600, 900, 1200],
                 )}
                 sizes="(max-width: 768px) 100vw, 45vw"
-                alt="Pemilik penginapan bersama tim"
+                alt={t('partner.imgAlt')}
                 loading="lazy"
                 className="h-full w-full object-cover"
               />
@@ -167,7 +162,7 @@ export default function HomePage() {
           </div>
         ) : testimonialsError ? (
           <div className="mx-auto w-full max-w-[1200px] px-5">
-            <ErrorBanner onRetry={refetchTestimonials} message="Gagal memuat testimoni." />
+            <ErrorBanner onRetry={refetchTestimonials} message={t('errors.loadTestimonials')} />
           </div>
         ) : (
           <Testimonials items={testimonials} />

@@ -1,6 +1,8 @@
 import { Skeleton } from './Skeletons.jsx'
+import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function PageLoader() {
+  const { t } = useLanguage()
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10" role="status">
       <Skeleton className="mb-6 h-8 w-2/5 rounded-xl" />
@@ -9,7 +11,7 @@ export default function PageLoader() {
           <Skeleton key={i} className="h-56 rounded-[14px]" />
         ))}
       </div>
-      <span className="sr-only">Memuat halaman...</span>
+      <span className="sr-only">{t('common.loadingPage')}</span>
     </div>
   )
 }

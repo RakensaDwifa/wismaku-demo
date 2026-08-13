@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import useFocusTrap from '../../hooks/useFocusTrap.js'
+import { useLanguage } from '../../i18n/useLanguage.js'
 
 export default function Modal({ onClose, labelledBy, variant = 'modal', children }) {
+  const { t } = useLanguage()
   const panelRef = useRef(null)
 
   useFocusTrap(panelRef)
@@ -39,7 +41,7 @@ export default function Modal({ onClose, labelledBy, variant = 'modal', children
             className="absolute right-2.5 top-2.5 z-10 grid size-[34px] place-items-center rounded-full bg-white/90 text-[22px] leading-none text-rd-text shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-colors hover:text-rd"
             type="button"
             onClick={onClose}
-            aria-label="Tutup"
+            aria-label={t('common.close')}
           >
             &times;
           </button>
@@ -64,7 +66,7 @@ export default function Modal({ onClose, labelledBy, variant = 'modal', children
           className="absolute right-2.5 top-2.5 z-10 grid size-[34px] place-items-center rounded-full bg-white/90 text-[22px] leading-none text-rd-text shadow-[0_2px_8px_rgba(0,0,0,0.2)] transition-colors hover:text-rd"
           type="button"
           onClick={onClose}
-          aria-label="Tutup"
+          aria-label={t('common.close')}
         >
           &times;
         </button>

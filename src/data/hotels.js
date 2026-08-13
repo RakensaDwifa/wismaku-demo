@@ -24,10 +24,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 259000, originalPrice: 389000, capacity: 3 },
       { id: 'family', name: 'Family', price: 319000, originalPrice: 479000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Sari W.', city: 'Jakarta', date: '2026-08-02', rating: 5, text: 'Kamar bersih, check-in cepat, dekat mall. Sangat puas!' },
-      { name: 'Rudi H.', city: 'Bekasi', date: '2026-07-18', rating: 4, text: 'Nyaman untuk keluarga, sarapan sederhana tapi cukup.' },
+      {
+        name: 'Sari W.',
+        city: 'Jakarta',
+        date: '2026-08-02',
+        rating: 5,
+        text: 'Kamar bersih, check-in cepat, dekat mall. Sangat puas!',
+      },
+      {
+        name: 'Rudi H.',
+        city: 'Bekasi',
+        date: '2026-07-18',
+        rating: 4,
+        text: 'Nyaman untuk keluarga, sarapan sederhana tapi cukup.',
+      },
     ],
   },
   {
@@ -55,10 +71,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 228000, originalPrice: 325000, capacity: 3 },
       { id: 'family', name: 'Family', price: 280000, originalPrice: 400000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Melati P.', city: 'Solo', date: '2026-07-29', rating: 5, text: 'Lokasinya juara, jalan kaki ke Malioboro. Kamar wangi dan rapi.' },
-      { name: 'Agus T.', city: 'Semarang', date: '2026-07-10', rating: 4, text: 'Staf ramah, harga pas. Sedikit berisik dari jalan raya.' },
+      {
+        name: 'Melati P.',
+        city: 'Solo',
+        date: '2026-07-29',
+        rating: 5,
+        text: 'Lokasinya juara, jalan kaki ke Malioboro. Kamar wangi dan rapi.',
+      },
+      {
+        name: 'Agus T.',
+        city: 'Semarang',
+        date: '2026-07-10',
+        rating: 4,
+        text: 'Staf ramah, harga pas. Sedikit berisik dari jalan raya.',
+      },
     ],
   },
   {
@@ -86,10 +118,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 337000, originalPrice: 494000, capacity: 3 },
       { id: 'family', name: 'Family', price: 415000, originalPrice: 608000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Intan K.', city: 'Bandung', date: '2026-08-05', rating: 5, text: 'Udara sejuk, kamar nyaman, dekat kuliner legendaris. Langganan tiap dinas.' },
-      { name: 'Dedi S.', city: 'Cimahi', date: '2026-07-22', rating: 4, text: 'Fasilitas lengkap, parkir luas. Cocok untuk liburan keluarga.' },
+      {
+        name: 'Intan K.',
+        city: 'Bandung',
+        date: '2026-08-05',
+        rating: 5,
+        text: 'Udara sejuk, kamar nyaman, dekat kuliner legendaris. Langganan tiap dinas.',
+      },
+      {
+        name: 'Dedi S.',
+        city: 'Cimahi',
+        date: '2026-07-22',
+        rating: 4,
+        text: 'Fasilitas lengkap, parkir luas. Cocok untuk liburan keluarga.',
+      },
     ],
   },
   {
@@ -117,10 +165,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 585000, originalPrice: 845000, capacity: 3 },
       { id: 'family', name: 'Family Villa', price: 720000, originalPrice: 1040000, capacity: 4 },
     ],
-    policy: { checkIn: '15:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 3 hari sebelum check-in' },
+    policy: {
+      checkIn: '15:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 3 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Kanya A.', city: 'Denpasar', date: '2026-07-27', rating: 5, text: 'Pemandangan sawahnya indah, kolam renang privat bikin liburan makin tenang.' },
-      { name: 'Bima R.', city: 'Jakarta', date: '2026-07-05', rating: 5, text: 'Vila bersih dan privasinya terjaga. Worth it untuk honeymoon!' },
+      {
+        name: 'Kanya A.',
+        city: 'Denpasar',
+        date: '2026-07-27',
+        rating: 5,
+        text: 'Pemandangan sawahnya indah, kolam renang privat bikin liburan makin tenang.',
+      },
+      {
+        name: 'Bima R.',
+        city: 'Jakarta',
+        date: '2026-07-05',
+        rating: 5,
+        text: 'Vila bersih dan privasinya terjaga. Worth it untuk honeymoon!',
+      },
     ],
   },
   {
@@ -148,10 +212,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 215000, originalPrice: 312000, capacity: 3 },
       { id: 'family', name: 'Family', price: 264000, originalPrice: 384000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Fitri N.', city: 'Surabaya', date: '2026-07-30', rating: 5, text: 'Dekat stasiun, praktis buat perjalanan dinas. Kamar modern dan bersih.' },
-      { name: 'Hendra Y.', city: 'Pasuruan', date: '2026-07-11', rating: 4, text: 'Harga terjangkau dengan fasilitas yang memadai. Check-in mudah.' },
+      {
+        name: 'Fitri N.',
+        city: 'Surabaya',
+        date: '2026-07-30',
+        rating: 5,
+        text: 'Dekat stasiun, praktis buat perjalanan dinas. Kamar modern dan bersih.',
+      },
+      {
+        name: 'Hendra Y.',
+        city: 'Pasuruan',
+        date: '2026-07-11',
+        rating: 4,
+        text: 'Harga terjangkau dengan fasilitas yang memadai. Check-in mudah.',
+      },
     ],
   },
   {
@@ -179,10 +259,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 286000, originalPrice: 403000, capacity: 3 },
       { id: 'family', name: 'Family', price: 352000, originalPrice: 496000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Laila M.', city: 'Malang', date: '2026-08-01', rating: 5, text: 'Suasana taman bikin betah, dekat BNS. Anak-anak senang sekali.' },
-      { name: 'Yoga W.', city: 'Blitar', date: '2026-07-15', rating: 4, text: 'Kamar bersih, staf sigap. Sarapan bisa lebih bervariasi.' },
+      {
+        name: 'Laila M.',
+        city: 'Malang',
+        date: '2026-08-01',
+        rating: 5,
+        text: 'Suasana taman bikin betah, dekat BNS. Anak-anak senang sekali.',
+      },
+      {
+        name: 'Yoga W.',
+        city: 'Blitar',
+        date: '2026-07-15',
+        rating: 4,
+        text: 'Kamar bersih, staf sigap. Sarapan bisa lebih bervariasi.',
+      },
     ],
   },
   {
@@ -210,10 +306,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 246000, originalPrice: 351000, capacity: 3 },
       { id: 'family', name: 'Family', price: 302000, originalPrice: 432000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Putra S.', city: 'Medan', date: '2026-07-26', rating: 4, text: 'Desainnya energik khas anak muda, ramah kantong. Nyaman buat stay singkat.' },
-      { name: 'Anisa L.', city: 'Binjai', date: '2026-07-08', rating: 4, text: 'WiFi kencang, kamar bersih. Cocok untuk kerja remote.' },
+      {
+        name: 'Putra S.',
+        city: 'Medan',
+        date: '2026-07-26',
+        rating: 4,
+        text: 'Desainnya energik khas anak muda, ramah kantong. Nyaman buat stay singkat.',
+      },
+      {
+        name: 'Anisa L.',
+        city: 'Binjai',
+        date: '2026-07-08',
+        rating: 4,
+        text: 'WiFi kencang, kamar bersih. Cocok untuk kerja remote.',
+      },
     ],
   },
   {
@@ -241,10 +353,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 371000, originalPrice: 519000, capacity: 3 },
       { id: 'family', name: 'Family', price: 456000, originalPrice: 638000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Rina A.', city: 'Jakarta', date: '2026-07-20', rating: 5, text: 'Aman, hijau, dan tenang. Cocok untuk tinggal jangka menengah.' },
-      { name: 'Fajar D.', city: 'Bogor', date: '2026-06-28', rating: 4, text: 'Keamanan 24 jam benar-benar dijaga. Dapur lengkap untuk masak.' },
+      {
+        name: 'Rina A.',
+        city: 'Jakarta',
+        date: '2026-07-20',
+        rating: 5,
+        text: 'Aman, hijau, dan tenang. Cocok untuk tinggal jangka menengah.',
+      },
+      {
+        name: 'Fajar D.',
+        city: 'Bogor',
+        date: '2026-06-28',
+        rating: 4,
+        text: 'Keamanan 24 jam benar-benar dijaga. Dapur lengkap untuk masak.',
+      },
     ],
   },
   {
@@ -272,10 +400,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 649000, originalPrice: 910000, capacity: 3 },
       { id: 'family', name: 'Family Apartemen', price: 798000, originalPrice: 1120000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 2 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 2 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Vina C.', city: 'Jakarta Selatan', date: '2026-08-03', rating: 5, text: 'Apartemennya stylish, kolam renang ok, dapur lengkap. Ideal tinggal lama.' },
-      { name: 'Eko B.', city: 'Depok', date: '2026-07-19', rating: 5, text: 'Lokasi strategis di Kemang, fasilitas sesuai ekspektasi. Recommended!' },
+      {
+        name: 'Vina C.',
+        city: 'Jakarta Selatan',
+        date: '2026-08-03',
+        rating: 5,
+        text: 'Apartemennya stylish, kolam renang ok, dapur lengkap. Ideal tinggal lama.',
+      },
+      {
+        name: 'Eko B.',
+        city: 'Depok',
+        date: '2026-07-19',
+        rating: 5,
+        text: 'Lokasi strategis di Kemang, fasilitas sesuai ekspektasi. Recommended!',
+      },
     ],
   },
   {
@@ -303,10 +447,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 195000, originalPrice: 273000, capacity: 3 },
       { id: 'family', name: 'Family', price: 240000, originalPrice: 336000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Tika R.', city: 'Yogyakarta', date: '2026-07-23', rating: 4, text: 'Sederhana tapi bersih, harga super bersahabat untuk backpacker.' },
-      { name: 'Naufal Z.', city: 'Klaten', date: '2026-07-02', rating: 4, text: 'Dekat pusat kota, staf informatif soal tempat wisata sekitar.' },
+      {
+        name: 'Tika R.',
+        city: 'Yogyakarta',
+        date: '2026-07-23',
+        rating: 4,
+        text: 'Sederhana tapi bersih, harga super bersahabat untuk backpacker.',
+      },
+      {
+        name: 'Naufal Z.',
+        city: 'Klaten',
+        date: '2026-07-02',
+        rating: 4,
+        text: 'Dekat pusat kota, staf informatif soal tempat wisata sekitar.',
+      },
     ],
   },
   {
@@ -334,10 +494,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 319000, originalPrice: 455000, capacity: 3 },
       { id: 'family', name: 'Family', price: 392000, originalPrice: 560000, capacity: 4 },
     ],
-    policy: { checkIn: '14:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in' },
+    policy: {
+      checkIn: '14:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Sinta P.', city: 'Bandung', date: '2026-07-25', rating: 5, text: 'Lokasi strategis di Cihampelas, dekat oleh-oleh dan kuliner. Kamar nyaman.' },
-      { name: 'Gilang F.', city: 'Garut', date: '2026-07-06', rating: 4, text: 'Harga promo pas, fasilitas lengkap. Parkir agak sempit saat ramai.' },
+      {
+        name: 'Sinta P.',
+        city: 'Bandung',
+        date: '2026-07-25',
+        rating: 5,
+        text: 'Lokasi strategis di Cihampelas, dekat oleh-oleh dan kuliner. Kamar nyaman.',
+      },
+      {
+        name: 'Gilang F.',
+        city: 'Garut',
+        date: '2026-07-06',
+        rating: 4,
+        text: 'Harga promo pas, fasilitas lengkap. Parkir agak sempit saat ramai.',
+      },
     ],
   },
   {
@@ -365,10 +541,26 @@ export const hotels = [
       { id: 'deluxe', name: 'Deluxe', price: 501000, originalPrice: 715000, capacity: 3 },
       { id: 'family', name: 'Family Villa', price: 616000, originalPrice: 880000, capacity: 4 },
     ],
-    policy: { checkIn: '15:00', checkOut: '12:00', cancelRule: 'Pembatalan gratis hingga 2 hari sebelum check-in' },
+    policy: {
+      checkIn: '15:00',
+      checkOut: '12:00',
+      cancelRule: 'Pembatalan gratis hingga 2 hari sebelum check-in',
+    },
     reviewList: [
-      { name: 'Dewa G.', city: 'Badung', date: '2026-08-04', rating: 5, text: 'Beberapa menit dari pantai Kuta, taman pribadinya asri dan adem.' },
-      { name: 'Clara V.', city: 'Jakarta Barat', date: '2026-07-14', rating: 4, text: 'Vila bersih, staf ramah. Cocok untuk liburan santai bareng keluarga.' },
+      {
+        name: 'Dewa G.',
+        city: 'Badung',
+        date: '2026-08-04',
+        rating: 5,
+        text: 'Beberapa menit dari pantai Kuta, taman pribadinya asri dan adem.',
+      },
+      {
+        name: 'Clara V.',
+        city: 'Jakarta Barat',
+        date: '2026-07-14',
+        rating: 4,
+        text: 'Vila bersih, staf ramah. Cocok untuk liburan santai bareng keluarga.',
+      },
     ],
   },
 ]

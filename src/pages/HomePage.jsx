@@ -70,7 +70,7 @@ export default function HomePage() {
     <>
       <TopBar />
       <Header />
-      <main>
+      <main id="main">
         <div ref={heroRef}>
           <Hero cities={cities} hotels={hotels} onSearch={handleSearch} initial={{}} />
         </div>

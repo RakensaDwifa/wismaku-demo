@@ -4,6 +4,7 @@ import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import { getBookings } from '../services/booking.js'
+import { Skeleton } from '../components/Skeletons.jsx'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 
@@ -36,7 +37,7 @@ export default function BookingSuccessPage() {
     <>
       <TopBar />
       <Header />
-      <main className="min-h-[60vh] py-12 max-[768px]:py-8">
+      <main id="main" className="min-h-[60vh] py-12 max-[768px]:py-8">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">Detail Pesanan</h2>
@@ -46,7 +47,10 @@ export default function BookingSuccessPage() {
           </div>
 
           {!loaded ? (
-            <p className="mt-6 text-sm text-rd-muted">Memuat detail pesanan&hellip;</p>
+            <div className="mt-6 max-w-[720px]" aria-hidden="true">
+              <Skeleton className="mb-4 h-[86px] w-full rounded-[14px]" />
+              <Skeleton className="mb-4 h-56 w-full rounded-[14px]" />
+            </div>
           ) : booking ? (
             <div className="mt-6 max-w-[720px]">
               <div className="mb-4 flex items-center gap-[14px] rounded-[14px] border border-rd-border bg-white p-[14px]">
@@ -94,9 +98,7 @@ export default function BookingSuccessPage() {
                       {booking.nights} malam &middot; {booking.rooms} kamar &middot; {booking.guests} tamu
                       &middot; {booking.roomTypeName}
                     </span>
-                    <span className="text-rd-muted">
-                      Harga kamar {fmtRupiah(booking.roomPrice)} / malam
-                    </span>
+                    <span className="text-rd-muted">Harga kamar {fmtRupiah(booking.roomPrice)} / malam</span>
                   </div>
                 </div>
 

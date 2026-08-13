@@ -17,13 +17,13 @@ Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip Re
 
 ## Teknologi
 
-| Lapisan  | Pilihan                                       |
-| -------- | --------------------------------------------- |
-| UI       | React 18, React Router 7, Vite 7              |
-| Tanggal  | date-fns, react-day-picker                    |
-| Validasi | Zod                                           |
-| Gaya     | Tailwind CSS v4 (design tokens, @utility)
-| Kualitas | ESLint 10, Prettier 3                         |
+| Lapisan  | Pilihan                                   |
+| -------- | ----------------------------------------- |
+| UI       | React 18, React Router 7, Vite 7          |
+| Tanggal  | date-fns, react-day-picker                |
+| Validasi | Zod                                       |
+| Gaya     | Tailwind CSS v4 (design tokens, @utility) |
+| Kualitas | ESLint 10, Prettier 3                     |
 
 ## Menjalankan Lokal
 

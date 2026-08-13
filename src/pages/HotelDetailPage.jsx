@@ -6,6 +6,7 @@ import Footer from '../components/Footer.jsx'
 import HotelDetailContent from '../components/HotelDetailContent.jsx'
 import BookingBox from '../components/BookingBox.jsx'
 import FavButton from '../components/FavButton.jsx'
+import { Skeleton } from '../components/Skeletons.jsx'
 import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
@@ -35,9 +36,22 @@ export default function HotelDetailPage() {
       <>
         <TopBar />
         <Header />
-        <main className="min-h-[60vh] py-8">
+        <main id="main" className="min-h-[60vh] bg-[#f7f7f7] py-6 pb-16">
           <div className="mx-auto w-full max-w-[1200px] px-5">
-            <p>Memuat detail penginapan...</p>
+            <Skeleton className="mb-4 h-4 w-56 rounded-md" />
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <Skeleton className="h-9 w-28 rounded-full" />
+              <Skeleton className="h-6 w-32 rounded-full" />
+            </div>
+            <Skeleton className="mb-1 h-8 w-2/3 rounded-lg" />
+            <Skeleton className="mb-6 h-4 w-1/3 rounded-md" />
+            <div className="grid items-start gap-6 min-[993px]:grid-cols-[1fr_360px]">
+              <div className="grid gap-6">
+                <Skeleton className="h-[380px] w-full rounded-2xl max-[768px]:h-56" />
+                <Skeleton className="h-44 w-full rounded-2xl" />
+              </div>
+              <Skeleton className="h-[420px] w-full rounded-2xl max-[992px]:h-72" />
+            </div>
           </div>
         </main>
         <Footer />
@@ -50,7 +64,7 @@ export default function HotelDetailPage() {
       <>
         <TopBar />
         <Header />
-        <main className="min-h-[60vh] py-8">
+        <main id="main" className="min-h-[60vh] py-8">
           <div className="mx-auto w-full max-w-[1200px] px-5">
             <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
               <p className="mb-[18px] text-rd-muted">Penginapan tidak ditemukan.</p>
@@ -74,7 +88,7 @@ export default function HotelDetailPage() {
     <>
       <TopBar />
       <Header />
-      <main className="min-h-[60vh] bg-[#f7f7f7] py-6 pb-16">
+      <main id="main" className="min-h-[60vh] bg-[#f7f7f7] py-6 pb-16">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <nav
             className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-rd-muted"

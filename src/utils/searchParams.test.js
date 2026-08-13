@@ -27,18 +27,21 @@ describe('parseSearchParams', () => {
 
 describe('buildSearchParams', () => {
   it('melewatkan field kosong', () => {
-    expect(buildSearchParams({ destination: '  ', checkIn: '', rooms: 0, adults: 0, children: 0 })).toEqual({})
+    expect(buildSearchParams({ destination: '  ', checkIn: '', rooms: 0, adults: 0, children: 0 })).toEqual(
+      {},
+    )
   })
 
   it('mengonversi angka ke string', () => {
-    expect(buildSearchParams({ destination: 'Jakarta', checkIn: '2026-08-01', rooms: 2, adults: 1, children: 2 }))
-      .toEqual({
-        q: 'Jakarta',
-        checkIn: '2026-08-01',
-        rooms: '2',
-        adults: '1',
-        children: '2',
-      })
+    expect(
+      buildSearchParams({ destination: 'Jakarta', checkIn: '2026-08-01', rooms: 2, adults: 1, children: 2 }),
+    ).toEqual({
+      q: 'Jakarta',
+      checkIn: '2026-08-01',
+      rooms: '2',
+      adults: '1',
+      children: '2',
+    })
   })
 })
 
@@ -54,7 +57,14 @@ describe('parseSearchWidgetInitial', () => {
 
   it('memakai nilai dari param', () => {
     const w = parseSearchWidgetInitial(
-      params({ q: 'Bali', checkIn: '2026-09-01', checkOut: '2026-09-05', rooms: '2', adults: '3', children: '1' }),
+      params({
+        q: 'Bali',
+        checkIn: '2026-09-01',
+        checkOut: '2026-09-05',
+        rooms: '2',
+        adults: '3',
+        children: '1',
+      }),
     )
     expect(w.destination).toBe('Bali')
     expect(w.rooms).toBe(2)

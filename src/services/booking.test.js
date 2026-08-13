@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createBooking, getBookings, cancelBooking } from './booking.js'
+import { createBooking, getBookings, cancelBooking, payBooking } from './booking.js'
 
 const validPayload = {
   hotelId: 1,
@@ -27,10 +27,10 @@ describe('createBooking', () => {
     localStorage.clear()
   })
 
-  it('membuat pemesanan dengan id kode WK dan status confirmed', async () => {
+  it('membuat pemesanan dengan id kode WK dan status pending', async () => {
     const booking = await createBooking(validPayload)
     expect(booking.id).toMatch(/^WK-/)
-    expect(booking.status).toBe('confirmed')
+    expect(booking.status).toBe('pending')
     expect(booking.createdAt).toBeTruthy()
   })
 
@@ -58,5 +58,21 @@ describe('cancelBooking', () => {
     const list = await getBookings()
     expect(list[0].status).toBe('cancelled')
     expect(list[0].cancelledAt).toBeTruthy()
+  })
+})
+
+describe('payBooking', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('menandai pemesanan sebagai confirmed dengan metode pembayaran', async () => {
+    const booking = await createBooking(validPayload)
+    const paid = await payBooking(booking.id, 'qris')
+    expect(paid.status).toBe('confirmed')
+    expect(paid.paymentMethod).toBe('qris')
+    expect(paid.paidAt).toBeTruthy()
+    const list = await getBookings()
+    expect(list[0].status).toBe('confirmed')
   })
 })

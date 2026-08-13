@@ -1,14 +1,15 @@
 export const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
 
-export const fmtDate = (iso) =>
-  iso
-    ? new Intl.DateTimeFormat('id-ID', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }).format(new Date(iso + 'T00:00:00'))
-    : '-'
+export const fmtDate = (iso) => {
+  if (!iso) return '-'
+  const d = iso.includes('T') ? new Date(iso) : new Date(iso + 'T00:00:00')
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(d)
+}
 
 export const toYMD = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`

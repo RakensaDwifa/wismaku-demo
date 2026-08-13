@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage.jsx'
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage.jsx'))
 const HotelDetailPage = lazy(() => import('./pages/HotelDetailPage.jsx'))
 const BookingPage = lazy(() => import('./pages/BookingPage.jsx'))
+const PaymentPage = lazy(() => import('./pages/PaymentPage.jsx'))
 const BookingsPage = lazy(() => import('./pages/BookingsPage.jsx'))
 const FavoritesPage = lazy(() => import('./pages/FavoritesPage.jsx'))
 const BookingSuccessPage = lazy(() => import('./pages/BookingSuccessPage.jsx'))
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/hasil" element={<SearchResultsPage />} />
           <Route path="/hotel/:id" element={<HotelDetailPage />} />
           <Route path="/pesan/:id" element={<BookingPage />} />
+          <Route path="/bayar/:id" element={<PaymentPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/pesanan/sukses/:id" element={<BookingSuccessPage />} />

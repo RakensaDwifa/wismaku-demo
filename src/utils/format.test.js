@@ -14,6 +14,11 @@ describe('fmtDate', () => {
     expect(fmtDate('2026-08-13')).toContain('Agu')
   })
 
+  it('memformat timestamp ISO penuh tanpa error', () => {
+    expect(fmtDate('2026-08-13T00:00:00.000Z')).toContain('2026')
+    expect(fmtDate('2026-08-13T00:00:00.000Z')).toContain('Agu')
+  })
+
   it('mengembalikan tanda strip untuk nilai kosong', () => {
     expect(fmtDate('')).toBe('-')
     expect(fmtDate(null)).toBe('-')

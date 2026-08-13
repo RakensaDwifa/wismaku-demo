@@ -19,7 +19,7 @@ const bookRef = () => {
 const toLocal = (payload) => ({
   id: `WK-${Date.now().toString(36).toUpperCase()}`,
   createdAt: new Date().toISOString(),
-  status: 'confirmed',
+  status: 'pending',
   ...payload,
 })
 
@@ -54,4 +54,20 @@ export async function cancelBooking(id) {
   }
   await request(`/bookings/${id}`, { method: 'DELETE' })
   notify()
+}
+
+export async function payBooking(id, method) {
+  if (USE_MOCK) {
+    const list = bookRef().map((b) =>
+      b.id === id
+        ? { ...b, status: 'confirmed', paymentMethod: method, paidAt: new Date().toISOString() }
+        : b,
+    )
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    notify()
+    return list.find((b) => b.id === id)
+  }
+  const booking = await request(`/bookings/${id}/pay`, { method: 'POST', body: { method } })
+  notify()
+  return booking
 }

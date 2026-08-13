@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchHotels, fetchCities, fetchPromos, fetchBrands, fetchTestimonials } from '../services/hotel.js'
+import { fetchHotels, fetchCities, fetchPromos, fetchTestimonials } from '../services/hotel.js'
 
 function useAsync(fetcher, initial) {
   const [data, setData] = useState(initial)
@@ -66,13 +66,6 @@ export function useCities() {
 export function usePromos() {
   return useAsync(
     useCallback(() => fetchPromos(), []),
-    [],
-  )
-}
-
-export function useBrands() {
-  return useAsync(
-    useCallback(() => fetchBrands(), []),
     [],
   )
 }

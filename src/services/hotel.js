@@ -1,5 +1,5 @@
 import { request, USE_MOCK } from './api.js'
-import { hotels as mockHotels, promos, brands, testimonials } from '../data/hotels.js'
+import { hotels as mockHotels, promos, testimonials } from '../data/hotels.js'
 import { cities as mockCities } from '../data/cities.js'
 
 const withDelay = (value, ms = 300) => new Promise((resolve) => setTimeout(() => resolve(value), ms))
@@ -22,11 +22,6 @@ export async function fetchCities() {
 export async function fetchPromos() {
   if (USE_MOCK) return withDelay(promos)
   return request('/promos')
-}
-
-export async function fetchBrands() {
-  if (USE_MOCK) return withDelay(brands)
-  return request('/brands')
 }
 
 export async function fetchTestimonials() {

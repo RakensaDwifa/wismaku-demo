@@ -7,7 +7,6 @@ import CityChips from '../components/CityChips.jsx'
 import PromoCarousel from '../components/PromoCarousel.jsx'
 import PopularHotels from '../components/PopularHotels.jsx'
 import RecentHotels from '../components/RecentHotels.jsx'
-import BrandCards from '../components/BrandCards.jsx'
 import AssuranceBar from '../components/AssuranceBar.jsx'
 import Testimonials from '../components/Testimonials.jsx'
 import Footer from '../components/Footer.jsx'
@@ -15,7 +14,7 @@ import MemberModal from '../components/MemberModal.jsx'
 import PartnerModal from '../components/PartnerModal.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
-import { useHotels, useCities, usePromos, useBrands, useTestimonials } from '../hooks/useCatalog.js'
+import { useHotels, useCities, usePromos, useTestimonials } from '../hooks/useCatalog.js'
 import { buildSearchParams } from '../utils/searchParams.js'
 import { srcSet } from '../utils/image.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
@@ -26,7 +25,6 @@ export default function HomePage() {
   const { hotels, loading: hotelsLoading, error: hotelsError, refetch: refetchHotels } = useHotels()
   const { cities, loading: citiesLoading, error: citiesError, refetch: refetchCities } = useCities()
   const { data: promos, loading: promosLoading, error: promosError, refetch: refetchPromos } = usePromos()
-  const { data: brands, loading: brandsLoading, error: brandsError, refetch: refetchBrands } = useBrands()
   const {
     data: testimonials,
     loading: testimonialsLoading,
@@ -107,22 +105,6 @@ export default function HomePage() {
           />
         </div>
         <RecentHotels hotels={recentHotels} onOpen={openHotel} />
-        {brandsLoading ? (
-          <div className="mx-auto w-full max-w-[1200px] px-5" aria-hidden="true">
-            <Skeleton className="mx-auto mt-12 mb-5 h-7 w-[45%]" />
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-5">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-[300px] rounded-2xl" />
-              ))}
-            </div>
-          </div>
-        ) : brandsError ? (
-          <div className="mx-auto w-full max-w-[1200px] px-5">
-            <ErrorBanner onRetry={refetchBrands} message="Gagal memuat brand." />
-          </div>
-        ) : (
-          <BrandCards brands={brands} />
-        )}
         <section className="bg-rd-soft py-11" id="redclub">
           <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-6 px-5 max-[768px]:justify-center max-[768px]:text-center">
             <div>

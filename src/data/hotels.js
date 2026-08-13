@@ -586,37 +586,6 @@ export const promos = [
   },
 ]
 
-export const brands = [
-  {
-    name: 'RedLiving',
-    tagline: 'Apartemen harian & bulanan',
-    desc: 'Apartemen eksekutif dengan desain stylish dan kenyamanan seperti di rumah sendiri.',
-    img: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=60',
-    color: '#EC2224',
-  },
-  {
-    name: 'Sans Hotel',
-    tagline: 'Stay pintar untuk generasi muda',
-    desc: 'Desain energik, warna ceria, dan sentuhan teknologi pintar di setiap kamar.',
-    img: 'https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?auto=format&fit=crop&w=800&q=60',
-    color: '#F59E0B',
-  },
-  {
-    name: 'Urbanview',
-    tagline: 'Hotel modern & aesthetic',
-    desc: 'Konsep urban living yang trendi dan Instagramable di pusat kota.',
-    img: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=60',
-    color: '#EC228A',
-  },
-  {
-    name: 'The Lavana',
-    tagline: 'Vila & resort eksklusif',
-    desc: 'Liburan tenang dengan nuansa tropis yang sejuk dan mewah.',
-    img: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=800&q=60',
-    color: '#10B981',
-  },
-]
-
 export const testimonials = [
   {
     name: 'Andini P.',

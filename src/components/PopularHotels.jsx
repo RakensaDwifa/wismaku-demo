@@ -1,62 +1,20 @@
 import { useState } from 'react'
 import HotelCard from './HotelCard.jsx'
-import FilterBar from './FilterBar.jsx'
 import { HotelCardSkeleton } from './Skeletons.jsx'
 import ErrorBanner from './ErrorBanner.jsx'
-import { cities } from '../data/cities.js'
 
 const INITIAL_LIMIT = 8
 const STEP = 4
 
-export default function PopularHotels({
-  hotels,
-  allHotels,
-  isSearch,
-  onReset,
-  searchParams,
-  onOpen,
-  loading = false,
-  error,
-  onRetry,
-  filters,
-  onFiltersChange,
-  query = '',
-  onCityPick,
-}) {
+export default function PopularHotels({ hotels, onOpen, loading = false, error, onRetry }) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_LIMIT)
-  const totals = hotels.length
   const visible = hotels.slice(0, visibleCount)
-  const remaining = totals - visibleCount
-
-  const handleFiltersChange = (next) => {
-    onFiltersChange?.(next)
-    setVisibleCount(INITIAL_LIMIT)
-  }
-
-  const nights = searchParams?.nights ?? 0
-  const guests = searchParams?.guests ?? 0
+  const remaining = hotels.length - visibleCount
 
   return (
     <section className="bg-[#f7f7f7] py-12 max-[768px]:py-8" id="hotels">
       <div className="mx-auto w-full max-w-[1200px] px-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
-            {isSearch ? `Hasil Pencarian (${totals})` : 'Hotel Populer'}
-            {isSearch && nights > 0 && (
-              <span className="ml-2.5 text-[13.5px] font-bold text-rd-teal">
-                {nights} malam &middot; {guests} tamu
-              </span>
-            )}
-          </h2>
-          {!loading && !error && totals > 0 && (
-            <FilterBar
-              hotels={hotels}
-              allHotels={allHotels}
-              filters={filters}
-              onChange={handleFiltersChange}
-            />
-          )}
-        </div>
+        <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">Hotel Populer</h2>
         {loading ? (
           <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5" aria-hidden="true">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -65,73 +23,33 @@ export default function PopularHotels({
           </div>
         ) : error ? (
           <ErrorBanner onRetry={onRetry} message="Gagal memuat penginapan." />
-        ) : totals === 0 ? (
+        ) : hotels.length === 0 ? (
           <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
-            {isSearch && query ? (
-              <>
-                <svg
-                  className="mx-auto mb-4 text-rd-border"
-                  viewBox="0 0 24 24"
-                  width="48"
-                  height="48"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  aria-hidden="true"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-                <p className="mb-[18px] text-rd-muted">
-                  Tidak ada penginapan cocok untuk &quot;{query}&quot;
-                  {nights > 0 ? ` selama ${nights} malam` : ''}.
-                </p>
-                <p className="mb-3.5 text-sm">Coba ubah kata kunci atau jelajahi kota populer:</p>
-                <div className="mb-[22px] flex flex-wrap justify-center gap-2">
-                  {cities.slice(0, 6).map((c) => (
-                    <button
-                      key={c.name}
-                      className="btn btn-outline btn-sm"
-                      type="button"
-                      onClick={() => onCityPick?.(c.name)}
-                    >
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                <svg
-                  className="mx-auto mb-4 text-rd-border"
-                  viewBox="0 0 24 24"
-                  width="48"
-                  height="48"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  aria-hidden="true"
-                >
-                  <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                  <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                  <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                  <path d="M10 6h4" />
-                  <path d="M10 10h4" />
-                  <path d="M10 14h4" />
-                  <path d="M10 18h4" />
-                </svg>
-                <p className="mb-[18px] text-rd-muted">Tidak ada penginapan ditemukan.</p>
-              </>
-            )}
-            <button className="btn btn-primary" type="button" onClick={onReset}>
-              Ubah Pencarian
-            </button>
+            <svg
+              className="mx-auto mb-4 text-rd-border"
+              viewBox="0 0 24 24"
+              width="48"
+              height="48"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+            >
+              <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+              <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+              <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+              <path d="M10 6h4" />
+              <path d="M10 10h4" />
+              <path d="M10 14h4" />
+              <path d="M10 18h4" />
+            </svg>
+            <p className="mb-[18px] text-rd-muted">Tidak ada penginapan ditemukan.</p>
           </div>
         ) : (
           <>
             <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5">
               {visible.map((h) => (
-                <HotelCard key={h.id} hotel={h} nights={nights} onOpen={onOpen} />
+                <HotelCard key={h.id} hotel={h} onOpen={onOpen} />
               ))}
             </div>
             {remaining > 0 && (

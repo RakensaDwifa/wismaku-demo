@@ -6,11 +6,14 @@ import { getFavorites } from '../services/favorite.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
 
 const navLinks = [
-  { label: 'Hotel di Indonesia', href: '#hotels' },
+  { label: 'Hotel di Indonesia', to: '/hasil' },
   { label: 'Promo', href: '#promo' },
   { label: 'WismaClub', href: '#redclub' },
   { label: 'Daftarkan Properti', href: '#partner' },
 ]
+
+const navLinkCls =
+  'relative py-1.5 text-sm font-semibold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd'
 
 const btnBase =
   'inline-flex items-center justify-center rounded-lg px-[22px] py-2.5 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd'
@@ -109,15 +112,17 @@ export default function Header() {
           </span>
         </Link>
         <nav className="hidden gap-7 min-[993px]:flex" aria-label="Navigasi utama">
-          {navLinks.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="relative py-1.5 text-sm font-semibold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
-            >
-              {l.label}
-            </a>
-          ))}
+          {navLinks.map((l) =>
+            l.to ? (
+              <Link key={l.to} to={l.to} className={navLinkCls}>
+                {l.label}
+              </Link>
+            ) : (
+              <a key={l.href} href={l.href} className={navLinkCls}>
+                {l.label}
+              </a>
+            ),
+          )}
         </nav>
         <div className="flex items-center gap-2.5">
           {member && (
@@ -213,16 +218,27 @@ export default function Header() {
               </button>
             </div>
             <nav className="flex flex-col py-2">
-              {navLinks.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
-                  onClick={closeMenu}
-                >
-                  {l.label}
-                </a>
-              ))}
+              {navLinks.map((l) =>
+                l.to ? (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
+                    onClick={closeMenu}
+                  >
+                    {l.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
+                    onClick={closeMenu}
+                  >
+                    {l.label}
+                  </a>
+                ),
+              )}
               <Link
                 className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
                 to="/bookings"

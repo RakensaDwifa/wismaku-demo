@@ -50,7 +50,7 @@ export default function HotelDetailPage() {
         </div>
         <div className="mx-auto mt-6 w-full max-w-[1200px] rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
           <p className="mb-[18px] text-rd-muted">Penginapan tidak ditemukan.</p>
-          <Link className="btn btn-primary" to="/">
+          <Link className="btn btn-primary" to="/hasil">
             Lihat Semua Hotel
           </Link>
         </div>

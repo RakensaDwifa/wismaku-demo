@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   getMember,
+  getGoogleUser,
+  getLastGoogleProfile,
   registerMember,
-  loginMember,
-  logoutMember,
+  loginGoogle,
+  logout,
   getPartners,
   registerPartner,
 } from './member.js'
@@ -14,11 +16,7 @@ describe('registerMember / getMember', () => {
   })
 
   it('membuat member dengan id MC dan auto-login', async () => {
-    const m = await registerMember({
-      name: 'Dewi Lestari',
-      email: 'dewi@example.com',
-      password: 'rahasia123',
-    })
+    const m = await registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com' })
     expect(m.id).toMatch(/^MC-/)
     expect(m.joinedAt).toBeTruthy()
     expect((await getMember()).email).toBe('dewi@example.com')
@@ -29,47 +27,37 @@ describe('registerMember / getMember', () => {
   })
 
   it('menolak payload tidak valid', async () => {
-    await expect(
-      registerMember({ name: 'X', email: 'bukan-email', password: 'rahasia123' }),
-    ).rejects.toThrow()
-  })
-
-  it('menolak password kurang dari 6 karakter', async () => {
-    await expect(
-      registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com', password: '123' }),
-    ).rejects.toThrow()
+    await expect(registerMember({ name: 'X', email: 'bukan-email' })).rejects.toThrow()
   })
 })
 
-describe('loginMember / logoutMember', () => {
+describe('loginGoogle / logout', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
-  it('login dengan email dan password yang benar', async () => {
-    await registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com', password: 'rahasia123' })
-    await logoutMember()
-    expect(await getMember()).toBeNull()
-    const m = await loginMember('dewi@example.com', 'rahasia123')
-    expect(m.email).toBe('dewi@example.com')
-    expect((await getMember()).id).toBe(m.id)
+  it('loginGoogle membuat sesi user Google', async () => {
+    const u = await loginGoogle({ name: 'Andi Wijaya', email: 'andi@gmail.com' })
+    expect(u.email).toBe('andi@gmail.com')
+    expect(getGoogleUser()).toEqual(expect.objectContaining({ name: 'Andi Wijaya' }))
   })
 
-  it('menolak password yang salah', async () => {
-    await registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com', password: 'rahasia123' })
-    await logoutMember()
-    await expect(loginMember('dewi@example.com', 'salah')).rejects.toThrow()
-    expect(await getMember()).toBeNull()
+  it('getLastGoogleProfile menyimpan profil untuk prefill', async () => {
+    await loginGoogle({ name: 'Andi Wijaya', email: 'andi@gmail.com' })
+    expect(getLastGoogleProfile().email).toBe('andi@gmail.com')
   })
 
-  it('menolak email yang belum terdaftar', async () => {
-    await expect(loginMember('sapa@example.com', 'rahasia123')).rejects.toThrow()
+  it('logout menghapus sesi member dan user Google', async () => {
+    await registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com' })
+    await loginGoogle({ name: 'Andi Wijaya', email: 'andi@gmail.com' })
+    await logout()
+    expect(await getMember()).toBeNull()
+    expect(getGoogleUser()).toBeNull()
   })
 
-  it('logout menghapus sesi', async () => {
-    await registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com', password: 'rahasia123' })
-    await logoutMember()
-    expect(await getMember()).toBeNull()
+  it('logout tanpa sesi tidak error', async () => {
+    await logout()
+    expect(getGoogleUser()).toBeNull()
   })
 })
 

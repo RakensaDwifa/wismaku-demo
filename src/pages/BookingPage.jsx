@@ -67,10 +67,10 @@ export default function BookingPage() {
       }
     }
     sync()
-    window.addEventListener('wismaku:members-changed', sync)
+    window.addEventListener('wismaku:session-changed', sync)
     return () => {
       live = false
-      window.removeEventListener('wismaku:members-changed', sync)
+      window.removeEventListener('wismaku:session-changed', sync)
     }
   }, [])
 

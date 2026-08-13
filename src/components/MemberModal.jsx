@@ -5,7 +5,7 @@ import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function MemberModal({ onClose }) {
   const { t } = useLanguage()
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '' })
   const [error, setError] = useState('')
   const [member, setMember] = useState(null)
 
@@ -18,12 +18,10 @@ export default function MemberModal({ onClose }) {
     e.preventDefault()
     const name = form.name.trim()
     const email = form.email.trim()
-    const password = form.password
     if (name.length < 3) return setError(t('member.nameTooShort'))
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError(t('member.emailInvalid'))
-    if (password.length < 6) return setError(t('auth.passwordTooShort'))
     try {
-      setMember(await registerMember({ name, email, password }))
+      setMember(await registerMember({ name, email }))
     } catch (err) {
       setError(err.message || t('member.saveFailed'))
     }
@@ -49,7 +47,7 @@ export default function MemberModal({ onClose }) {
               />
             </label>
             <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-              {t('auth.email')}
+              {t('member.email')}
               <input
                 className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                 type="email"
@@ -57,17 +55,6 @@ export default function MemberModal({ onClose }) {
                 onChange={set('email')}
                 placeholder={t('member.emailPlaceholder')}
                 autoComplete="email"
-              />
-            </label>
-            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-              {t('auth.password')}
-              <input
-                className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
-                type="password"
-                value={form.password}
-                onChange={set('password')}
-                placeholder={t('auth.passwordPlaceholder')}
-                autoComplete="new-password"
               />
             </label>
             {error && <p className="text-[12.5px] font-bold text-rd">{error}</p>}

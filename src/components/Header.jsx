@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getBookings } from '../services/booking.js'
-import { getMember, logoutMember } from '../services/member.js'
+import { getMember, getGoogleUser, logout } from '../services/member.js'
 import { getFavorites } from '../services/favorite.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
 import { scrollToCenter } from '../utils/scroll.js'
 import { useLanguage } from '../i18n/useLanguage.js'
-import AuthModal from './AuthModal.jsx'
-import MemberModal from './MemberModal.jsx'
+import GoogleModal from './GoogleModal.jsx'
 
 const getNavLinks = (t) => [
   { label: t('nav.hotels'), to: '/hasil' },
@@ -28,8 +27,8 @@ export default function Header() {
   const [orders, setOrders] = useState([])
   const [favCount, setFavCount] = useState(0)
   const [member, setMember] = useState(null)
+  const [user, setUser] = useState(null)
   const [authOpen, setAuthOpen] = useState(false)
-  const [registerOpen, setRegisterOpen] = useState(false)
   const drawerRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -95,17 +94,23 @@ export default function Header() {
     let live = true
     const sync = async () => {
       try {
-        const m = await getMember()
-        if (live) setMember(m)
+        const [u, m] = await Promise.all([getGoogleUser(), getMember()])
+        if (live) {
+          setUser(u)
+          setMember(m)
+        }
       } catch {
-        if (live) setMember(null)
+        if (live) {
+          setUser(null)
+          setMember(null)
+        }
       }
     }
     sync()
-    window.addEventListener('wismaku:members-changed', sync)
+    window.addEventListener('wismaku:session-changed', sync)
     return () => {
       live = false
-      window.removeEventListener('wismaku:members-changed', sync)
+      window.removeEventListener('wismaku:session-changed', sync)
     }
   }, [])
 
@@ -198,6 +203,13 @@ export default function Header() {
             >
               &#9733; Member
             </span>
+          ) : user ? (
+            <span
+              className="hidden size-9 place-items-center rounded-full bg-rd text-sm font-extrabold text-white min-[993px]:grid"
+              title={`${user.name} (${user.email})`}
+            >
+              {user.name.charAt(0).toUpperCase()}
+            </span>
           ) : (
             <>
               <button
@@ -210,7 +222,7 @@ export default function Header() {
               <button
                 className={`${btnBase} hidden bg-rd text-white min-[993px]:inline-flex`}
                 type="button"
-                onClick={() => setRegisterOpen(true)}
+                onClick={() => setAuthOpen(true)}
               >
                 {t('topbar.register')}
               </button>
@@ -306,20 +318,20 @@ export default function Header() {
               </Link>
             </nav>
             <div className="mt-auto border-t border-gray-100 px-5 py-[18px]">
-              {member ? (
+              {user || member ? (
                 <div className="flex flex-col gap-2">
                   <p className="text-[13px] font-extrabold text-rd-text">
-                    {t('auth.welcome', { name: member.name.split(' ')[0] })}
+                    {t('topbar.welcome', { name: (user ?? member).name.split(' ')[0] })}
                   </p>
                   <button
                     className="btn btn-outline btn-sm"
                     type="button"
                     onClick={() => {
                       closeMenu()
-                      logoutMember()
+                      logout()
                     }}
                   >
-                    {t('auth.logout')}
+                    {t('topbar.logout')}
                   </button>
                 </div>
               ) : (
@@ -339,7 +351,7 @@ export default function Header() {
                     type="button"
                     onClick={() => {
                       closeMenu()
-                      setRegisterOpen(true)
+                      setAuthOpen(true)
                     }}
                   >
                     {t('topbar.register')}
@@ -350,16 +362,7 @@ export default function Header() {
           </div>
         </div>
       )}
-      {authOpen && (
-        <AuthModal
-          onClose={() => setAuthOpen(false)}
-          onSwitchToRegister={() => {
-            setAuthOpen(false)
-            setRegisterOpen(true)
-          }}
-        />
-      )}
-      {registerOpen && <MemberModal onClose={() => setRegisterOpen(false)} />}
+      {authOpen && <GoogleModal onClose={() => setAuthOpen(false)} />}
     </header>
   )
 }

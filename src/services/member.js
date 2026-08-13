@@ -4,7 +4,9 @@ import { MemberPayloadSchema, PartnerPayloadSchema, parsePayload } from '../sche
 const MEMBER_KEY = 'wismaku_members'
 const PARTNER_KEY = 'wismaku_partners'
 const ACTIVE_KEY = 'wismaku_active_member'
-const CHANGE_EVENT = 'wismaku:members-changed'
+const ACTIVE_USER_KEY = 'wismaku_active_user'
+const GOOGLE_PROFILE_KEY = 'wismaku_google_profile'
+const CHANGE_EVENT = 'wismaku:session-changed'
 
 const read = (key) => {
   try {
@@ -25,6 +27,23 @@ const setActive = (id) => {
 
 const notify = () => {
   window.dispatchEvent(new Event(CHANGE_EVENT))
+}
+
+const readObject = (key) => {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || null
+  } catch {
+    return null
+  }
+}
+
+const writeObject = (key, value) => {
+  try {
+    if (value == null) localStorage.removeItem(key)
+    else localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    return
+  }
 }
 
 export async function getMember() {
@@ -63,28 +82,42 @@ export async function registerMember(payload) {
   return member
 }
 
-export async function loginMember(email, password) {
-  const clean = (email || '').trim().toLowerCase()
-  if (USE_MOCK) {
-    const member = read(MEMBER_KEY).find((m) => m.email.toLowerCase() === clean)
-    if (!member || member.password !== password) throw new Error('Kredensial tidak cocok.')
-    setActive(member.id)
-    notify()
-    return member
+export async function loginGoogle({ name, email }) {
+  const profile = {
+    name: (name || '').trim(),
+    email: (email || '').trim().toLowerCase(),
+    loggedInAt: new Date().toISOString(),
   }
-  const member = await request('/member/login', { method: 'POST', body: { email: clean, password } })
-  setActive(member.id)
+  if (USE_MOCK) {
+    writeObject(ACTIVE_USER_KEY, profile)
+    writeObject(GOOGLE_PROFILE_KEY, profile)
+    notify()
+    return profile
+  }
+  const user = await request('/member/google-login', { method: 'POST', body: profile })
   notify()
-  return member
+  return user
 }
 
-export async function logoutMember() {
+export function getGoogleUser() {
+  if (USE_MOCK) return readObject(ACTIVE_USER_KEY)
+  return null
+}
+
+export function getLastGoogleProfile() {
+  if (USE_MOCK) return readObject(GOOGLE_PROFILE_KEY)
+  return null
+}
+
+export async function logout() {
   if (USE_MOCK) {
     setActive(null)
+    writeObject(ACTIVE_USER_KEY, null)
     notify()
     return null
   }
   await request('/member/logout', { method: 'POST' })
+  writeObject(ACTIVE_USER_KEY, null)
   notify()
   return null
 }

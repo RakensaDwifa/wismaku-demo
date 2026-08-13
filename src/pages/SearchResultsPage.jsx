@@ -6,11 +6,18 @@ import Footer from '../components/Footer.jsx'
 import SearchWidget from '../components/SearchWidget.jsx'
 import FilterBar from '../components/FilterBar.jsx'
 import HotelCard from '../components/HotelCard.jsx'
-import { HotelCardSkeleton } from '../components/Skeletons.jsx'
+import { HotelCardSkeleton, Skeleton } from '../components/Skeletons.jsx'
+import Modal from '../components/ui/Modal.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import { useHotels, useCities } from '../hooks/useCatalog.js'
 import { parseSearchParams, parseSearchWidgetInitial, buildSearchParams } from '../utils/searchParams.js'
-import { parseFilters, applyFilters, applySort } from '../utils/filtering.js'
+import {
+  parseFilters,
+  applyFilters,
+  applySort,
+  countActiveFilters,
+  DEFAULT_FILTERS,
+} from '../utils/filtering.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 
 const INITIAL_LIMIT = 8
@@ -34,6 +41,7 @@ export default function SearchResultsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [visibleCount, setVisibleCount] = useState(INITIAL_LIMIT)
+  const [filterOpen, setFilterOpen] = useState(false)
   const resultsRef = useRef(null)
 
   const query = (searchParams.get('q') || '').trim()
@@ -43,6 +51,7 @@ export default function SearchResultsPage() {
   const derived = parseSearchParams(searchParams)
   const visible = list.slice(0, visibleCount)
   const remaining = list.length - visibleCount
+  const activeFilterCount = countActiveFilters(filters)
 
   usePageMeta(
     query ? `Hasil Pencarian: ${query}` : 'Semua Penginapan',
@@ -94,7 +103,7 @@ export default function SearchResultsPage() {
         </section>
         <section className="bg-[#f7f7f7] py-10 max-[768px]:py-8" ref={resultsRef} id="search-results">
           <div className="mx-auto w-full max-w-[1200px] px-5">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="mb-0 text-[26px] font-extrabold text-black max-[768px]:text-xl">
                 {query
                   ? `Hasil Pencarian untuk "${query}" (${list.length})`
@@ -105,72 +114,128 @@ export default function SearchResultsPage() {
                   </span>
                 )}
               </h2>
-              {!loading && !error && list.length > 0 && (
-                <FilterBar hotels={list} allHotels={filtered} filters={filters} onChange={setFilterParams} />
+              {!loading && !error && (
+                <button
+                  className="btn btn-outline btn-sm min-[993px]:hidden"
+                  type="button"
+                  onClick={() => setFilterOpen(true)}
+                >
+                  Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                </button>
               )}
             </div>
-            {loading ? (
-              <div
-                className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5"
-                aria-hidden="true"
-              >
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <HotelCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : error ? (
-              <ErrorBanner onRetry={refetch} message="Gagal memuat penginapan." />
-            ) : list.length === 0 ? (
-              <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
-                <svg
-                  className="mx-auto mb-4 text-rd-border"
-                  viewBox="0 0 24 24"
-                  width="48"
-                  height="48"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  aria-hidden="true"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-                <p className="mb-[18px] text-rd-muted">
-                  {query ? `Tidak ada penginapan cocok untuk "${query}"` : 'Tidak ada penginapan ditemukan.'}
-                  {query && derived.nights > 0 ? ` selama ${derived.nights} malam.` : query ? '.' : ''}
-                </p>
-                <button className="btn btn-primary" type="button" onClick={resetSearch}>
-                  Ubah Pencarian
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5">
-                  {visible.map((h) => (
-                    <HotelCard
-                      key={h.id}
-                      hotel={h}
-                      nights={derived.nights}
-                      onOpen={(hotel) => navigate(`/hotel/${hotel.id}`)}
+
+            <div className="mt-6 grid items-start gap-6 min-[993px]:grid-cols-[300px_1fr]">
+              <aside className="hidden min-[993px]:block" aria-label="Filter penginapan">
+                {loading || error ? (
+                  <Skeleton className="rounded-2xl" style={{ height: 440, borderRadius: 16 }} />
+                ) : (
+                  <div className="min-[993px]:sticky min-[993px]:top-[90px]">
+                    <FilterBar
+                      hotels={list}
+                      allHotels={filtered}
+                      filters={filters}
+                      onChange={setFilterParams}
                     />
-                  ))}
-                </div>
-                {remaining > 0 && (
-                  <div className="mt-7 flex justify-center">
-                    <button
-                      className="btn btn-outline"
-                      type="button"
-                      onClick={() => setVisibleCount((v) => v + STEP)}
-                    >
-                      Muat Lebih Banyak ({remaining})
-                    </button>
                   </div>
                 )}
-              </>
-            )}
+              </aside>
+
+              <div className="min-w-0">
+                {loading ? (
+                  <div
+                    className="grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5"
+                    aria-hidden="true"
+                  >
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <HotelCardSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : error ? (
+                  <ErrorBanner onRetry={refetch} message="Gagal memuat penginapan." />
+                ) : list.length === 0 ? (
+                  <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
+                    <svg
+                      className="mx-auto mb-4 text-rd-border"
+                      viewBox="0 0 24 24"
+                      width="48"
+                      height="48"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      aria-hidden="true"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                    <p className="mb-[18px] text-rd-muted">
+                      {query
+                        ? `Tidak ada penginapan cocok untuk "${query}"`
+                        : 'Tidak ada penginapan ditemukan.'}
+                      {query && derived.nights > 0 ? ` selama ${derived.nights} malam.` : query ? '.' : ''}
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2.5">
+                      {activeFilterCount > 0 && (
+                        <button
+                          className="btn btn-outline"
+                          type="button"
+                          onClick={() => setFilterParams(DEFAULT_FILTERS)}
+                        >
+                          Reset Filter
+                        </button>
+                      )}
+                      <button className="btn btn-primary" type="button" onClick={resetSearch}>
+                        Ubah Pencarian
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5">
+                      {visible.map((h) => (
+                        <HotelCard
+                          key={h.id}
+                          hotel={h}
+                          nights={derived.nights}
+                          onOpen={(hotel) => navigate(`/hotel/${hotel.id}`)}
+                        />
+                      ))}
+                    </div>
+                    {remaining > 0 && (
+                      <div className="mt-7 flex justify-center">
+                        <button
+                          className="btn btn-outline"
+                          type="button"
+                          onClick={() => setVisibleCount((v) => v + STEP)}
+                        >
+                          Muat Lebih Banyak ({remaining})
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </section>
       </main>
+
+      {filterOpen && !loading && !error && (
+        <Modal variant="sheet" onClose={() => setFilterOpen(false)} labelledBy="filter-sheet-title">
+          <h2 id="filter-sheet-title" className="sr-only">
+            Filter Penginapan
+          </h2>
+          <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-[#dfe2e8]" aria-hidden="true" />
+          <div className="overflow-y-auto px-5 py-4">
+            <FilterBar hotels={list} allHotels={filtered} filters={filters} onChange={setFilterParams} />
+          </div>
+          <div className="shrink-0 border-t border-rd-border bg-white px-5 py-4">
+            <button className="btn btn-primary w-full" type="button" onClick={() => setFilterOpen(false)}>
+              Tampilkan {list.length} Penginapan
+            </button>
+          </div>
+        </Modal>
+      )}
       <Footer />
     </>
   )

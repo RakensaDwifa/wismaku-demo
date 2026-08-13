@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getBookings } from '../services/booking.js'
 import { getMember } from '../services/member.js'
 import { getFavorites } from '../services/favorite.js'
@@ -26,6 +26,7 @@ export default function Header() {
   const [member, setMember] = useState(null)
   const drawerRef = useRef(null)
   const navigate = useNavigate()
+  const location = useLocation()
 
   const goSection = (e, id) => {
     e.preventDefault()
@@ -34,6 +35,15 @@ export default function Header() {
       return
     }
     navigate('/', { state: { scrollTo: id } })
+  }
+
+  const goResults = (e) => {
+    e.preventDefault()
+    if (location.pathname === '/hasil') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    navigate('/hasil')
   }
 
   useFocusTrap(drawerRef, { active: menuOpen })
@@ -125,7 +135,12 @@ export default function Header() {
         <nav className="hidden gap-7 min-[993px]:flex" aria-label="Navigasi utama">
           {navLinks.map((l) =>
             l.to ? (
-              <Link key={l.to} to={l.to} className={navLinkCls}>
+              <Link
+                key={l.to}
+                to={l.to}
+                className={navLinkCls}
+                onClick={l.to === '/hasil' ? goResults : undefined}
+              >
                 {l.label}
               </Link>
             ) : (
@@ -240,7 +255,10 @@ export default function Header() {
                     key={l.to}
                     to={l.to}
                     className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
-                    onClick={closeMenu}
+                    onClick={(e) => {
+                      closeMenu()
+                      if (l.to === '/hasil') goResults(e)
+                    }}
                   >
                     {l.label}
                   </Link>

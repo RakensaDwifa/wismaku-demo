@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
@@ -43,6 +43,10 @@ export default function SearchResultsPage() {
   const [visibleCount, setVisibleCount] = useState(INITIAL_LIMIT)
   const [filterOpen, setFilterOpen] = useState(false)
   const resultsRef = useRef(null)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   const query = (searchParams.get('q') || '').trim()
   const filters = parseFilters(searchParams)

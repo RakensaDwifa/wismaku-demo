@@ -12,15 +12,7 @@ const fmtDate = (d) =>
 export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('checkin')
-  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches)
   const wrapRef = useRef(null)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)')
-    const onChange = (e) => setMobile(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
 
   useEffect(() => {
     const close = (e) => {
@@ -36,6 +28,17 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
       document.removeEventListener('keydown', onKey)
     }
   }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const t = setTimeout(() => {
+      const cal = wrapRef.current?.querySelector('.rdp-root')
+      if (!cal) return
+      const overflow = cal.getBoundingClientRect().bottom - window.innerHeight
+      if (overflow > 0) window.scrollBy({ top: overflow + 12, behavior: 'smooth' })
+    }, 50)
+    return () => clearTimeout(t)
+  }, [open])
 
   const today = new Date()
   const nights = checkIn && checkOut ? Math.round((checkOut - checkIn) / 86400000) : 0
@@ -70,34 +73,43 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
       ref={wrapRef}
     >
       <div className="relative flex flex-col justify-center border-r border-r-[#eee] px-4 py-[14px] last:border-r-0">
+        <button
+          className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+          type="button"
+          aria-label="Pilih tanggal check-in"
+          onClick={() => openFor('checkin')}
+        />
         <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
           Check-in
         </label>
-        <button
-          className={`w-full cursor-pointer text-left text-[15px] font-bold whitespace-nowrap text-rd-text transition-colors duration-150 hover:text-rd${active === 'checkin' ? ' text-rd' : ''}`}
-          type="button"
-          onClick={() => openFor('checkin')}
+        <span
+          className={`w-full text-left text-[15px] font-bold whitespace-nowrap text-rd-text${active === 'checkin' ? ' text-rd' : ''}`}
         >
           {fmtDate(checkIn)}
-        </button>
+        </span>
       </div>
       <div className="relative flex flex-col justify-center border-r border-r-[#eee] px-4 py-[14px] last:border-r-0">
+        <button
+          className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+          type="button"
+          aria-label="Pilih tanggal check-out"
+          onClick={() => openFor('checkout')}
+        />
         <label className="mb-[5px] inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.4px] uppercase text-rd-muted">
           Check-out
         </label>
-        <button
-          className={`w-full cursor-pointer text-left text-[15px] font-bold whitespace-nowrap text-rd-text transition-colors duration-150 hover:text-rd${active === 'checkout' ? ' text-rd' : ''}`}
-          type="button"
-          onClick={() => openFor('checkout')}
+        <span
+          className={`w-full text-left text-[15px] font-bold whitespace-nowrap text-rd-text${active === 'checkout' ? ' text-rd' : ''}`}
         >
           {fmtDate(checkOut)}
-        </button>
+        </span>
       </div>
       {open && (
         <div className="absolute top-[calc(100%+10px)] left-1/2 z-[80] -translate-x-1/2 rounded-[14px] border border-[#eee] bg-white px-[14px] pt-4 pb-[10px] shadow-rd-lg max-[640px]:right-0 max-[640px]:left-0 max-[640px]:translate-x-0">
           <DayPicker
             mode="single"
-            numberOfMonths={mobile ? 1 : 2}
+            numberOfMonths={1}
+            defaultMonth={active === 'checkin' ? checkIn : checkOut}
             locale={id}
             today={today}
             selected={active === 'checkin' ? checkIn : checkOut}

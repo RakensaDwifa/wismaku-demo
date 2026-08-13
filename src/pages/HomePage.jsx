@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
@@ -16,23 +16,10 @@ import PartnerModal from '../components/PartnerModal.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { useHotels, useCities, usePromos, useBrands, useTestimonials } from '../hooks/useCatalog.js'
-import { parseSearchParams, parseSearchWidgetInitial, buildSearchParams } from '../utils/searchParams.js'
-import { parseFilters, applyFilters, applySort } from '../utils/filtering.js'
+import { buildSearchParams } from '../utils/searchParams.js'
 import { srcSet } from '../utils/image.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { getRecentViews } from '../services/history.js'
-
-const filterHotels = (hotels, q) => {
-  const query = (q || '').trim().toLowerCase()
-  return query
-    ? hotels.filter(
-        (h) =>
-          h.city.toLowerCase().includes(query) ||
-          h.area.toLowerCase().includes(query) ||
-          h.name.toLowerCase().includes(query),
-      )
-    : hotels
-}
 
 export default function HomePage() {
   const { hotels, loading: hotelsLoading, error: hotelsError, refetch: refetchHotels } = useHotels()
@@ -45,7 +32,7 @@ export default function HomePage() {
     error: testimonialsError,
     refetch: refetchTestimonials,
   } = useTestimonials()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
   const [clubOpen, setClubOpen] = useState(false)
@@ -59,40 +46,23 @@ export default function HomePage() {
     'Booking hotel murah dengan harga promo di WismaKu - website demo tiruan tampilan ala RedDoorz.',
   )
 
-  const query = (searchParams.get('q') || '').trim()
-  const isSearch = Boolean(query)
-  const filters = parseFilters(searchParams)
-  const filtered = isSearch ? filterHotels(hotels, query) : hotels
-  const list = applySort(applyFilters(filtered, filters), filters.sort)
-  const derivedSearch = isSearch ? parseSearchParams(searchParams) : null
+  const legacyQuery = searchParams.get('q')
+  useEffect(() => {
+    if (legacyQuery) navigate(`/hasil?${searchParams.toString()}`, { replace: true })
+  }, [legacyQuery, searchParams, navigate])
+
   const recentHotels = recentIds
     .map((recentId) => hotels.find((h) => String(h.id) === String(recentId)))
     .filter(Boolean)
 
-  const setFilterParams = (nextFilters) => {
-    const params = Object.fromEntries(searchParams.entries())
-    params.sort = nextFilters.sort === 'relevance' ? '' : nextFilters.sort
-    params.amenities = nextFilters.amenities.join(',')
-    params.minPrice = nextFilters.minPrice ? String(nextFilters.minPrice) : ''
-    params.maxPrice = nextFilters.maxPrice ? String(nextFilters.maxPrice) : ''
-    params.minRating = nextFilters.minRating ? String(nextFilters.minRating) : ''
-    const cleaned = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== ''))
-    setSearchParams(cleaned, { replace: true })
-  }
-
   const handleSearch = ({ destination, checkIn, checkOut, rooms, adults, children }) => {
-    setSearchParams(buildSearchParams({ destination, checkIn, checkOut, rooms, adults, children }), {
-      replace: true,
-    })
-    hotelsRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const qs = new URLSearchParams(
+      buildSearchParams({ destination, checkIn, checkOut, rooms, adults, children }),
+    ).toString()
+    navigate(qs ? `/hasil?${qs}` : '/hasil')
   }
 
-  const handleCityPick = (name) => handleSearch({ destination: name })
-
-  const resetSearch = () => {
-    setSearchParams({}, { replace: true })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  const handleCityPick = (name) => navigate(`/hasil?q=${encodeURIComponent(name)}`)
 
   const openHotel = (hotel) => navigate(`/hotel/${hotel.id}`)
 
@@ -102,16 +72,11 @@ export default function HomePage() {
       <Header />
       <main>
         <div ref={heroRef}>
-          <Hero
-            cities={cities}
-            hotels={hotels}
-            onSearch={handleSearch}
-            initial={parseSearchWidgetInitial(searchParams)}
-          />
+          <Hero cities={cities} hotels={hotels} onSearch={handleSearch} initial={{}} />
         </div>
         <CityChips
           cities={cities}
-          onPick={(c) => handleSearch({ destination: c })}
+          onPick={handleCityPick}
           loading={citiesLoading}
           error={citiesError}
           onRetry={refetchCities}
@@ -125,22 +90,14 @@ export default function HomePage() {
         />
         <div ref={hotelsRef}>
           <PopularHotels
-            hotels={list}
-            allHotels={filtered}
-            isSearch={isSearch}
-            onReset={resetSearch}
-            searchParams={derivedSearch}
+            hotels={hotels}
             onOpen={openHotel}
             loading={hotelsLoading}
             error={hotelsError}
             onRetry={refetchHotels}
-            filters={filters}
-            onFiltersChange={setFilterParams}
-            query={query}
-            onCityPick={handleCityPick}
           />
         </div>
-        {!isSearch && <RecentHotels hotels={recentHotels} onOpen={openHotel} />}
+        <RecentHotels hotels={recentHotels} onOpen={openHotel} />
         {brandsLoading ? (
           <div className="mx-auto w-full max-w-[1200px] px-5" aria-hidden="true">
             <Skeleton className="mx-auto mt-12 mb-5 h-7 w-[45%]" />

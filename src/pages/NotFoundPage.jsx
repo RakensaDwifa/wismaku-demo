@@ -11,7 +11,7 @@ export default function NotFoundPage() {
     <>
       <TopBar />
       <Header />
-      <main className="min-h-[60vh] py-12 max-[768px]:py-8">
+      <main id="main" className="min-h-[60vh] py-12 max-[768px]:py-8">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
             <svg

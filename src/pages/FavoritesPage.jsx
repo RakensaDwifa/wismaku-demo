@@ -41,7 +41,7 @@ export default function FavoritesPage() {
     <>
       <TopBar />
       <Header />
-      <main className="min-h-[60vh] py-12 max-[768px]:py-8">
+      <main id="main" className="min-h-[60vh] py-12 max-[768px]:py-8">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">Hotel Favorit</h2>

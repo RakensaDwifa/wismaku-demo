@@ -7,6 +7,7 @@ import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
+import { Skeleton } from '../components/Skeletons.jsx'
 import { createBooking } from '../services/booking.js'
 import { applyCoupon } from '../services/coupon.js'
 import { getMember } from '../services/member.js'
@@ -129,9 +130,17 @@ export default function BookingPage() {
       <>
         <TopBar />
         <Header />
-        <main className="min-h-[60vh] py-8">
+        <main id="main" className="min-h-[60vh] bg-[#f7f7f7] py-6 pb-16">
           <div className="mx-auto w-full max-w-[1200px] px-5">
-            <p>Memuat halaman pemesanan...</p>
+            <Skeleton className="mb-6 h-8 w-1/3 rounded-lg" />
+            <div className="grid items-start gap-6 min-[993px]:grid-cols-[1fr_360px]">
+              <div className="grid gap-6">
+                <Skeleton className="h-64 w-full rounded-2xl" />
+                <Skeleton className="h-40 w-full rounded-2xl" />
+                <Skeleton className="h-56 w-full rounded-2xl" />
+              </div>
+              <Skeleton className="h-[360px] w-full rounded-2xl max-[992px]:h-64" />
+            </div>
           </div>
         </main>
         <Footer />
@@ -144,7 +153,7 @@ export default function BookingPage() {
       <>
         <TopBar />
         <Header />
-        <main className="min-h-[60vh] py-8">
+        <main id="main" className="min-h-[60vh] py-8">
           <div className="mx-auto w-full max-w-[1200px] px-5">
             <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
               <p className="mb-[18px] text-rd-muted">Penginapan tidak ditemukan.</p>
@@ -163,7 +172,7 @@ export default function BookingPage() {
     <>
       <TopBar />
       <Header />
-      <main className="min-h-[60vh] bg-[#f7f7f7] py-6 pb-16">
+      <main id="main" className="min-h-[60vh] bg-[#f7f7f7] py-6 pb-16">
         <div className="mx-auto w-full max-w-[1200px] px-5">
           <nav
             className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-rd-muted"

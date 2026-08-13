@@ -80,7 +80,7 @@ export default function SearchResultsPage() {
     <>
       <TopBar />
       <Header />
-      <main>
+      <main id="main">
         <section className="bg-white py-8 max-[768px]:py-6">
           <div className="mx-auto w-full max-w-[1200px] px-5">
             <SearchWidget

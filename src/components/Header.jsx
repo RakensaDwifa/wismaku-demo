@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getBookings } from '../services/booking.js'
 import { getMember } from '../services/member.js'
 import { getFavorites } from '../services/favorite.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
+import { scrollToCenter } from '../utils/scroll.js'
 
 const navLinks = [
   { label: 'Hotel di Indonesia', to: '/hasil' },
@@ -24,6 +25,16 @@ export default function Header() {
   const [favCount, setFavCount] = useState(0)
   const [member, setMember] = useState(null)
   const drawerRef = useRef(null)
+  const navigate = useNavigate()
+
+  const goSection = (e, id) => {
+    e.preventDefault()
+    if (document.getElementById(id)) {
+      scrollToCenter(id)
+      return
+    }
+    navigate('/', { state: { scrollTo: id } })
+  }
 
   useFocusTrap(drawerRef, { active: menuOpen })
 
@@ -118,7 +129,12 @@ export default function Header() {
                 {l.label}
               </Link>
             ) : (
-              <a key={l.href} href={l.href} className={navLinkCls}>
+              <a
+                key={l.href}
+                href={l.href}
+                className={navLinkCls}
+                onClick={(e) => goSection(e, l.href.slice(1))}
+              >
                 {l.label}
               </a>
             ),
@@ -233,7 +249,10 @@ export default function Header() {
                     key={l.href}
                     href={l.href}
                     className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
-                    onClick={closeMenu}
+                    onClick={(e) => {
+                      closeMenu()
+                      goSection(e, l.href.slice(1))
+                    }}
                   >
                     {l.label}
                   </a>

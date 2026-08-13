@@ -9,7 +9,7 @@ export default function Testimonials({ items }) {
           {t('testimonials.title')}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 max-[640px]:grid-cols-1">
-          {items.map((item) => (
+          {items.map((item, i) => (
             <article
               className="flex flex-col rounded-2xl border border-[#eee] bg-[#fcfcfc] p-5"
               key={item.name}
@@ -31,7 +31,9 @@ export default function Testimonials({ items }) {
                   </svg>
                 ))}
               </div>
-              <p className="flex-1 text-sm leading-[1.65] text-rd-text">&ldquo;{item.text}&rdquo;</p>
+              <p className="flex-1 text-sm leading-[1.65] text-rd-text">
+                &ldquo;{t(`data.testimonials.${i}`)}&rdquo;
+              </p>
               <div className="mt-4 flex items-center gap-3">
                 <span
                   className="grid size-[42px] place-items-center rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] font-extrabold text-white"

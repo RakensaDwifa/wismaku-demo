@@ -230,7 +230,7 @@ export default function BookingPage() {
                   ) : (
                     <p className="text-rd-muted">{t('booking.noDates', { nights })}</p>
                   )}
-                  <p>{t('booking.summary', { rooms, guests, type: roomType.name })}</p>
+                  <p>{t('booking.summary', { rooms, guests, type: t(`data.roomTypes.${roomType.id}`) })}</p>
                 </div>
 
                 <div className="mt-4">

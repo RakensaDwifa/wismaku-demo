@@ -438,4 +438,93 @@ export const id = {
     emailValue: 'dukungan@wismaku.id',
     hoursValue: 'Setiap hari, 08.00 – 21.00 WIB',
   },
+  data: {
+    roomTypes: {
+      standard: 'Standar',
+      deluxe: 'Deluxe',
+      family: 'Family',
+      familyVilla: 'Family Villa',
+      familyApartment: 'Family Apartemen',
+    },
+    cancelRules: {
+      1: 'Pembatalan gratis hingga 1 hari sebelum check-in',
+      2: 'Pembatalan gratis hingga 2 hari sebelum check-in',
+      3: 'Pembatalan gratis hingga 3 hari sebelum check-in',
+    },
+    hotelDesc: {
+      1: 'Penginapan syariah yang tenang di kawasan Kelapa Gading, dekat pusat perbelanjaan dan akses tol. Cocok untuk keluarga maupun tamu bisnis yang menginginkan privasi.',
+      2: 'Berlokasi strategis hanya beberapa langkah dari Malioboro, cocok untuk wisatawan yang ingin eksplorasi pusat kota. Kamar bersih dengan layanan yang ramah.',
+      3: 'Hotel nyaman di kawasan Dago dengan udara sejuk, dekat taman kota dan tempat kuliner legendaris Bandung.',
+      4: 'Vila privat dengan pemandangan sawah Ubud, kolam renang pribadi, dan suasana tenang yang sempurna untuk liburan.',
+      5: 'Penginapan modern dekat Stasiun Gubeng, praktis untuk tamu bisnis maupun perjalanan singkat di Surabaya.',
+      6: 'Kamar nyaman dengan nuansa taman, dekat wisata Batu Night Spectacular dan kawasan keluarga Batu.',
+      7: 'Dengan desain energik khas Sans, penginapan ini mendukung tamu muda yang ingin stay hemat namun tetap nyaman.',
+      8: 'Kost eksklusif di kawasan Sentul City dengan keamanan 24 jam dan suasana hijau, cocok untuk kebutuhan tinggal jangka menengah-panjang.',
+      9: 'Apartemen harian eksekutif di Kemang dengan interior stylish, dapur, dan fasilitas lengkap untuk tinggal nyaman.',
+      10: 'Penginapan sederhana dan bersih dekat pusat kota Yogyakarta, ideal untuk backpacker dan perjalanan hemat.',
+      11: 'Hotel strategis di Jalan Cihampelas, dekat pusat oleh-oleh dan tempat hiburan, nyaman untuk keluarga.',
+      12: 'Vila tropis hanya beberapa menit dari Pantai Kuta, dengan taman pribadi dan suasana santai khas Bali.',
+    },
+    reviewText: {
+      1: [
+        'Kamar bersih, check-in cepat, dekat mall. Sangat puas!',
+        'Nyaman untuk keluarga, sarapan sederhana tapi cukup.',
+      ],
+      2: [
+        'Lokasinya juara, jalan kaki ke Malioboro. Kamar wangi dan rapi.',
+        'Staf ramah, harga pas. Sedikit berisik dari jalan raya.',
+      ],
+      3: [
+        'Udara sejuk, kamar nyaman, dekat kuliner legendaris. Langganan tiap dinas.',
+        'Fasilitas lengkap, parkir luas. Cocok untuk liburan keluarga.',
+      ],
+      4: [
+        'Pemandangan sawahnya indah, kolam renang privat bikin liburan makin tenang.',
+        'Vila bersih dan privasinya terjaga. Worth it untuk honeymoon!',
+      ],
+      5: [
+        'Dekat stasiun, praktis buat perjalanan dinas. Kamar modern dan bersih.',
+        'Harga terjangkau dengan fasilitas yang memadai. Check-in mudah.',
+      ],
+      6: [
+        'Suasana taman bikin betah, dekat BNS. Anak-anak senang sekali.',
+        'Kamar bersih, staf sigap. Sarapan bisa lebih bervariasi.',
+      ],
+      7: [
+        'Desainnya energik khas anak muda, ramah kantong. Nyaman buat stay singkat.',
+        'WiFi kencang, kamar bersih. Cocok untuk kerja remote.',
+      ],
+      8: [
+        'Aman, hijau, dan tenang. Cocok untuk tinggal jangka menengah.',
+        'Keamanan 24 jam benar-benar dijaga. Dapur lengkap untuk masak.',
+      ],
+      9: [
+        'Apartemennya stylish, kolam renang ok, dapur lengkap. Ideal tinggal lama.',
+        'Lokasi strategis di Kemang, fasilitas sesuai ekspektasi. Recommended!',
+      ],
+      10: [
+        'Sederhana tapi bersih, harga super bersahabat untuk backpacker.',
+        'Dekat pusat kota, staf informatif soal tempat wisata sekitar.',
+      ],
+      11: [
+        'Lokasi strategis di Cihampelas, dekat oleh-oleh dan kuliner. Kamar nyaman.',
+        'Harga promo pas, fasilitas lengkap. Parkir agak sempit saat ramai.',
+      ],
+      12: [
+        'Beberapa menit dari pantai Kuta, taman pribadinya asri dan adem.',
+        'Vila bersih, staf ramah. Cocok untuk liburan santai bareng keluarga.',
+      ],
+    },
+    promos: {
+      1: { title: 'Diskon hingga 40%', subtitle: 'Staycation hemat di 3500+ properti' },
+      2: { title: 'Promo Penginapan Sesuai Budget', subtitle: 'Harga mulai Rp 99rb/malam' },
+      3: { title: 'Vila & Apartemen Pilihan', subtitle: 'Liburan bareng keluarga jadi lebih mudah' },
+    },
+    testimonials: [
+      'Harga murah tapi kamar bersih dan rapi. Check-in cepat, wifi kencang. Recommended banget!',
+      'Booking lewat web-nya gampang, promo diskonnya beneran berlaku. Pas check-in tinggal tunjuk kode.',
+      'Lokasi strategis dekat Malioboro, pelayanan ramah. Saya selalu pakai aplikasi ini tiap dinas.',
+      'Penginapan malam pertama dapat upgrade kamar. Staff sangat membantu kebutuhan saya.',
+    ],
+  },
 }

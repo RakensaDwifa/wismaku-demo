@@ -432,4 +432,93 @@ export const en = {
     emailValue: 'dukungan@wismaku.id',
     hoursValue: 'Every day, 08.00 – 21.00 WIB',
   },
+  data: {
+    roomTypes: {
+      standard: 'Standard',
+      deluxe: 'Deluxe',
+      family: 'Family',
+      familyVilla: 'Family Villa',
+      familyApartment: 'Family Apartment',
+    },
+    cancelRules: {
+      1: 'Free cancellation up to 1 day before check-in',
+      2: 'Free cancellation up to 2 days before check-in',
+      3: 'Free cancellation up to 3 days before check-in',
+    },
+    hotelDesc: {
+      1: 'A quiet sharia-friendly stay in Kelapa Gading, close to shopping centers and toll access. Suitable for families and business guests who value privacy.',
+      2: 'Strategically located just steps from Malioboro, ideal for travelers exploring the city center. Clean rooms with friendly service.',
+      3: "A comfortable hotel in Dago with cool air, close to the city park and Bandung's legendary food spots.",
+      4: "A private villa overlooking Ubud's rice fields, with a private pool and a peaceful atmosphere perfect for a getaway.",
+      5: 'A modern stay near Gubeng Station, practical for business guests and short trips in Surabaya.',
+      6: 'Comfortable rooms with a garden feel, close to Batu Night Spectacular and the family-friendly Batu area.',
+      7: "With Sans' signature energetic design, this stay suits young guests who want a budget-friendly yet comfortable stay.",
+      8: 'An exclusive boarding house in Sentul City with 24-hour security and a green atmosphere, suitable for mid-to-long-term stays.',
+      9: 'An executive daily apartment in Kemang with stylish interiors, a kitchen, and complete facilities for a comfortable stay.',
+      10: "A simple and clean stay near Yogyakarta's city center, ideal for backpackers and budget trips.",
+      11: 'A strategic hotel on Jalan Cihampelas, close to souvenir shops and entertainment spots, comfortable for families.',
+      12: "A tropical villa just minutes from Kuta Beach, with a private garden and Bali's signature relaxed vibe.",
+    },
+    reviewText: {
+      1: [
+        'Clean room, fast check-in, near the mall. Very satisfied!',
+        'Comfortable for the family, simple but adequate breakfast.',
+      ],
+      2: [
+        'Prime location, walk to Malioboro. The room smells nice and is tidy.',
+        'Friendly staff, fair price. A bit noisy from the main road.',
+      ],
+      3: [
+        'Cool air, comfortable room, near legendary food spots. A regular for every business trip.',
+        'Complete facilities, spacious parking. Great for a family holiday.',
+      ],
+      4: [
+        'Beautiful rice field views, the private pool makes the holiday even calmer.',
+        'Clean villa with great privacy. Worth it for a honeymoon!',
+      ],
+      5: [
+        'Near the station, practical for business trips. Modern and clean room.',
+        'Affordable price with adequate facilities. Easy check-in.',
+      ],
+      6: [
+        'The garden vibe makes you feel at home, close to BNS. The kids loved it.',
+        'Clean room, attentive staff. Breakfast could be more varied.',
+      ],
+      7: [
+        'Energetic youth-friendly design, easy on the wallet. Comfortable for a short stay.',
+        'Fast WiFi, clean room. Great for remote work.',
+      ],
+      8: [
+        'Safe, green, and quiet. Suitable for mid-term stays.',
+        '24-hour security is truly maintained. Full kitchen for cooking.',
+      ],
+      9: [
+        'Stylish apartment, great pool, full kitchen. Ideal for longer stays.',
+        'Strategic location in Kemang, facilities meet expectations. Recommended!',
+      ],
+      10: [
+        'Simple but clean, a super friendly price for backpackers.',
+        'Close to the city center, informative staff about nearby attractions.',
+      ],
+      11: [
+        'Strategic location on Cihampelas, near souvenirs and food. Comfortable room.',
+        'Great promo price, complete facilities. Parking is a bit tight when busy.',
+      ],
+      12: [
+        'Minutes from Kuta Beach, the private garden is lush and cool.',
+        'Clean villa, friendly staff. Great for a relaxed family holiday.',
+      ],
+    },
+    promos: {
+      1: { title: 'Up to 40% Off', subtitle: 'Budget-friendly staycations at 3500+ properties' },
+      2: { title: 'Stay Deals for Every Budget', subtitle: 'Prices from Rp 99k/night' },
+      3: { title: 'Selected Villas & Apartments', subtitle: 'Family getaways made easier' },
+    },
+    testimonials: [
+      'Cheap price but clean and tidy room. Fast check-in, fast WiFi. Highly recommended!',
+      'Booking on the website is easy, and the discount promos really apply. Just show the code at check-in.',
+      'Strategic location near Malioboro, friendly service. I always use this app for every business trip.',
+      'Got a free room upgrade on the first night. The staff were very helpful.',
+    ],
+  },
 }

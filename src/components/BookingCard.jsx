@@ -43,7 +43,13 @@ export default function BookingCard({ booking, onCancel }) {
         <span>
           {t('bookings.summary', { nights: booking.nights, rooms: booking.rooms, guests: booking.guests })}
         </span>
-        {booking.roomTypeName && <span>{t('bookings.roomType', { type: booking.roomTypeName })}</span>}
+        {booking.roomTypeName && (
+          <span>
+            {t('bookings.roomType', {
+              type: t(`data.roomTypes.${booking.roomTypeId}`) ?? booking.roomTypeName,
+            })}
+          </span>
+        )}
         <span>{fmtRupiah(booking.totalPrice)}</span>
         <small className="font-bold text-rd-teal">
           {t('bookings.code', { id: booking.id, name: booking.guestName })}

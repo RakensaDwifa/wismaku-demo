@@ -55,7 +55,7 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
             className="relative mt-6 aspect-[21/7] overflow-hidden rounded-2xl bg-[#eee]"
             role="region"
             aria-roledescription="carousel"
-            aria-label="Penawaran menarik"
+            aria-label={t('promo.title')}
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             onFocusCapture={() => setPaused(true)}
@@ -73,13 +73,17 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
                   src={p.img}
                   srcSet={srcSet(p.img, [600, 1200, 1600])}
                   sizes="100vw"
-                  alt={p.title}
+                  alt={t(`data.promos.${p.id}.title`)}
                   loading={i === 0 ? 'eager' : 'lazy'}
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute top-1/2 left-20 z-[2] -translate-y-1/2 text-white max-sm:left-6">
-                  <h3 className="text-[30px] font-extrabold max-sm:text-[21px]">{p.title}</h3>
-                  <p className="mt-2 text-base text-white/90 max-sm:text-[13.5px]">{p.subtitle}</p>
+                  <h3 className="text-[30px] font-extrabold max-sm:text-[21px]">
+                    {t(`data.promos.${p.id}.title`)}
+                  </h3>
+                  <p className="mt-2 text-base text-white/90 max-sm:text-[13.5px]">
+                    {t(`data.promos.${p.id}.subtitle`)}
+                  </p>
                   <button
                     className="mt-[18px] inline-block rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] px-5 py-2.5 text-[13.5px] font-extrabold text-white transition-all hover:-translate-y-0.5 hover:shadow-rd"
                     type="button"

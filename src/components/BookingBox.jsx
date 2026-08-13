@@ -16,6 +16,7 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
     hotel.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel.price }
 
   const subtotal = roomType.price * (nights || 1) * rooms
+  const cancelDays = hotel.policy?.cancelRule.match(/(\d+) hari/)?.[1] ?? '1'
 
   useEffect(() => {
     let live = true
@@ -72,7 +73,7 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
                 aria-pressed={rt.id === roomTypeId}
               >
                 <span className="flex items-center justify-between gap-2">
-                  <b className="text-[13.5px] text-rd-text">{rt.name}</b>
+                  <b className="text-[13.5px] text-rd-text">{t(`data.roomTypes.${rt.id}`)}</b>
                   <span className="font-extrabold text-rd">
                     {fmtRupiah(rt.price)}{' '}
                     <small className="font-semibold text-rd-muted">{t('hotelCard.perNight')}</small>
@@ -118,7 +119,7 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
       </button>
       {hotel.policy && (
         <p className="mt-3 text-center text-[11.5px] leading-[1.5] text-rd-muted">
-          {hotel.policy.cancelRule}
+          {t(`data.cancelRules.${cancelDays}`)}
         </p>
       )}
     </aside>

@@ -19,8 +19,15 @@ export default function HotelDetailContent({ hotel }) {
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [reviewPage, setReviewPage] = useState(0)
 
-  const allReviews = [...userReviews, ...(hotel.reviewList ?? [])]
+  const allReviews = [
+    ...userReviews,
+    ...(hotel.reviewList ?? []).map((r, i) => ({
+      ...r,
+      translated: t(`data.reviewText.${hotel.id}.${i}`),
+    })),
+  ]
   const reviewTotalPages = Math.max(1, Math.ceil(allReviews.length / REVIEW_PAGE_SIZE))
+  const cancelDays = hotel.policy?.cancelRule.match(/(\d+) hari/)?.[1] ?? '1'
 
   useEffect(() => {
     let live = true
@@ -119,7 +126,7 @@ export default function HotelDetailContent({ hotel }) {
             </span>
           ))}
         </div>
-        <p className="mt-4 text-[14px] leading-[1.7] text-rd-muted">{hotel.desc}</p>
+        <p className="mt-4 text-[14px] leading-[1.7] text-rd-muted">{t(`data.hotelDesc.${hotel.id}`)}</p>
       </section>
 
       {hotel.lat != null && hotel.lng != null && (
@@ -170,7 +177,7 @@ export default function HotelDetailContent({ hotel }) {
                   <span className="text-[12px] text-[#f5a623] tracking-[1px]">{'★'.repeat(r.rating)}</span>
                 </div>
                 <span className="text-[11.5px] text-rd-muted">{fmtDate(r.date, lang)}</span>
-                <p className="mt-1.5 leading-[1.55]">{r.text}</p>
+                <p className="mt-1.5 leading-[1.55]">{r.translated ?? r.text}</p>
               </li>
             ))}
           </ul>
@@ -273,7 +280,7 @@ export default function HotelDetailContent({ hotel }) {
             <li>
               <b>{t('detail.checkOut', { time: hotel.policy.checkOut })}</b>
             </li>
-            <li>{hotel.policy.cancelRule}</li>
+            <li>{t(`data.cancelRules.${cancelDays}`)}</li>
           </ul>
         </section>
       )}
@@ -303,7 +310,7 @@ export default function HotelDetailContent({ hotel }) {
                         {r.name}
                         {userReviews.includes(r) && (
                           <span className="rounded-full bg-[rgba(20,184,166,0.15)] px-2 py-[2px] text-[10.5px] font-extrabold tracking-[0.4px] uppercase text-rd-teal">
-                            Ulasan Anda
+                            {t('review.yours')}
                           </span>
                         )}
                       </b>
@@ -312,7 +319,7 @@ export default function HotelDetailContent({ hotel }) {
                       </span>
                     </div>
                     <span className="text-[11.5px] text-rd-muted">{fmtDate(r.date, lang)}</span>
-                    <p className="mt-1.5 leading-[1.55]">{r.text}</p>
+                    <p className="mt-1.5 leading-[1.55]">{r.translated ?? r.text}</p>
                   </li>
                 ))}
             </ul>

@@ -104,6 +104,55 @@ describe('migrasi hotelImg booking lama', () => {
   })
 })
 
+describe('migrasi tanggal booking lama', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('mengisi checkIn/checkOut untuk booking tanpa tanggal', async () => {
+    localStorage.setItem(
+      'wismaku_bookings',
+      JSON.stringify([
+        { id: 'WK-LAMA10', hotelId: 1, hotelName: 'Hotel Test', createdAt: '2026-08-10T08:00:00.000Z' },
+      ]),
+    )
+    const list = await getBookings()
+    expect(list[0].checkIn).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(list[0].checkOut).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(list[0].checkIn < list[0].checkOut).toBe(true)
+    const stored = JSON.parse(localStorage.getItem('wismaku_bookings'))
+    expect(stored[0].checkIn).toBe(list[0].checkIn)
+  })
+
+  it('tidak mengubah booking yang sudah punya tanggal', async () => {
+    localStorage.setItem(
+      'wismaku_bookings',
+      JSON.stringify([
+        {
+          id: 'WK-BARU10',
+          hotelId: 1,
+          hotelName: 'Hotel Test',
+          checkIn: '2026-08-01',
+          checkOut: '2026-08-03',
+        },
+      ]),
+    )
+    const list = await getBookings()
+    expect(list[0].checkIn).toBe('2026-08-01')
+    expect(list[0].checkOut).toBe('2026-08-03')
+  })
+
+  it('tetap mengisi tanggal untuk booking tanpa createdAt', async () => {
+    localStorage.setItem(
+      'wismaku_bookings',
+      JSON.stringify([{ id: 'WK-LAMA11', hotelId: 1, hotelName: 'Hotel Test' }]),
+    )
+    const list = await getBookings()
+    expect(list[0].checkIn).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(list[0].checkOut).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+})
+
 describe('cancelBooking', () => {
   beforeEach(() => {
     localStorage.clear()

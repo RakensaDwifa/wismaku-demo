@@ -1,5 +1,6 @@
 import { request, USE_MOCK } from './api.js'
 import { BookingPayloadSchema, parsePayload } from '../schemas/contracts.js'
+import { toYMD } from '../utils/format.js'
 import { hotels } from '../data/hotels.js'
 
 const STORAGE_KEY = 'wismaku_bookings'
@@ -32,9 +33,19 @@ const migrateImg = (booking) => {
   return { ...booking, hotelImg: hotel?.img ?? IMG_FALLBACK }
 }
 
+const migrateDates = (booking) => {
+  if (booking.checkIn && booking.checkOut) return booking
+  const base = booking.createdAt ? new Date(booking.createdAt) : new Date()
+  return {
+    ...booking,
+    checkIn: toYMD(new Date(base.getTime() + 86400000)),
+    checkOut: toYMD(new Date(base.getTime() + 2 * 86400000)),
+  }
+}
+
 export async function getBookings() {
   if (USE_MOCK) {
-    const list = bookRef().map(migrateImg)
+    const list = bookRef().map(migrateImg).map(migrateDates)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
     return list
   }

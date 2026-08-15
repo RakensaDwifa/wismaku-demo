@@ -26,6 +26,12 @@ export const MemberPayloadSchema = z.object({
   email: z.string().email(),
 })
 
+export const UserPayloadSchema = z.object({
+  name: z.string().min(3),
+  email: z.string().email(),
+  password: z.string().min(6),
+})
+
 export const PartnerPayloadSchema = z.object({
   ownerName: z.string().min(3),
   propertyName: z.string().min(3),
@@ -52,6 +58,7 @@ export const parsePayload = (schema, payload) => {
 export const schemaDocs = {
   BookingPayload: BookingPayloadSchema,
   MemberPayload: MemberPayloadSchema,
+  UserPayload: UserPayloadSchema,
   PartnerPayload: PartnerPayloadSchema,
   ReviewPayload: ReviewPayloadSchema,
 }

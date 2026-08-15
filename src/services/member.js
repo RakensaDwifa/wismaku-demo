@@ -1,11 +1,18 @@
 import { request, USE_MOCK } from './api.js'
-import { MemberPayloadSchema, PartnerPayloadSchema, parsePayload } from '../schemas/contracts.js'
+import {
+  MemberPayloadSchema,
+  PartnerPayloadSchema,
+  UserPayloadSchema,
+  parsePayload,
+} from '../schemas/contracts.js'
 
 const MEMBER_KEY = 'wismaku_members'
+const USER_KEY = 'wismaku_users'
 const PARTNER_KEY = 'wismaku_partners'
 const ACTIVE_KEY = 'wismaku_active_member'
 const ACTIVE_USER_KEY = 'wismaku_active_user'
 const GOOGLE_PROFILE_KEY = 'wismaku_google_profile'
+const FACEBOOK_PROFILE_KEY = 'wismaku_facebook_profile'
 const CHANGE_EVENT = 'wismaku:session-changed'
 
 const read = (key) => {
@@ -82,30 +89,79 @@ export async function registerMember(payload) {
   return member
 }
 
-export async function loginGoogle({ name, email }) {
-  const profile = {
-    name: (name || '').trim(),
-    email: (email || '').trim().toLowerCase(),
-    loggedInAt: new Date().toISOString(),
-  }
+export async function registerUser(payload) {
+  const data = parsePayload(UserPayloadSchema, payload)
   if (USE_MOCK) {
-    writeObject(ACTIVE_USER_KEY, profile)
-    writeObject(GOOGLE_PROFILE_KEY, profile)
-    notify()
-    return profile
+    const user = {
+      id: `US-${Date.now().toString(36).toUpperCase()}`,
+      ...data,
+      joinedAt: new Date().toISOString(),
+    }
+    const list = read(USER_KEY)
+    list.push(user)
+    localStorage.setItem(USER_KEY, JSON.stringify(list))
+    setActiveUser({ name: user.name, email: user.email, provider: 'email' })
+    return user
   }
-  const user = await request('/member/google-login', { method: 'POST', body: profile })
+  const user = await request('/users/register', { method: 'POST', body: data })
   notify()
   return user
 }
 
-export function getGoogleUser() {
+export async function loginUser(email, password) {
+  const clean = (email || '').trim().toLowerCase()
+  if (USE_MOCK) {
+    const user = read(USER_KEY).find((u) => u.email.toLowerCase() === clean)
+    if (!user || user.password !== password) throw new Error('Kredensial tidak cocok.')
+    setActiveUser({ name: user.name, email: user.email, provider: 'email' })
+    return user
+  }
+  const user = await request('/users/login', { method: 'POST', body: { email: clean, password } })
+  setActiveUser({ name: user.name, email: user.email, provider: 'email' })
+  return user
+}
+
+const setActiveUser = (profile) => {
+  writeObject(ACTIVE_USER_KEY, { ...profile, loggedInAt: new Date().toISOString() })
+  notify()
+}
+
+const loginProvider = async (provider, { name, email }, profileKey) => {
+  const profile = {
+    name: (name || '').trim(),
+    email: (email || '').trim().toLowerCase(),
+    provider,
+  }
+  if (USE_MOCK) {
+    writeObject(profileKey, profile)
+    setActiveUser(profile)
+    return profile
+  }
+  const user = await request(`/member/${provider}-login`, { method: 'POST', body: profile })
+  notify()
+  return user
+}
+
+export async function loginGoogle(payload) {
+  return loginProvider('google', payload, GOOGLE_PROFILE_KEY)
+}
+
+export async function loginFacebook(payload) {
+  return loginProvider('facebook', payload, FACEBOOK_PROFILE_KEY)
+}
+
+export function getActiveUser() {
   if (USE_MOCK) return readObject(ACTIVE_USER_KEY)
   return null
 }
 
 export function getLastGoogleProfile() {
   if (USE_MOCK) return readObject(GOOGLE_PROFILE_KEY)
+  return null
+}
+
+export function getLastFacebookProfile() {
+  if (USE_MOCK) return readObject(FACEBOOK_PROFILE_KEY)
   return null
 }
 

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getBookings } from '../services/booking.js'
-import { getMember, getGoogleUser, logout } from '../services/member.js'
+import { getMember, getActiveUser, logout } from '../services/member.js'
 import { getFavorites } from '../services/favorite.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
 import { scrollToCenter } from '../utils/scroll.js'
 import { useLanguage } from '../i18n/useLanguage.js'
-import GoogleModal from './GoogleModal.jsx'
+import AuthModal from './AuthModal.jsx'
 
 const getNavLinks = (t) => [
   { label: t('nav.hotels'), to: '/hasil' },
@@ -29,6 +29,7 @@ export default function Header() {
   const [member, setMember] = useState(null)
   const [user, setUser] = useState(null)
   const [authOpen, setAuthOpen] = useState(false)
+  const [authTab, setAuthTab] = useState('login')
   const drawerRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -94,7 +95,7 @@ export default function Header() {
     let live = true
     const sync = async () => {
       try {
-        const [u, m] = await Promise.all([getGoogleUser(), getMember()])
+        const [u, m] = await Promise.all([getActiveUser(), getMember()])
         if (live) {
           setUser(u)
           setMember(m)
@@ -215,14 +216,20 @@ export default function Header() {
               <button
                 className={`${btnBase} hidden border border-rd bg-white text-rd hover:bg-[#f0fdfa] min-[993px]:inline-flex`}
                 type="button"
-                onClick={() => setAuthOpen(true)}
+                onClick={() => {
+                  setAuthTab('login')
+                  setAuthOpen(true)
+                }}
               >
                 {t('topbar.login')}
               </button>
               <button
                 className={`${btnBase} hidden bg-rd text-white min-[993px]:inline-flex`}
                 type="button"
-                onClick={() => setAuthOpen(true)}
+                onClick={() => {
+                  setAuthTab('register')
+                  setAuthOpen(true)
+                }}
               >
                 {t('topbar.register')}
               </button>
@@ -341,6 +348,7 @@ export default function Header() {
                     type="button"
                     onClick={() => {
                       closeMenu()
+                      setAuthTab('login')
                       setAuthOpen(true)
                     }}
                   >
@@ -351,6 +359,7 @@ export default function Header() {
                     type="button"
                     onClick={() => {
                       closeMenu()
+                      setAuthTab('register')
                       setAuthOpen(true)
                     }}
                   >
@@ -362,7 +371,7 @@ export default function Header() {
           </div>
         </div>
       )}
-      {authOpen && <GoogleModal onClose={() => setAuthOpen(false)} />}
+      {authOpen && <AuthModal initialTab={authTab} onClose={() => setAuthOpen(false)} />}
     </header>
   )
 }

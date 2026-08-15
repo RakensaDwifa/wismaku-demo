@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Modal from './ui/Modal.jsx'
-import GoogleModal from './GoogleModal.jsx'
-import { getMember, getGoogleUser, logout } from '../services/member.js'
+import AuthModal from './AuthModal.jsx'
+import { getMember, getActiveUser, logout } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 function CheckIcon() {
@@ -20,6 +20,7 @@ export default function TopBar() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
+  const [authTab, setAuthTab] = useState('login')
   const [user, setUser] = useState(null)
   const [member, setMember] = useState(null)
   const popRef = useRef(null)
@@ -28,7 +29,7 @@ export default function TopBar() {
     let live = true
     const sync = async () => {
       try {
-        const [u, m] = await Promise.all([getGoogleUser(), getMember()])
+        const [u, m] = await Promise.all([getActiveUser(), getMember()])
         if (live) {
           setUser(u)
           setMember(m)
@@ -158,14 +159,20 @@ export default function TopBar() {
               <button
                 className="rounded-md px-2 py-1 transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
                 type="button"
-                onClick={() => setAuthOpen(true)}
+                onClick={() => {
+                  setAuthTab('login')
+                  setAuthOpen(true)
+                }}
               >
                 {t('topbar.login')}
               </button>
               <button
                 className="rounded-md px-2 py-1 font-extrabold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
                 type="button"
-                onClick={() => setAuthOpen(true)}
+                onClick={() => {
+                  setAuthTab('register')
+                  setAuthOpen(true)
+                }}
               >
                 {t('topbar.register')}
               </button>
@@ -204,7 +211,7 @@ export default function TopBar() {
           </div>
         </Modal>
       )}
-      {authOpen && <GoogleModal onClose={() => setAuthOpen(false)} />}
+      {authOpen && <AuthModal initialTab={authTab} onClose={() => setAuthOpen(false)} />}
     </div>
   )
 }

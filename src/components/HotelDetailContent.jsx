@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { addReview, getReviews } from '../services/review.js'
+import { getActiveUser, getMember } from '../services/member.js'
 import { fmtDate } from '../utils/format.js'
 import { srcSet } from '../utils/image.js'
 import Modal from './ui/Modal.jsx'
@@ -46,6 +47,28 @@ export default function HotelDetailContent({ hotel }) {
       window.removeEventListener('wismaku:reviews-changed', sync)
     }
   }, [hotel.id])
+
+  useEffect(() => {
+    let live = true
+    const prefill = async () => {
+      try {
+        const u = await getActiveUser()
+        const m = u ? null : await getMember()
+        const name = u?.name ?? m?.name
+        if (live && name) {
+          setReviewForm((f) => (f.name ? f : { ...f, name }))
+        }
+      } catch {
+        /* abaikan */
+      }
+    }
+    prefill()
+    window.addEventListener('wismaku:session-changed', prefill)
+    return () => {
+      live = false
+      window.removeEventListener('wismaku:session-changed', prefill)
+    }
+  }, [])
 
   const submitReview = async (e) => {
     e.preventDefault()

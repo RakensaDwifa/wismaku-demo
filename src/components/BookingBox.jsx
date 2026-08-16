@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMember } from '../services/member.js'
+import AuthModal from './AuthModal.jsx'
+import { getMember, getActiveUser } from '../services/member.js'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -9,6 +10,8 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
   const navigate = useNavigate()
   const [roomTypeId, setRoomTypeId] = useState(hotel.roomTypes?.[0]?.id ?? 'standard')
   const [isMember, setIsMember] = useState(false)
+  const [user, setUser] = useState(null)
+  const [authOpen, setAuthOpen] = useState(false)
 
   const nights = search?.nights ?? 0
   const hasDates = Boolean(search?.checkIn && search?.checkOut)
@@ -22,10 +25,16 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
     let live = true
     const sync = async () => {
       try {
-        const m = await getMember()
-        if (live) setIsMember(Boolean(m))
+        const [m, u] = await Promise.all([getMember(), getActiveUser()])
+        if (live) {
+          setIsMember(Boolean(m))
+          setUser(u)
+        }
       } catch {
-        if (live) setIsMember(false)
+        if (live) {
+          setIsMember(false)
+          setUser(null)
+        }
       }
     }
     sync()
@@ -108,11 +117,19 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
         <b>{fmtRupiah(subtotal)}</b>
       </div>
 
-      {isMember && (
+      {isMember ? (
         <p className="mt-2 rounded-[8px] bg-[rgba(20,184,166,0.1)] px-3 py-2 text-[12.5px] font-bold text-rd-teal">
           {t('bookingBox.memberDiscount')}
         </p>
-      )}
+      ) : !user ? (
+        <button
+          className="mt-2 w-full rounded-[8px] border border-dashed border-rd-teal bg-[rgba(20,184,166,0.08)] px-3 py-2 text-[12.5px] font-bold text-rd-teal transition-colors hover:bg-[rgba(20,184,166,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+          type="button"
+          onClick={() => setAuthOpen(true)}
+        >
+          {t('bookingBox.memberCta')}
+        </button>
+      ) : null}
 
       <button className="btn btn-primary mt-4 w-full" type="button" onClick={goBooking}>
         {t('promo.bookNow')}
@@ -122,6 +139,7 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
           {t(`data.cancelRules.${cancelDays}`)}
         </p>
       )}
+      {authOpen && <AuthModal initialTab="login" onClose={() => setAuthOpen(false)} />}
     </aside>
   )
 }

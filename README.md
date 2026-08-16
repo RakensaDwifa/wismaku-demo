@@ -71,10 +71,10 @@ npm run test       # Vitest (unit test utils & services)
 npm run format     # Prettier
 ```
 
-Push ke `main` otomatis men-deploy ke GitHub Pages lewat
-[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
-(dengan fallback `404.html` agar deep link SPA berfungsi).
+Push ke `main` lalu import repo di
+[Vercel](https://vercel.com) (preset Vite otomatis: build `npm run build`, output `dist/`).
+`vercel.json` berisi rewrite agar deep link SPA berfungsi.
 
 ## Demo
 
-Tersedia setelah deployment pertama berjalan: `https://rakensadwifa.github.io/reddoorz-clone/`
+Tersedia setelah deployment pertama berjalan: `https://wismaku.vercel.app/wismaku-demo/`

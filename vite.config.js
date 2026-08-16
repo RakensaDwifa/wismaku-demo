@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/reddoorz-clone/',
+  base: '/wismaku-demo/',
   build: {
     chunkSizeWarningLimit: 700,
     rollupOptions: {

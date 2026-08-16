@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Modal from './ui/Modal.jsx'
 import AuthModal from './AuthModal.jsx'
-import { getMember, getActiveUser, logout } from '../services/member.js'
+import { getMember, getActiveUser } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 function CheckIcon() {
@@ -142,18 +143,12 @@ export default function TopBar() {
           </div>
           <span className="mx-1 h-3.5 w-px bg-rd-border" />
           {user || member ? (
-            <>
-              <span className="px-2 py-1 font-bold text-rd-text">
-                {t('topbar.welcome', { name: (user ?? member).name.split(' ')[0] })}
-              </span>
-              <button
-                className="rounded-md px-2 py-1 font-extrabold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
-                type="button"
-                onClick={() => logout()}
-              >
-                {t('topbar.logout')}
-              </button>
-            </>
+            <Link
+              className="rounded-md px-2 py-1 font-bold text-rd-text transition-colors hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+              to="/akun"
+            >
+              {t('topbar.welcome', { name: (user ?? member).name.split(' ')[0] })}
+            </Link>
           ) : (
             <>
               <button

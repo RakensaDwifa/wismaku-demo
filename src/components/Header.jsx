@@ -59,7 +59,8 @@ export default function Header() {
     let live = true
     const sync = async () => {
       try {
-        const list = await getBookings()
+        const u = await getActiveUser()
+        const list = u ? await getBookings({ email: u.email }) : []
         if (live) setOrders(list)
       } catch {
         if (live) setOrders([])
@@ -67,9 +68,11 @@ export default function Header() {
     }
     sync()
     window.addEventListener('wismaku:bookings-changed', sync)
+    window.addEventListener('wismaku:session-changed', sync)
     return () => {
       live = false
       window.removeEventListener('wismaku:bookings-changed', sync)
+      window.removeEventListener('wismaku:session-changed', sync)
     }
   }, [])
 
@@ -77,7 +80,8 @@ export default function Header() {
     let live = true
     const sync = async () => {
       try {
-        const list = await getFavorites()
+        const u = await getActiveUser()
+        const list = u ? await getFavorites(u) : []
         if (live) setFavCount(list.length)
       } catch {
         if (live) setFavCount(0)
@@ -85,9 +89,11 @@ export default function Header() {
     }
     sync()
     window.addEventListener('wismaku:favorites-changed', sync)
+    window.addEventListener('wismaku:session-changed', sync)
     return () => {
       live = false
       window.removeEventListener('wismaku:favorites-changed', sync)
+      window.removeEventListener('wismaku:session-changed', sync)
     }
   }, [])
 

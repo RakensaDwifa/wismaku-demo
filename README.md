@@ -77,4 +77,4 @@ Push ke `main` lalu import repo di
 
 ## Demo
 
-Tersedia setelah deployment pertama berjalan: `https://wismaku.vercel.app/wismaku-demo/`
+Tersedia setelah deployment pertama berjalan: `https://wismaku-demo.vercel.app/`

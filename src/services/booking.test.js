@@ -225,3 +225,28 @@ describe('payBooking', () => {
     expect(after.checkOut).toBe(before.checkOut)
   })
 })
+
+describe('getBookings per-user', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('hanya mengembalikan pesanan milik email yang diminta', async () => {
+    await createBooking({ ...validPayload, email: 'budi@email.com' })
+    await createBooking({ ...validPayload, email: 'siti@email.com' })
+    const list = await getBookings({ email: 'Budi@Email.com' })
+    expect(list).toHaveLength(1)
+    expect(list[0].email).toBe('budi@email.com')
+  })
+
+  it('mengembalikan semua pesanan tanpa filter email', async () => {
+    await createBooking({ ...validPayload, email: 'budi@email.com' })
+    await createBooking({ ...validPayload, email: 'siti@email.com' })
+    expect(await getBookings()).toHaveLength(2)
+  })
+
+  it('mengembalikan daftar kosong jika tidak ada pesanan user', async () => {
+    await createBooking({ ...validPayload, email: 'budi@email.com' })
+    expect(await getBookings({ email: 'orang@lain.com' })).toEqual([])
+  })
+})

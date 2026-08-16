@@ -26,3 +26,33 @@ describe('favorite', () => {
     expect(await getFavorites()).toEqual(['7'])
   })
 })
+
+describe('favorit per-user', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('menyimpan favorit ke scope email user', async () => {
+    const user = { name: 'Budi', email: 'Budi@Email.com' }
+    await toggleFavorite(1, user)
+    expect(await getFavorites(user)).toEqual(['1'])
+    expect(await isFavorite(1, user)).toBe(true)
+    expect(await getFavorites()).toEqual([])
+    expect(await isFavorite(1)).toBe(false)
+  })
+
+  it('tidak menampilkan favorit user lain', async () => {
+    await toggleFavorite(3, { email: 'a@b.c' })
+    expect(await getFavorites({ email: 'x@y.z' })).toEqual([])
+    expect(await isFavorite(3, { email: 'x@y.z' })).toBe(false)
+  })
+
+  it('hanya menghapus favorit pada scope yang sama', async () => {
+    await toggleFavorite(5, { email: 'a@b.c' })
+    await toggleFavorite(5, { email: 'x@y.z' })
+    expect(await getFavorites({ email: 'a@b.c' })).toEqual(['5'])
+    await toggleFavorite(5, { email: 'x@y.z' })
+    expect(await getFavorites({ email: 'a@b.c' })).toEqual(['5'])
+    expect(await getFavorites({ email: 'x@y.z' })).toEqual([])
+  })
+})

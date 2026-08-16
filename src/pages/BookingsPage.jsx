@@ -5,8 +5,10 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import BookingCard from '../components/BookingCard.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
+import AuthModal from '../components/AuthModal.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { getBookings, cancelBooking } from '../services/booking.js'
+import { getActiveUser } from '../services/member.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -14,31 +16,39 @@ export default function BookingsPage() {
   const { t } = useLanguage()
   usePageMeta(t('pages.bookingsTitle'), t('pages.bookingsDesc'))
   const [orders, setOrders] = useState(null)
+  const [user, setUser] = useState(null)
   const [error, setError] = useState(null)
-
-  const load = async () => {
-    try {
-      setOrders(await getBookings())
-      setError(null)
-    } catch (err) {
-      setError(err)
-    }
-  }
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authTab, setAuthTab] = useState('login')
 
   useEffect(() => {
     let live = true
     const sync = async () => {
       try {
-        const list = await getBookings()
-        if (live) setOrders(list)
+        const u = await getActiveUser()
+        if (live) setUser(u)
+        if (!u) {
+          if (live) {
+            setOrders([])
+            setError(null)
+          }
+          return
+        }
+        const list = await getBookings({ email: u.email })
+        if (live) {
+          setOrders(list)
+          setError(null)
+        }
       } catch (err) {
         if (live) setError(err)
       }
     }
     sync()
+    window.addEventListener('wismaku:session-changed', sync)
     window.addEventListener('wismaku:bookings-changed', sync)
     return () => {
       live = false
+      window.removeEventListener('wismaku:session-changed', sync)
       window.removeEventListener('wismaku:bookings-changed', sync)
     }
   }, [])
@@ -50,6 +60,22 @@ export default function BookingsPage() {
       /* abaikan */
     }
     load()
+  }
+
+  const load = async () => {
+    try {
+      const u = await getActiveUser()
+      setUser(u)
+      if (!u) {
+        setOrders([])
+        setError(null)
+        return
+      }
+      setOrders(await getBookings({ email: u.email }))
+      setError(null)
+    } catch (err) {
+      setError(err)
+    }
   }
 
   return (
@@ -68,6 +94,33 @@ export default function BookingsPage() {
           </div>
           {error ? (
             <ErrorBanner message={t('errors.loadBookings')} onRetry={load} />
+          ) : !user ? (
+            <div className="mt-6 rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-[60px] text-center">
+              <p className="mb-1 text-[17px] font-extrabold text-rd-text">{t('account.guestTitle')}</p>
+              <p className="mb-5 text-[13.5px] text-rd-muted">{t('account.guestDesc')}</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => {
+                    setAuthTab('login')
+                    setAuthOpen(true)
+                  }}
+                >
+                  {t('account.login')}
+                </button>
+                <button
+                  className="btn btn-outline"
+                  type="button"
+                  onClick={() => {
+                    setAuthTab('register')
+                    setAuthOpen(true)
+                  }}
+                >
+                  {t('account.register')}
+                </button>
+              </div>
+            </div>
           ) : !orders ? (
             <div
               className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(255px,1fr))] gap-5"
@@ -106,6 +159,7 @@ export default function BookingsPage() {
         </div>
       </main>
       <Footer />
+      {authOpen && <AuthModal initialTab={authTab} onClose={() => setAuthOpen(false)} />}
     </>
   )
 }

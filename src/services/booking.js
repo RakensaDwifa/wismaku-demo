@@ -43,10 +43,14 @@ const migrateDates = (booking) => {
   }
 }
 
-export async function getBookings() {
+export async function getBookings({ email } = {}) {
   if (USE_MOCK) {
     const list = bookRef().map(migrateImg).map(migrateDates)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    if (email) {
+      const clean = String(email).trim().toLowerCase()
+      return list.filter((b) => b.email?.trim().toLowerCase() === clean)
+    }
     return list
   }
   return request('/bookings')

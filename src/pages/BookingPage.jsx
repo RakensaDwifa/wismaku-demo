@@ -10,7 +10,7 @@ import { usePageMeta } from '../hooks/usePageMeta.js'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { createBooking } from '../services/booking.js'
 import { applyCoupon } from '../services/coupon.js'
-import { getMember } from '../services/member.js'
+import { getMember, getActiveUser } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 const MEMBER_DISCOUNT_PCT = 0.1
@@ -60,8 +60,13 @@ export default function BookingPage() {
     let live = true
     const sync = async () => {
       try {
-        const m = await getMember()
-        if (live) setIsMember(Boolean(m))
+        const [m, u] = await Promise.all([getMember(), getActiveUser()])
+        if (live) {
+          setIsMember(Boolean(m))
+          if (u) {
+            setForm((f) => ({ ...f, name: f.name || u.name, email: f.email || u.email }))
+          }
+        }
       } catch {
         if (live) setIsMember(false)
       }

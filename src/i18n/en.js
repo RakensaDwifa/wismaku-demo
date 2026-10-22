@@ -449,6 +449,8 @@ export const en = {
     or: 'or',
     withGoogle: 'Sign in with Google',
     withFacebook: 'Sign in with Facebook',
+    providerDemoBadge: 'Demo',
+    providerDemoNote: 'Demo simulation — not real OAuth sign-in.',
     noAccount: "Don't have an account?",
     goRegister: 'Sign Up Now',
     demoNote: 'Simulation demo — account is saved on this device (localStorage).',

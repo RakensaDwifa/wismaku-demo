@@ -158,6 +158,9 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               />
             </svg>
             {t('auth.withGoogle')}
+            <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-amber-700 uppercase">
+              {t('auth.providerDemoBadge')}
+            </span>
           </button>
           <button
             className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd"
@@ -171,9 +174,13 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               />
             </svg>
             {t('auth.withFacebook')}
+            <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-amber-700 uppercase">
+              {t('auth.providerDemoBadge')}
+            </span>
           </button>
         </div>
         <p className="mt-3 text-[12px] text-rd-muted">{t('auth.demoNote')}</p>
+        <p className="mt-1 text-[11px] text-rd-muted">{t('auth.providerDemoNote')}</p>
       </div>
     </Modal>
   )

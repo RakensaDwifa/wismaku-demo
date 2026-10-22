@@ -1,48 +1,45 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchHotels, fetchCities, fetchPromos, fetchTestimonials } from '../services/hotel.js'
 
 function useAsync(fetcher, initial) {
   const [data, setData] = useState(initial)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
+  const mounted = useRef(true)
 
   useEffect(() => {
-    let live = true
-    fetcher()
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+
+  // Satu sumber logic untuk pengambilan awal maupun pemanggilan ulang.
+  // `run()` sengaja TIDAK melakukan setState secara sinkron: state di-update
+  // di dalam callback promise. Reset `loading`/`error` dilakukan oleh pemanggil.
+  const run = useCallback(() => {
+    return fetcher()
       .then((value) => {
-        if (!live) return
+        if (!mounted.current) return
         setData(value)
         setLoading(false)
       })
       .catch((err) => {
-        if (!live) return
+        if (!mounted.current) return
         setError(err)
         setLoading(false)
       })
-    return () => {
-      live = false
-    }
   }, [fetcher])
 
+  useEffect(() => {
+    run()
+  }, [run])
+
   const refetch = useCallback(() => {
-    let live = true
     setLoading(true)
     setError(null)
-    fetcher()
-      .then((value) => {
-        if (!live) return
-        setData(value)
-        setLoading(false)
-      })
-      .catch((err) => {
-        if (!live) return
-        setError(err)
-        setLoading(false)
-      })
-    return () => {
-      live = false
-    }
-  }, [fetcher])
+    run()
+  }, [run])
 
   return { data, error, loading, refetch }
 }

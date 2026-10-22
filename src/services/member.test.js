@@ -70,6 +70,11 @@ describe('registerUser / loginUser', () => {
     await expect(loginUser('budi@email.com', 'salah')).rejects.toThrow()
     await expect(loginUser('sapa@email.com', 'rahasia123')).rejects.toThrow()
   })
+
+  it('tidak crash saat data user lama tidak punya field email', async () => {
+    localStorage.setItem('wismaku_users', JSON.stringify([{ id: 'US-LAMA', name: 'Tanpa Email' }]))
+    await expect(loginUser('apa@saja.com', 'rahasia123')).rejects.toThrow('Kredensial tidak cocok.')
+  })
 })
 
 describe('loginGoogle / loginFacebook / logout', () => {

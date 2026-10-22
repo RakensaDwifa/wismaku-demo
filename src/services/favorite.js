@@ -38,7 +38,7 @@ export async function toggleFavorite(id, user) {
     notify()
     return { id: key, active: next.includes(key) }
   }
-  const current = await isFavorite(id)
+  const current = await isFavorite(id, user)
   if (current) {
     await request(`/favorites/${key}`, { method: 'DELETE' })
   } else {

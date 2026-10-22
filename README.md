@@ -1,8 +1,20 @@
 # WismaKu — Website Prototype Penginapan ala RedDoorz
 
+[![CI](https://github.com/RakensaDwifa/wismaku-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/RakensaDwifa/wismaku-demo/actions/workflows/ci.yml)
+
 Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip RedDoorz. Dibangun sebagai proyek pembelajaran frontend: **React + Vite**, arsitektur siap-backend, dan mode mock untuk demo tanpa server.
 
 ![Screenshot beranda](screenshots/home.png)
+
+## ⚠️ Catatan Mode Demo
+
+Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketahui sebelum memakainya:
+
+- **Tidak ada backend.** Semua hotel, kota, promo, dan ulasan berasal dari `src/data/`. Data pengguna, favorit, dan pemesanan disimpan di `localStorage` browser.
+- **Password disimpan plaintext.** Pada mode mock, password tidak di-hash dan tersimpan apa adanya di `localStorage`. Ini disengaja untuk keperluan demo dan **tidak boleh** dijadikan basis autentikasi produksi.
+- **Login Google/Facebook hanya simulasi.** Tidak ada OAuth sama sekali; akun dibuat otomatis di perangkat ini (tombolnya diberi label "Demo").
+- **Pembayaran tidak diproses.** Tidak ada transaksi nyata; status pesanan hanya berubah state lokal.
+- **Untuk-mode-API sudah disiapkan.** Ubah `VITE_USE_MOCK=false` untuk menghubungkan service (`src/services/*`) ke API backend sungguhan — setiap service sudah punya cabang `request()`.
 
 ## Fitur
 
@@ -24,6 +36,7 @@ Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip Re
 | Validasi | Zod                                       |
 | Gaya     | Tailwind CSS v4 (design tokens, @utility) |
 | Kualitas | ESLint 10, Prettier 3                     |
+| Test     | Vitest 4, Testing Library, jsdom          |
 
 ## Menjalankan Lokal
 
@@ -47,6 +60,23 @@ VITE_API_URL=
 Arsitektur service (`src/services/*`) sudah siap dihubungkan ke API: setiap fungsi
 memiliki cabang `request()` untuk mode non-mock.
 
+## Arsitektur
+
+Alur data mengikuti dua lapisan: UI memanggil `hook`, `hook` memanggil `service`,
+dan `service` memilih antara data mock lokal atau `request()` ke API backend.
+
+| Lapisan  | Tanggung jawab                       | Lokasi                          |
+| -------- | ------------------------------------ | ------------------------------- |
+| Pages/UI | Tampilan & interaksi pengguna        | `src/components/`, `src/pages/` |
+| Hooks    | Logika state + pemanggilan service   | `src/hooks/`                    |
+| Services | Akses data (mock / API) + validasi   | `src/services/`                 |
+| Schemas  | Kontrak payload dengan Zod           | `src/schemas/`                  |
+| Utils    | Fungsi bantu (format, filter, image) | `src/utils/`                    |
+| Data     | Mock data untuk mode demo            | `src/data/`                     |
+
+Setiap service mengekspos fungsi dengan cabang `if (USE_MOCK)` yang membaca/tulis
+`localStorage`, dan cabang `request()` yang memanggil API backend melalui `fetch`.
+
 ## Struktur Proyek
 
 ```
@@ -67,13 +97,20 @@ src/
 npm run build      # output di dist/
 npm run preview    # pratinjau build lokal
 npm run lint       # ESLint
-npm run test       # Vitest (unit test utils & services)
+npm run test       # Vitest (unit test service/util + component test jsdom)
 npm run format     # Prettier
 ```
 
-Push ke `main` lalu import repo di
-[Vercel](https://vercel.com) (preset Vite otomatis: build `npm run build`, output `dist/`).
+CI GitHub Actions (`.github/workflows/ci.yml`) berjalan otomatis pada setiap push/PR ke `main`,
+dengan urutan gerbang: `format:check` → `lint` → `test` → `build`.
+
+Deploy produksi ditangani [Vercel](https://vercel.com) lewat integrasi GitHub: push ke `main`
+lalu import repo (preset Vite otomatis: build `npm run build`, output `dist/`).
 `vercel.json` berisi rewrite agar deep link SPA berfungsi.
+
+## Lisensi
+
+[MIT](LICENSE) © 2026 RakensaDwifa.
 
 ## Demo
 

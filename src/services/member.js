@@ -15,6 +15,23 @@ const GOOGLE_PROFILE_KEY = 'wismaku_google_profile'
 const FACEBOOK_PROFILE_KEY = 'wismaku_facebook_profile'
 const CHANGE_EVENT = 'wismaku:session-changed'
 
+/*
+ * ============================================================================
+ *  DEMO ONLY - PASSWORD DISIMPAN PLAINTEXT
+ * ============================================================================
+ *  Pada mode mock, `password` disimpan apa adanya di localStorage browser.
+ *  Ini SENGAJA TIDAK di-hash: aplikasi ini adalah demo pembelajaran tanpa
+ *  backend sungguhan, dan hash base64/statis hanya memberi ilusi keamanan
+ *  tanpa menambah perlindungan nyata.
+ *
+ *  - Mode mock  : password plaintext di localStorage (lihat catatan README).
+ *  - Mode API   : `VITE_USE_MOCK=false` -> password dikirim ke backend dan
+ *                 tidak pernah menyentuh localStorage.
+ *
+ *  JANGAN pakai kode ini sebagai basis sistem autentikasi produksi.
+ * ============================================================================
+ */
+
 const read = (key) => {
   try {
     return JSON.parse(localStorage.getItem(key)) || []
@@ -111,7 +128,8 @@ export async function registerUser(payload) {
 export async function loginUser(email, password) {
   const clean = (email || '').trim().toLowerCase()
   if (USE_MOCK) {
-    const user = read(USER_KEY).find((u) => u.email.toLowerCase() === clean)
+    // `u?.email` dijaga karena entri lama di localStorage bisa saja tidak punya email.
+    const user = read(USER_KEY).find((u) => (u?.email || '').toLowerCase() === clean)
     if (!user || user.password !== password) throw new Error('Kredensial tidak cocok.')
     setActiveUser({ name: user.name, email: user.email, provider: 'email' })
     return user

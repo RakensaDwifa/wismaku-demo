@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createBooking, getBookings, cancelBooking, payBooking } from './booking.js'
+import { createBooking, getBookings, cancelBooking, payBooking, migrateBookings } from './booking.js'
 import { BookingPayloadSchema, parsePayload } from '../schemas/contracts.js'
 
 const validPayload = {
@@ -75,6 +75,7 @@ describe('migrasi hotelImg booking lama', () => {
         },
       ]),
     )
+    migrateBookings()
     const list = await getBookings()
     expect(list[0].hotelImg).toMatch(/^https:\/\//)
     const stored = JSON.parse(localStorage.getItem('wismaku_bookings'))
@@ -116,6 +117,7 @@ describe('migrasi tanggal booking lama', () => {
         { id: 'WK-LAMA10', hotelId: 1, hotelName: 'Hotel Test', createdAt: '2026-08-10T08:00:00.000Z' },
       ]),
     )
+    migrateBookings()
     const list = await getBookings()
     expect(list[0].checkIn).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     expect(list[0].checkOut).toMatch(/^\d{4}-\d{2}-\d{2}$/)
@@ -248,5 +250,37 @@ describe('getBookings per-user', () => {
   it('mengembalikan daftar kosong jika tidak ada pesanan user', async () => {
     await createBooking({ ...validPayload, email: 'budi@email.com' })
     expect(await getBookings({ email: 'orang@lain.com' })).toEqual([])
+  })
+})
+
+describe('regresi: membaca booking tidak boleh menulis ke localStorage', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('tidak mengubah localStorage saat getBookings dipanggil', async () => {
+    await createBooking(validPayload)
+    const before = localStorage.getItem('wismaku_bookings')
+    expect(before).toBeTruthy()
+
+    await getBookings()
+    await getBookings({ email: 'budi@example.com' })
+    await getBookings({ email: 'lain@example.com' })
+
+    expect(localStorage.getItem('wismaku_bookings')).toBe(before)
+  })
+
+  it('tetap memigrasi data lama ketika booking baru ditulis', async () => {
+    localStorage.setItem(
+      'wismaku_bookings',
+      JSON.stringify([
+        { id: 'WK-LAMA99', hotelId: 1, hotelName: 'Hotel Test', hotelImg: '/img/hotels/1.jpg' },
+      ]),
+    )
+    await createBooking(validPayload)
+
+    const stored = JSON.parse(localStorage.getItem('wismaku_bookings'))
+    const legacy = stored.find((b) => b.id === 'WK-LAMA99')
+    expect(legacy.hotelImg).toMatch(/^https:\/\//)
   })
 })

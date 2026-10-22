@@ -43,10 +43,42 @@ const migrateDates = (booking) => {
   }
 }
 
+/**
+ * Terapkan migrasi data booking lama (gambar hotel + tanggal check-in/out).
+ *
+ * Migrasi dijalankan pada titik TULIS dan satu kali saat modul dimuat -
+ * bukan pada setiap pembacaan. Sebelumnya `getBookings()` menulis ulang
+ * `localStorage` setiap kali dipanggil (side effect saat read).
+ */
+const migrateList = (list) => list.map(migrateImg).map(migrateDates)
+
+const persist = (list) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(migrateList(list)))
+}
+
+/**
+ * Jalankan migrasi pada data booking yang tersimpan dan tulis hasilnya.
+ * Dipanggil satu kali saat modul dimuat serta pada setiap titik tulis.
+ */
+export const migrateBookings = () => {
+  try {
+    const list = bookRef()
+    if (!list.length) return []
+    const migrated = migrateList(list)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
+    return migrated
+  } catch {
+    return []
+  }
+}
+
+// Migrasi satu kali saat modul dimuat, untuk booking yang dibuat sebelum
+// field `hotelImg` / `checkIn` / `checkOut` tersedia.
+migrateBookings()
+
 export async function getBookings({ email } = {}) {
   if (USE_MOCK) {
-    const list = bookRef().map(migrateImg).map(migrateDates)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    const list = migrateList(bookRef())
     if (email) {
       const clean = String(email).trim().toLowerCase()
       return list.filter((b) => b.email?.trim().toLowerCase() === clean)
@@ -62,7 +94,7 @@ export async function createBooking(payload) {
     const booking = toLocal(data)
     const list = bookRef()
     list.unshift(booking)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    persist(list)
     notify()
     return booking
   }
@@ -76,7 +108,7 @@ export async function cancelBooking(id) {
     const list = bookRef().map((b) =>
       b.id === id ? { ...b, status: 'cancelled', cancelledAt: new Date().toISOString() } : b,
     )
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    persist(list)
     notify()
     return list
   }
@@ -91,7 +123,7 @@ export async function payBooking(id, method) {
         ? { ...b, status: 'confirmed', paymentMethod: method, paidAt: new Date().toISOString() }
         : b,
     )
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    persist(list)
     notify()
     return list.find((b) => b.id === id)
   }

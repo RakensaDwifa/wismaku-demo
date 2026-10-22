@@ -65,14 +65,14 @@ memiliki cabang `request()` untuk mode non-mock.
 Alur data mengikuti dua lapisan: UI memanggil `hook`, `hook` memanggil `service`,
 dan `service` memilih antara data mock lokal atau `request()` ke API backend.
 
-| Lapisan | Tanggung jawab | Lokasi |
-| ------- | -------------- | ------ |
-| Pages/UI | Tampilan & interaksi pengguna | `src/components/`, `src/pages/` |
-| Hooks | Logika state + pemanggilan service | `src/hooks/` |
-| Services | Akses data (mock / API) + validasi | `src/services/` |
-| Schemas | Kontrak payload dengan Zod | `src/schemas/` |
-| Utils | Fungsi bantu (format, filter, image) | `src/utils/` |
-| Data | Mock data untuk mode demo | `src/data/` |
+| Lapisan  | Tanggung jawab                       | Lokasi                          |
+| -------- | ------------------------------------ | ------------------------------- |
+| Pages/UI | Tampilan & interaksi pengguna        | `src/components/`, `src/pages/` |
+| Hooks    | Logika state + pemanggilan service   | `src/hooks/`                    |
+| Services | Akses data (mock / API) + validasi   | `src/services/`                 |
+| Schemas  | Kontrak payload dengan Zod           | `src/schemas/`                  |
+| Utils    | Fungsi bantu (format, filter, image) | `src/utils/`                    |
+| Data     | Mock data untuk mode demo            | `src/data/`                     |
 
 Setiap service mengekspos fungsi dengan cabang `if (USE_MOCK)` yang membaca/tulis
 `localStorage`, dan cabang `request()` yang memanggil API backend melalui `fetch`.

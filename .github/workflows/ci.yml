@@ -1,21 +1,22 @@
-name: Deploy ke GitHub Pages
+name: CI
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
-  group: pages
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  verify:
+    name: Format, Lint, Test, Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,14 +42,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Fallback SPA untuk deep link
-        run: cp dist/index.html dist/404.html
-
-      - name: Deploy ke GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: gh-pages
-          force_orphan: true

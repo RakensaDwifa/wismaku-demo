@@ -457,6 +457,8 @@ export const id = {
     or: 'atau',
     withGoogle: 'Masuk dengan Google',
     withFacebook: 'Masuk dengan Facebook',
+    providerDemoBadge: 'Demo',
+    providerDemoNote: 'Simulasi demo — bukan login OAuth sungguhan.',
     noAccount: 'Belum punya akun?',
     goRegister: 'Daftar Sekarang',
     demoNote: 'Simulasi demo — akun tersimpan di perangkat ini (localStorage).',

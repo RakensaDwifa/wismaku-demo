@@ -1,0 +1,8 @@
+# Normalisasi line ending untuk seluruh repo.
+# Blob di GitHub selalu LF; checkout di semua OS juga LF agar
+# `prettier --check .` menghasilkan hasil yang sama di lokal dan di CI.
+* text=auto eol=lf
+
+# Script Windows tetap memakai CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf

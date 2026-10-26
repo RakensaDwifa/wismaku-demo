@@ -1,115 +1,88 @@
 # Keamanan WismaKu
 
-WismaKu adalah **prototipe demo tanpa backend**. Dokumen ini menjelaskan apa yang sudah
-dilindungi, apa yang belum, dan di mana batas antara "demo yang lebih aman" dan
-"sistem yang siap produksi".
+WismaKu memakai **Supabase Auth** untuk autentikasi dan **Row Level Security (RLS)** untuk
+isolasi data per pengguna. Dokumen ini menjelaskan apa yang sudah dilindungi, apa yang
+belum, dan batas antara "demo yang lebih aman" dengan "sistem yang siap produksi".
 
 ## Model ancaman
 
-Aplikasi berjalan sepenuhnya di browser. Semua data akun disimpan di `localStorage`,
-sehingga tidak ada server yang bisa menegakkan aturan. Karena itu, keamanan di sini
-berfokus pada ancaman yang paling realistis untuk demo:
-
-| Ancaman                                              | Status                               |
-| ---------------------------------------------------- | ------------------------------------ |
-| Orang lain membuka DevTools di perangkat yang sama   | ✅ Ditutup (password ter-hash)       |
-| Ekstensi browser / skrip yang membaca `localStorage` | ✅ Ditutup untuk password            |
-| Password sama dipakai ulang lalu bocor ke situs lain | ✅ Ditutup (hash, bukan plaintext)   |
-| Brute force lewat UI/console                         | 🟡 Dibatasi (5 percobaan / 60 detik) |
-| Brute force offline terhadap hash yang dicuri        | ❌ Tidak bisa ditutup tanpa backend  |
-| XSS yang menjalankan kode di halaman                 | ❌ Tidak bisa ditutup tanpa backend  |
-| Pemalsuan sesi login dari DevTools                   | ❌ Tidak bisa ditutup tanpa backend  |
+| Ancaman                                              | Status                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------- |
+| Orang lain membuka DevTools di perangkat yang sama   | 🟡 Sesi (JWT) tersimpan di localStorage                 |
+| Ekstensi browser / skrip yang membaca `localStorage` | 🟡 JWT bisa dicuri → akses sementara                    |
+| Password disimpan di klien                           | ✅ Tidak (di-hash Argon2/bcrypt di server)              |
+| Brute force lewat UI/console                         | ✅ Dibatasi Supabase (rate limit server)                |
+| Brute force offline terhadap hash yang dicuri        | ✅ Tidak berlaku (hash tidak ada di klien)              |
+| XSS yang menjalankan kode di halaman                 | ❌ Tetap bisa mencuri JWT dari localStorage             |
+| Pemalsuan sesi login dari DevTools                   | 🟡 JWT bisa diforge, tapi signature diverifikasi server |
+| Login Google/Facebook                                | ❌ Masih simulasi (belum OAuth sungguhan)               |
 
 ## Yang sudah diterapkan
 
-### 1. Hashing password (PBKDF2-HMAC-SHA512)
+### 1. Autentikasi server-side (Supabase Auth)
 
-`src/services/password.js`
+- Password di-hash dengan **Argon2** (default Supabase) di server. Klien tidak pernah
+  menyimpan, membaca, atau membandingkan password.
+- `src/services/password.js` (PBKDF2 lokal) **dihapus** — tidak lagi diperlukan.
+- Pendaftaran/login memanggil `supabase.auth.signUp` / `signInWithPassword`.
+- Sesi dikelola Supabase client (JWT + refresh token), disimpan di localStorage
+  secara otomatis oleh client (bukan oleh kode aplikasi).
+- `getActiveUser()` mengambil user dari `supabase.auth.getUser()` (verifikasi
+  signature JWT ke server) lalu profil dari tabel `profiles`.
 
-- Algoritma: PBKDF2-HMAC-SHA512, **210.000 iterasi** (sesuai rekomendasi OWASP Password
-  Storage Cheat Sheet untuk SHA-512), output 256 bit.
-- **Salt acak 16 byte per akun** dari `crypto.getRandomValues`, bukan salt global.
-- Perbandingan hash memakai **constant-time compare** (tidak berhenti di byte pertama
-  yang berbeda) untuk mengurangi kebocoran lewat timing.
-- Record yang tersimpan berbentuk
-  `{ algo, iterations, salt, hash }` dengan encoding base64url.
-- Record yang dimanipulasi tetap ditolak: algoritma tak dikenal, hash dengan panjang
-  salah, atau jumlah iterasi di luar batas wajar (`> 2.000.000`) tidak akan diverifikasi.
-- Bila `crypto.subtle` tidak tersedia (mis. halaman di-serve lewat HTTP non-localhost),
-  pendaftaran/login **gagal dengan pesan jelas** — tidak pernah jatuh kembali ke plaintext.
+### 2. Row Level Security (RLS)
 
-### 2. Password tidak pernah keluar dari service
+Semua tabel di schema `public` mengaktifkan RLS. Kebijakan per tabel:
 
-- `registerUser` mengembalikan objek publik (`id`, `name`, `email`, `joinedAt`) tanpa
-  `passwordHash`.
-- `localStorage` hanya berisi `passwordHash`; field `password` tidak pernah ditulis lagi.
+- `cities`, `hotels`, `coupons`, `reviews`: baca publik (anon).
+- `profiles`, `members`, `favorites`, `bookings`, `partners`: baca/tulis hanya
+  milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`).
 
-### 3. Migrasi transparan akun lama
+Akibatnya, meskipun anon key diekspos di bundle frontend, pengguna tidak bisa
+membaca atau mengubah data pengguna lain — server yang menegakkan batas ini.
 
-Akun yang dibuat sebelum perbaikan masih menyimpan `password` plaintext. Saat login
-pertama yang **berhasil**, record tersebut otomatis ditulis ulang sebagai hash dan field
-plaintext dihapus (`upgradePasswordIfNeeded` di `src/services/member.js`). Tidak ada
-password yang hilang dan pengguna tidak perlu mendaftar ulang.
+### 3. Auto-create profil
 
-### 4. Aturan & validasi kredensial
+Trigger `on_auth_user_created` membuat baris di `profiles` setiap kali user baru
+terdaftar di `auth.users`, memakai `raw_user_meta_data->>'name'` atau bagian
+sebelum `@` dari email. Aplikasi tidak perlu insert profil manual.
 
-- Email dinormalisasi (`trim` + lowercase) di schema maupun service, sehingga
-  `Budi@Email.com` dan `budi@email.com` dianggap akun yang sama.
-- Pendaftaran menolak email duplikat (`EMAIL_TAKEN`) — mencegah dua akun dengan email
-  yang sama dan login yang tidak deterministik.
-- Password baru: minimal 8 karakter serta memuat huruf dan angka (`UserPayloadSchema`).
-- Login **tidak** memaksa 8 karakter, supaya akun lama dengan password lebih pendek
-  tetap bisa masuk (`LoginPayloadSchema`).
+### 4. Validasi kredensial di klien
 
-### 5. Pembatasan percobaan login
+- Email dinormalisasi (`trim` + lowercase) di `UserPayloadSchema`/`LoginPayloadSchema`.
+- Password baru: minimal 8 karakter + huruf & angka (validasi klien, bukan keamanan).
+- Pesan error generik ("Email atau password salah.") — tidak membedakan "email tidak
+  ada" vs "password salah" (mencegah enumerasi akun).
 
-- 5 kegagalan berturut-turut untuk satu email → dikunci **60 detik**
-  (`MAX_LOGIN_ATTEMPTS`, `LOGIN_LOCK_MS`).
-- Catatan percobaan dipangkas otomatis setelah 24 jam agar `localStorage` tidak membengkak.
-- Email yang tidak terdaftar tetap menjalankan satu verifikasi hash (dummy) supaya waktu
-  responsnya setara dengan email yang ada — mengurangi enumerasi akun lewat timing.
+### 5. Identitas provider (Google/Facebook) — simulasi
 
-### 6. Pesan error tidak membocorkan akun
+Login Google/Facebook **belum** memakai OAuth sungguhan. Tombol ditampilkan tapi
+disabled dengan tooltip "Segera hadir". Fungsi `loginGoogle`/`loginFacebook`
+melempar `OAUTH_NOT_CONFIGURED`. OAuth akan ditambahkan di PR terpisah.
 
-- Kredensial salah selalu menghasilkan pesan generik "Email atau password salah."
-  (tidak membedakan "email tidak ada" vs "password salah").
-- Kode error dari service (`EMAIL_TAKEN`, `ACCOUNT_LOCKED`,
-  `CRYPTO_UNAVAILABLE`, `INVALID_CREDENTIALS`) dipetakan ke pesan i18n di `AuthModal`,
-  sehingga UI tetap dua bahasa tanpa string hardcoded.
+## Yang belum aman (dan batasannya)
 
-## Yang belum aman (dan tidak bisa diperbaiki di sisi klien)
-
-1. **Tidak ada backend.** Siapa pun yang menguasai perangkat bisa mengubah
-   `localStorage` secara langsung: menghapus data, mengubah profil, atau memalsukan sesi
-   dengan menulis `wismaku_active_user`.
-2. **Hash bisa di-brute-force offline.** Kalau penyerang sudah bisa membaca
-   `localStorage`, ia bisa menebak password tanpa batas waktu. PBKDF2 hanya memperlambat,
-   bukan mencegah. Password lemah tetap lemah.
-3. **XSS tetap menang.** Skrip yang berjalan di halaman bisa memanggil WebCrypto,
-   membaca input form, atau mencuri sesi. Hashing tidak menolong di sini.
-4. **Login Google/Facebook hanyalah simulasi.** Tidak ada OAuth, tidak ada verifikasi
-   identitas, dan tidak ada token.
-5. **Pembayaran tidak diproses.** Status pesanan hanya berubah di state lokal.
-6. **Rate limit disimpan di klien.** Menghapus `wismaku_login_attempts` dari DevTools
-   akan mereset hitungan percobaan. Ini hanya meredam brute force santai, bukan penyerang
-   yang serius. Pencatatan dibatasi 50 email terakhir agar tidak membengkakkan
-   `localStorage`, dengan entri yang sedang terkunci diprioritaskan.
-7. **Identitas Google/Facebook terpisah dari akun email.** Login provider hanya menyimpan
-   profil di kunci sendiri (`wismaku_google_profile` / `wismaku_facebook_profile`) tanpa
-   verifikasi apa pun. Satu alamat email bisa dipakai di akun email sekaligus profil
-   provider, masing-masing dengan jalur login sendiri.
+1. **JWT di localStorage.** Supabase menyimpan sesi di `localStorage` secara default.
+   Skrip XSS bisa mencuri JWT dan menggunakannya sampai expired (1 jam, dengan
+   refresh token). Mitigasi: CSP ketat, sanitasi input, dan (untuk produksi) pindah
+   ke httpOnly cookie.
+2. **XSS tetap menang.** Hashing tidak relevan lagi, tapi XSS tetap bisa mencuri
+   sesi. Ini batas yang tidak bisa ditutup dari sisi klien.
+3. **OAuth simulasi.** Tidak ada verifikasi identitas Google/Facebook.
+4. **Pembayaran tidak diproses.** Status pesanan hanya berubah di state lokal/DB.
+5. **Tidak ada admin role.** `getPartners()` hanya mengembalikan milik sendiri;
+   belum ada dashboard admin.
 
 ## Kalau ingin naik ke produksi
 
-Urutan yang disarankan:
-
-1. Pindahkan autentikasi ke backend (mis. Supabase Auth atau API sendiri) dan gunakan
-   Argon2id/bcrypt di server, bukan PBKDF2 di browser.
-2. Ganti sesi lokal dengan token yang ditandatangani server (HTTP-only cookie atau JWT
-   berumur pendek) beserta refresh token.
-3. Terapkan rate limit dan audit log di server, bukan di klien.
-4. Aktifkan OAuth sungguhan untuk Google/Facebook.
-5. Tambahkan CSP yang ketat untuk menekan risiko XSS.
+1. ~~Pindahkan autentikasi ke backend~~ ✅ Sudah (Supabase Auth).
+2. ~~Ganti sesi lokal dengan token server~~ 🟡 Masih JWT di localStorage; pertimbangkan
+   httpOnly cookie + refresh token untuk produksi.
+3. ~~Terapkan rate limit di server~~ ✅ Supabase punya rate limit bawaan.
+4. Aktifkan OAuth sungguhan untuk Google/Facebook (konfigurasi provider di dashboard).
+5. Tambahkan CSP yang ketat (header `Content-Security-Policy`).
+6. Tambahkan audit log untuk aksi sensitif (login, booking, dll.).
+7. Pertimbangkan MFA (Supabase Auth mendukung TOTP).
 
 ## Melaporkan masalah
 

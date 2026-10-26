@@ -151,7 +151,7 @@ export default function AccountPage() {
                       <div className="min-w-0">
                         <p className="text-[17px] font-extrabold text-rd-text">{member.name}</p>
                         <p className="truncate text-[13px] text-rd-muted">
-                          {t('account.memberId', { id: member.id })}
+                          {t('account.memberId', { id: member.member_no ?? member.id })}
                         </p>
                         {member.joinedAt && (
                           <p className="text-[12.5px] font-bold text-rd">

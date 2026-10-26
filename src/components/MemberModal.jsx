@@ -73,7 +73,7 @@ export default function MemberModal({ onClose }) {
           </div>
           <h3 className="text-[19px] font-extrabold">{t('member.successTitle')}</h3>
           <p className="my-1.5 mb-1 text-[13px] text-rd-muted">
-            {t('member.memberId')} <b className="text-rd-teal">{member.id}</b>
+            {t('member.memberId')} <b className="text-rd-teal">{member.member_no ?? member.id}</b>
           </p>
           <div className="my-3 mb-4 flex flex-col gap-[3px] rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
             {t('member.perks').map((perk) => (

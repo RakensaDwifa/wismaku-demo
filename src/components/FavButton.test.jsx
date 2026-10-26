@@ -1,9 +1,14 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FavButton from './FavButton.jsx'
 import { LanguageProvider } from '../i18n/index.jsx'
-import { loginGoogle } from '../services/member.js'
+
+const mockGetActiveUser = vi.fn()
+
+vi.mock('../services/member.js', () => ({
+  getActiveUser: (...args) => mockGetActiveUser(...args),
+}))
 
 const renderButton = () =>
   render(
@@ -15,6 +20,8 @@ const renderButton = () =>
 describe('FavButton', () => {
   beforeEach(() => {
     localStorage.clear()
+    mockGetActiveUser.mockReset()
+    mockGetActiveUser.mockResolvedValue(null)
   })
 
   it('menampilkan label tambah favorit saat belum aktif', async () => {
@@ -26,6 +33,7 @@ describe('FavButton', () => {
   })
 
   it('toggle favorit mengubah aria-pressed beserta label tombol', async () => {
+    mockGetActiveUser.mockResolvedValue({ name: 'Andi', email: 'andi@example.com', provider: 'email' })
     const user = userEvent.setup()
     renderButton()
 
@@ -43,7 +51,7 @@ describe('FavButton', () => {
 
   it('menyimpan favorit pada scope email user yang sedang masuk', async () => {
     const user = userEvent.setup()
-    await loginGoogle({ name: 'Andi', email: 'andi@example.com' })
+    mockGetActiveUser.mockResolvedValue({ name: 'Andi', email: 'andi@example.com', provider: 'email' })
     renderButton()
 
     const button = await screen.findByRole('button')
@@ -57,10 +65,8 @@ describe('FavButton', () => {
   })
 
   it('tidak menandai favorit milik akun lain sebagai aktif', async () => {
-    await loginGoogle({ name: 'Andi', email: 'andi@example.com' })
     localStorage.setItem('wismaku_favorites:andi@example.com', JSON.stringify(['H-1']))
-
-    await loginGoogle({ name: 'Budi', email: 'budi@example.com' })
+    mockGetActiveUser.mockResolvedValue({ name: 'Budi', email: 'budi@example.com', provider: 'email' })
     renderButton()
 
     const button = await screen.findByRole('button')

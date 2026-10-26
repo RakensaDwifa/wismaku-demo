@@ -1,215 +1,363 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  getMember,
   getActiveUser,
-  getLastGoogleProfile,
+  getMember,
   getLastFacebookProfile,
-  registerMember,
-  registerUser,
-  loginUser,
-  loginGoogle,
-  loginFacebook,
-  logout,
+  getLastGoogleProfile,
   getPartners,
+  loginFacebook,
+  loginGoogle,
+  loginUser,
+  logout,
+  registerMember,
   registerPartner,
+  registerUser,
 } from './member.js'
 
-describe('registerMember / getMember', () => {
-  beforeEach(() => {
-    localStorage.clear()
+// ---------------------------------------------------------------------------
+// Mock Supabase client
+// ---------------------------------------------------------------------------
+
+const { mockAuth, mockFrom, qb } = vi.hoisted(() => {
+  const mockAuth = {
+    signUp: vi.fn(),
+    signInWithPassword: vi.fn(),
+    signOut: vi.fn(),
+    getUser: vi.fn(),
+    onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+  }
+  const mockFrom = vi.fn()
+  function qb(resolved) {
+    const b = {
+      select: vi.fn(() => b),
+      eq: vi.fn(() => b),
+      maybeSingle: vi.fn(() => Promise.resolve(resolved)),
+      single: vi.fn(() => Promise.resolve(resolved)),
+      insert: vi.fn(() => b),
+    }
+    b.insert.mockReturnValue(b)
+    b.select.mockReturnValue(b)
+    // supabase.from(...).select('*') tanpa .single() harus bisa di-await
+    b.then = (resolve, reject) => Promise.resolve(resolved).then(resolve, reject)
+    return b
+  }
+  return { mockAuth, mockFrom, qb }
+})
+
+vi.mock('../lib/supabase.js', () => ({
+  supabase: { auth: mockAuth, from: mockFrom },
+}))
+
+const profileRow = (overrides = {}) => ({
+  id: 'u-1',
+  name: 'Budi Santoso',
+  email: 'budi@email.com',
+  provider: 'email',
+  joined_at: '2026-01-01T00:00:00.000Z',
+  ...overrides,
+})
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  mockAuth.getUser.mockResolvedValue({ data: { user: null }, error: null })
+  mockFrom.mockImplementation(() => qb({ data: null, error: null }))
+})
+
+// ---------------------------------------------------------------------------
+// Sesi
+// ---------------------------------------------------------------------------
+
+describe('getActiveUser', () => {
+  it('mengembalikan null bila tidak ada sesi', async () => {
+    expect(await getActiveUser()).toBeNull()
   })
 
-  it('membuat member dengan id MC dan auto-login', async () => {
-    const m = await registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com' })
-    expect(m.id).toMatch(/^MC-/)
-    expect(m.joinedAt).toBeTruthy()
-    expect((await getMember()).email).toBe('dewi@example.com')
+  it('mengembalikan user + profil bila sesi ada', async () => {
+    mockAuth.getUser.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation(() => qb({ data: profileRow(), error: null }))
+    const user = await getActiveUser()
+    expect(user).toEqual(
+      expect.objectContaining({
+        id: 'u-1',
+        email: 'budi@email.com',
+        name: 'Budi Santoso',
+        provider: 'email',
+      }),
+    )
   })
 
-  it('mengembalikan null saat belum ada member', async () => {
-    expect(await getMember()).toBeNull()
-  })
-
-  it('menolak payload tidak valid', async () => {
-    await expect(registerMember({ name: 'X', email: 'bukan-email' })).rejects.toThrow()
+  it('tetap mengembalikan user minimal bila profil belum ada', async () => {
+    mockAuth.getUser.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation(() => qb({ data: null, error: null }))
+    const user = await getActiveUser()
+    expect(user).toEqual(expect.objectContaining({ id: 'u-1', email: 'budi@email.com' }))
   })
 })
 
-describe('registerUser / loginUser', () => {
-  beforeEach(() => {
-    localStorage.clear()
+describe('registerUser', () => {
+  it('memanggil signUp dan mengembalikan user publik', async () => {
+    mockAuth.signUp.mockResolvedValue({ data: { user: { id: 'u-1', email: 'budi@email.com' } }, error: null })
+    const user = await registerUser({ name: 'Budi Santoso', email: 'budi@email.com', password: 'rahasia123' })
+    expect(mockAuth.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'budi@email.com',
+        password: 'rahasia123',
+        options: expect.objectContaining({ data: { name: 'Budi Santoso' } }),
+      }),
+    )
+    expect(user).toEqual(
+      expect.objectContaining({ id: 'u-1', email: 'budi@email.com', name: 'Budi Santoso' }),
+    )
+    expect(user).not.toHaveProperty('password')
   })
 
-  it('registerUser membuat akun US dan auto-login', async () => {
-    const u = await registerUser({
-      name: 'Budi Santoso',
-      email: 'budi@email.com',
-      password: 'rahasia123',
-    })
-    expect(u.id).toMatch(/^US-/)
-    expect(getActiveUser()).toEqual(expect.objectContaining({ provider: 'email', email: 'budi@email.com' }))
+  it('melempar error Supabase saat signUp gagal', async () => {
+    mockAuth.signUp.mockResolvedValue({ data: { user: null }, error: { message: 'User already registered' } })
+    await expect(
+      registerUser({ name: 'Budi Santoso', email: 'budi@email.com', password: 'rahasia123' }),
+    ).rejects.toThrow()
   })
 
-  it('menolak password kurang dari 8 karakter', async () => {
+  it('menolak password kurang dari 8 karakter (validasi klien)', async () => {
     await expect(
       registerUser({ name: 'Budi Santoso', email: 'budi@email.com', password: '123' }),
     ).rejects.toThrow()
   })
 
-  it('loginUser dengan kredensial benar', async () => {
-    await registerUser({ name: 'Budi Santoso', email: 'budi@email.com', password: 'rahasia123' })
-    await logout()
-    expect(getActiveUser()).toBeNull()
-    await loginUser('budi@email.com', 'rahasia123')
-    expect(getActiveUser()).toEqual(expect.objectContaining({ provider: 'email', name: 'Budi Santoso' }))
-  })
-
-  it('menolak password salah dan email belum terdaftar', async () => {
-    await registerUser({ name: 'Budi Santoso', email: 'budi@email.com', password: 'rahasia123' })
-    await logout()
-    await expect(loginUser('budi@email.com', 'salah')).rejects.toThrow()
-    await expect(loginUser('sapa@email.com', 'rahasia123')).rejects.toThrow()
-  })
-
-  it('tidak crash saat data user lama tidak punya field email', async () => {
-    localStorage.setItem('wismaku_users', JSON.stringify([{ id: 'US-LAMA', name: 'Tanpa Email' }]))
-    await expect(loginUser('apa@saja.com', 'rahasia123')).rejects.toThrow('Kredensial tidak cocok.')
-  })
-})
-
-describe('loginGoogle / loginFacebook / logout', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
-  it('loginGoogle membuat sesi provider google dan profil prefill', async () => {
-    await loginGoogle({ name: 'Andi Wijaya', email: 'andi@gmail.com' })
-    expect(getActiveUser()).toEqual(expect.objectContaining({ provider: 'google' }))
-    expect(getLastGoogleProfile().email).toBe('andi@gmail.com')
-  })
-
-  it('loginFacebook membuat sesi provider facebook dan profil prefill', async () => {
-    await loginFacebook({ name: 'Rina Putri', email: 'rina@facebook.com' })
-    expect(getActiveUser()).toEqual(expect.objectContaining({ provider: 'facebook' }))
-    expect(getLastFacebookProfile().email).toBe('rina@facebook.com')
-  })
-
-  it('logout menghapus sesi member dan user', async () => {
-    await registerMember({ name: 'Dewi Lestari', email: 'dewi@example.com' })
-    await loginGoogle({ name: 'Andi Wijaya', email: 'andi@gmail.com' })
-    await logout()
-    expect(await getMember()).toBeNull()
-    expect(getActiveUser()).toBeNull()
-  })
-
-  it('logout tanpa sesi tidak error', async () => {
-    await logout()
-    expect(getActiveUser()).toBeNull()
-  })
-})
-
-describe('registerPartner / getPartners', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
-  it('membuat partner dengan id PT', async () => {
-    const p = await registerPartner({
-      ownerName: 'Andi Wijaya',
-      propertyName: 'Wisma Andi',
-      city: 'Jakarta',
-      email: 'andi@example.com',
-    })
-    expect(p.id).toMatch(/^PT-/)
-    expect((await getPartners()).length).toBe(1)
-  })
-})
-
-describe('keamanan kredensial akun', () => {
-  const email = 'siti@email.com'
-  const password = 'rahasia123'
-
-  const registerSiti = () => registerUser({ name: 'Siti Aminah', email, password })
-
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
-  it('menyimpan password sebagai hash, bukan plaintext', async () => {
-    await registerSiti()
-
-    const raw = localStorage.getItem('wismaku_users')
-    expect(raw).not.toContain(password)
-
-    const [stored] = JSON.parse(raw)
-    expect(stored.password).toBeUndefined()
-    expect(stored.passwordHash).toEqual(expect.objectContaining({ algo: 'PBKDF2-SHA512' }))
-  })
-
-  it('tidak membocorkan hash ke pemanggil', async () => {
-    const user = await registerSiti()
-
-    expect(user).toEqual(expect.objectContaining({ id: expect.stringMatching(/^US-/), email }))
-    expect(user).not.toHaveProperty('passwordHash')
-    expect(user).not.toHaveProperty('password')
-  })
-
-  it('menolak email duplikat tanpa peduli kapitalisasi', async () => {
-    await registerSiti()
-
+  it('menolak email tidak valid (validasi klien)', async () => {
     await expect(
-      registerUser({ name: 'Siti Lain', email: 'SITI@Email.com', password: 'rahasia456' }),
-    ).rejects.toMatchObject({ code: 'EMAIL_TAKEN' })
-    expect(JSON.parse(localStorage.getItem('wismaku_users'))).toHaveLength(1)
+      registerUser({ name: 'Budi Santoso', email: 'bukan-email', password: 'rahasia123' }),
+    ).rejects.toThrow()
+  })
+})
+
+describe('loginUser', () => {
+  it('memanggil signInWithPassword dan mengembalikan user', async () => {
+    mockAuth.signInWithPassword.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation(() => qb({ data: profileRow(), error: null }))
+    const user = await loginUser('budi@email.com', 'rahasia123')
+    expect(mockAuth.signInWithPassword).toHaveBeenCalledWith({
+      email: 'budi@email.com',
+      password: 'rahasia123',
+    })
+    expect(user).toEqual(expect.objectContaining({ email: 'budi@email.com', name: 'Budi Santoso' }))
   })
 
-  it('meng-upgrade record plaintext lama saat login berhasil', async () => {
-    localStorage.setItem(
-      'wismaku_users',
-      JSON.stringify([{ id: 'US-LAMA', name: 'Akun Lama', email: 'lama@email.com', password: 'lama123' }]),
-    )
-
-    await loginUser('Lama@Email.com', 'lama123')
-
-    const [stored] = JSON.parse(localStorage.getItem('wismaku_users'))
-    expect(stored.password).toBeUndefined()
-    expect(stored.passwordHash).toEqual(expect.objectContaining({ algo: 'PBKDF2-SHA512' }))
+  it('melempar INVALID_CREDENTIALS saat Supabase error', async () => {
+    mockAuth.signInWithPassword.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'Invalid login credentials' },
+    })
+    await expect(loginUser('budi@email.com', 'salah')).rejects.toMatchObject({ code: 'INVALID_CREDENTIALS' })
   })
 
-  it('mengunci email setelah 5 kali gagal lalu membuka setelah masa tunggu', async () => {
-    await registerSiti()
+  it('menormalisasi email (trim + lowercase)', async () => {
+    mockAuth.signInWithPassword.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation(() => qb({ data: profileRow(), error: null }))
+    await loginUser('  BUDI@Email.com  ', 'rahasia123')
+    expect(mockAuth.signInWithPassword).toHaveBeenCalledWith({
+      email: 'budi@email.com',
+      password: 'rahasia123',
+    })
+  })
+})
 
-    for (let i = 0; i < 5; i += 1) {
-      await expect(loginUser(email, 'salah1234')).rejects.toBeInstanceOf(Error)
-    }
+describe('logout', () => {
+  it('memanggil signOut', async () => {
+    mockAuth.signOut.mockResolvedValue({ error: null })
+    await logout()
+    expect(mockAuth.signOut).toHaveBeenCalled()
+  })
+})
 
-    await expect(loginUser(email, password)).rejects.toMatchObject({ code: 'ACCOUNT_LOCKED' })
+// ---------------------------------------------------------------------------
+// OAuth (ditunda)
+// ---------------------------------------------------------------------------
 
-    const spy = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 61_000)
-    try {
-      await expect(loginUser(email, password)).resolves.toEqual(expect.objectContaining({ email }))
-    } finally {
-      spy.mockRestore()
-    }
-    expect(localStorage.getItem('wismaku_login_attempts')).toBeNull()
+describe('loginGoogle / loginFacebook', () => {
+  it('melempar OAUTH_NOT_CONFIGURED', async () => {
+    await expect(loginGoogle({ name: 'Andi', email: 'andi@gmail.com' })).rejects.toMatchObject({
+      code: 'OAUTH_NOT_CONFIGURED',
+    })
+    await expect(loginFacebook({ name: 'Rina', email: 'rina@facebook.com' })).rejects.toMatchObject({
+      code: 'OAUTH_NOT_CONFIGURED',
+    })
+  })
+})
+
+describe('getLastGoogleProfile / getLastFacebookProfile', () => {
+  it('mengembalikan null (OAuth belum aktif)', () => {
+    expect(getLastGoogleProfile()).toBeNull()
+    expect(getLastFacebookProfile()).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Member WismaClub
+// ---------------------------------------------------------------------------
+
+describe('getMember', () => {
+  it('mengembalikan null bila belum masuk', async () => {
+    expect(await getMember()).toBeNull()
   })
 
-  it('membatasi jumlah entri percobaan login dan mempertahankan yang terkunci', async () => {
-    const now = Date.now()
-    const seeded = {}
-    for (let i = 0; i < 60; i += 1) {
-      seeded[`user${i}@email.com`] = { fails: 1, lockedUntil: null, updatedAt: now - (60 - i) * 1000 }
-    }
-    // entri lama tapi sedang terkunci: tidak boleh ikut terbuang
-    seeded['terkunci@email.com'] = { fails: 0, lockedUntil: now + 30_000, updatedAt: now - 3_600_000 }
-    localStorage.setItem('wismaku_login_attempts', JSON.stringify(seeded))
+  it('mengembalikan record member bila ada', async () => {
+    mockAuth.getUser.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation((table) => {
+      if (table === 'profiles') return qb({ data: profileRow(), error: null })
+      if (table === 'members')
+        return qb({
+          data: { id: 'm-1', user_id: 'u-1', member_no: 'MC-ABC', name: 'Budi', email: 'budi@email.com' },
+          error: null,
+        })
+      return qb({ data: null, error: null })
+    })
+    const member = await getMember()
+    expect(member).toEqual(expect.objectContaining({ member_no: 'MC-ABC' }))
+  })
+})
 
-    await expect(loginUser('baru@email.com', 'rahasia123')).rejects.toBeInstanceOf(Error)
+describe('registerMember', () => {
+  it('menyisipkan baris ke tabel members bila sudah masuk', async () => {
+    mockAuth.getUser.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation((table) => {
+      if (table === 'profiles') return qb({ data: profileRow(), error: null })
+      if (table === 'members')
+        return qb({
+          data: {
+            id: 'm-1',
+            user_id: 'u-1',
+            member_no: 'MC-XYZ',
+            name: 'Budi Aminah',
+            email: 'budi@email.com',
+          },
+          error: null,
+        })
+      return qb({ data: null, error: null })
+    })
+    const member = await registerMember({ name: 'Budi Aminah', email: 'budi@email.com' })
+    expect(member).toEqual(expect.objectContaining({ member_no: 'MC-XYZ' }))
+  })
 
-    const stored = JSON.parse(localStorage.getItem('wismaku_login_attempts'))
-    expect(Object.keys(stored)).toHaveLength(50)
-    expect(stored['baru@email.com']).toBeTruthy()
-    expect(stored['terkunci@email.com']).toBeTruthy()
-    expect(stored['user0@email.com']).toBeUndefined()
+  it('melempar error bila belum masuk', async () => {
+    await expect(registerMember({ name: 'Budi Aminah', email: 'budi@email.com' })).rejects.toThrow()
+  })
+
+  it('menolak payload tidak valid', async () => {
+    mockAuth.getUser.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation((table) => {
+      if (table === 'profiles') return qb({ data: profileRow(), error: null })
+      return qb({ data: null, error: null })
+    })
+    await expect(registerMember({ name: 'X', email: 'bukan-email' })).rejects.toThrow()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Partner
+// ---------------------------------------------------------------------------
+
+describe('getPartners', () => {
+  it('mengembalikan array (kosong bila error)', async () => {
+    mockFrom.mockImplementation(() => qb({ data: [{ id: 'p-1' }], error: null }))
+    expect(await getPartners()).toEqual([{ id: 'p-1' }])
+  })
+
+  it('mengembalikan array kosong bila Supabase error', async () => {
+    mockFrom.mockImplementation(() => qb({ data: null, error: { message: 'err' } }))
+    expect(await getPartners()).toEqual([])
+  })
+})
+
+describe('registerPartner', () => {
+  it('menyisipkan baris ke tabel partners', async () => {
+    mockAuth.getUser.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    mockFrom.mockImplementation((table) => {
+      if (table === 'profiles') return qb({ data: profileRow(), error: null })
+      if (table === 'partners')
+        return qb({
+          data: {
+            id: 'p-1',
+            owner_name: 'Budi',
+            property_name: 'Wisma Budi',
+            city: 'Jakarta',
+            email: 'budi@example.com',
+          },
+          error: null,
+        })
+      return qb({ data: null, error: null })
+    })
+    const partner = await registerPartner({
+      ownerName: 'Budi',
+      propertyName: 'Wisma Budi',
+      city: 'Jakarta',
+      email: 'budi@example.com',
+    })
+    expect(partner).toEqual(expect.objectContaining({ id: 'p-1' }))
+  })
+
+  it('tetap bisa mendaftar partner tanpa sesi (user_id null)', async () => {
+    mockAuth.getUser.mockResolvedValue({ data: { user: null }, error: null })
+    mockFrom.mockImplementation((table) => {
+      if (table === 'partners')
+        return qb({
+          data: {
+            id: 'p-2',
+            owner_name: 'Anon',
+            property_name: 'Wisma Anon',
+            city: 'Bandung',
+            email: 'anon@example.com',
+          },
+          error: null,
+        })
+      return qb({ data: null, error: null })
+    })
+    const partner = await registerPartner({
+      ownerName: 'Anon',
+      propertyName: 'Wisma Anon',
+      city: 'Bandung',
+      email: 'anon@example.com',
+    })
+    expect(partner).toEqual(expect.objectContaining({ id: 'p-2' }))
+  })
+
+  it('melempar error bila insert gagal', async () => {
+    mockAuth.getUser.mockResolvedValue({ data: { user: null }, error: null })
+    mockFrom.mockImplementation((table) => {
+      if (table === 'partners') return qb({ data: null, error: { message: 'insert failed' } })
+      return qb({ data: null, error: null })
+    })
+    await expect(
+      registerPartner({
+        ownerName: 'Anon',
+        propertyName: 'Wisma Anon',
+        city: 'Bandung',
+        email: 'anon@example.com',
+      }),
+    ).rejects.toThrow()
   })
 })

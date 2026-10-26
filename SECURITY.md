@@ -8,14 +8,14 @@ belum, dan batas antara "demo yang lebih aman" dengan "sistem yang siap produksi
 
 | Ancaman                                              | Status                                                  |
 | ---------------------------------------------------- | ------------------------------------------------------- |
-| Orang lain membuka DevTools di perangkat yang sama   | 🟡 Sesi (JWT) tersimpan di localStorage                 |
-| Ekstensi browser / skrip yang membaca `localStorage` | 🟡 JWT bisa dicuri → akses sementara                    |
-| Password disimpan di klien                           | ✅ Tidak (di-hash Argon2/bcrypt di server)              |
-| Brute force lewat UI/console                         | ✅ Dibatasi Supabase (rate limit server)                |
-| Brute force offline terhadap hash yang dicuri        | ✅ Tidak berlaku (hash tidak ada di klien)              |
-| XSS yang menjalankan kode di halaman                 | ❌ Tetap bisa mencuri JWT dari localStorage             |
-| Pemalsuan sesi login dari DevTools                   | 🟡 JWT bisa diforge, tapi signature diverifikasi server |
-| Login Google/Facebook                                | ❌ Masih simulasi (belum OAuth sungguhan)               |
+| Orang lain membuka DevTools di perangkat yang sama   | Kuning: sesi (JWT) tersimpan di localStorage            |
+| Ekstensi browser / skrip yang membaca `localStorage` | Kuning: JWT bisa dicuri, akses sementara                |
+| Password disimpan di klien                           | Hijau: tidak (di-hash Argon2 di server)                 |
+| Brute force lewat UI/console                         | Hijau: dibatasi Supabase (rate limit server)            |
+| Brute force offline terhadap hash yang dicuri        | Hijau: tidak berlaku (hash tidak ada di klien)          |
+| XSS yang menjalankan kode di halaman                 | Merah: tetap bisa mencuri JWT dari localStorage         |
+| Pemalsuan sesi login dari DevTools                   | Kuning: JWT bisa diforge, signature diverifikasi server |
+| Login Google/Facebook                                | Hijau: OAuth sungguhan via Supabase Auth                |
 
 ## Yang sudah diterapkan
 
@@ -25,6 +25,8 @@ belum, dan batas antara "demo yang lebih aman" dengan "sistem yang siap produksi
   menyimpan, membaca, atau membandingkan password.
 - `src/services/password.js` (PBKDF2 lokal) **dihapus** — tidak lagi diperlukan.
 - Pendaftaran/login memanggil `supabase.auth.signUp` / `signInWithPassword`.
+- Login Google/Facebook memanggil `supabase.auth.signInWithOAuth` (redirect ke provider,
+  lalu kembali ke app). Profil auto-create via trigger `handle_new_user`.
 - Sesi dikelola Supabase client (JWT + refresh token), disimpan di localStorage
   secara otomatis oleh client (bukan oleh kode aplikasi).
 - `getActiveUser()` mengambil user dari `supabase.auth.getUser()` (verifikasi
@@ -44,8 +46,8 @@ membaca atau mengubah data pengguna lain — server yang menegakkan batas ini.
 ### 3. Auto-create profil
 
 Trigger `on_auth_user_created` membuat baris di `profiles` setiap kali user baru
-terdaftar di `auth.users`, memakai `raw_user_meta_data->>'name'` atau bagian
-sebelum `@` dari email. Aplikasi tidak perlu insert profil manual.
+terdaftar (email/password maupun OAuth), memakai `raw_user_meta_data` (name/full_name/
+given_name) atau bagian sebelum `@` dari email. Avatar URL disimpan dari provider.
 
 ### 4. Validasi kredensial di klien
 
@@ -53,12 +55,6 @@ sebelum `@` dari email. Aplikasi tidak perlu insert profil manual.
 - Password baru: minimal 8 karakter + huruf & angka (validasi klien, bukan keamanan).
 - Pesan error generik ("Email atau password salah.") — tidak membedakan "email tidak
   ada" vs "password salah" (mencegah enumerasi akun).
-
-### 5. Identitas provider (Google/Facebook) — simulasi
-
-Login Google/Facebook **belum** memakai OAuth sungguhan. Tombol ditampilkan tapi
-disabled dengan tooltip "Segera hadir". Fungsi `loginGoogle`/`loginFacebook`
-melempar `OAUTH_NOT_CONFIGURED`. OAuth akan ditambahkan di PR terpisah.
 
 ## Yang belum aman (dan batasannya)
 
@@ -68,19 +64,18 @@ melempar `OAUTH_NOT_CONFIGURED`. OAuth akan ditambahkan di PR terpisah.
    ke httpOnly cookie.
 2. **XSS tetap menang.** Hashing tidak relevan lagi, tapi XSS tetap bisa mencuri
    sesi. Ini batas yang tidak bisa ditutup dari sisi klien.
-3. **OAuth simulasi.** Tidak ada verifikasi identitas Google/Facebook.
-4. **Pembayaran tidak diproses.** Status pesanan hanya berubah di state lokal/DB.
-5. **Tidak ada admin role.** `getPartners()` hanya mengembalikan milik sendiri;
+3. **Pembayaran tidak diproses.** Status pesanan hanya berubah di state lokal/DB.
+4. **Tidak ada admin role.** `getPartners()` hanya mengembalikan milik sendiri;
    belum ada dashboard admin.
 
 ## Kalau ingin naik ke produksi
 
-1. ~~Pindahkan autentikasi ke backend~~ ✅ Sudah (Supabase Auth).
-2. ~~Ganti sesi lokal dengan token server~~ 🟡 Masih JWT di localStorage; pertimbangkan
+1. ~~Pindahkan autentikasi ke backend~~ Sudah (Supabase Auth).
+2. ~~Ganti sesi lokal dengan token server~~ Masih JWT di localStorage; pertimbangkan
    httpOnly cookie + refresh token untuk produksi.
-3. ~~Terapkan rate limit di server~~ ✅ Supabase punya rate limit bawaan.
-4. ~~RLS untuk isolasi data per pengguna~~ ✅ Aktif di semua tabel.
-5. Aktifkan OAuth sungguhan untuk Google/Facebook (konfigurasi provider di dashboard).
+3. ~~Terapkan rate limit di server~~ Supabase punya rate limit bawaan.
+4. ~~RLS untuk isolasi data per pengguna~~ Aktif di semua tabel.
+5. ~~Aktifkan OAuth sungguhan~~ Sudah (Google + Facebook).
 6. Tambahkan CSP yang ketat (header `Content-Security-Policy`).
 7. Tambahkan audit log untuk aksi sensitif (login, booking, dll.).
 8. Pertimbangkan MFA (Supabase Auth mendukung TOTP).

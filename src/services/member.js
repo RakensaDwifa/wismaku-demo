@@ -99,23 +99,37 @@ export async function logout() {
 }
 
 /* ---------------------------------------------------------------------------
- *  Provider (OAuth ditunda — Supabase Auth akan dipakai nanti)
+ *  Provider (OAuth via Supabase Auth)
  * ------------------------------------------------------------------------- */
 
+const redirectTo = () =>
+  typeof window !== 'undefined' && window.location ? window.location.origin : undefined
+
 export async function loginGoogle() {
-  throw authError('OAUTH_NOT_CONFIGURED', 'Login Google belum tersedia.')
+  if (!supabase) throw notConfigured()
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: redirectTo() },
+  })
+  if (error) throw new Error(error.message)
 }
 
 export async function loginFacebook() {
-  throw authError('OAUTH_NOT_CONFIGURED', 'Login Facebook belum tersedia.')
+  if (!supabase) throw notConfigured()
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'facebook',
+    options: { redirectTo: redirectTo() },
+  })
+  if (error) throw new Error(error.message)
 }
 
-export function getLastGoogleProfile() {
-  return null
-}
-
-export function getLastFacebookProfile() {
-  return null
+// Sinkronkan state UI saat sesi berubah (mis. setelah redirect OAuth).
+if (supabase && typeof window !== 'undefined') {
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      notify()
+    }
+  })
 }
 
 /* ---------------------------------------------------------------------------

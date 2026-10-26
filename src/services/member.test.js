@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   getMember,
   getActiveUser,
@@ -50,7 +50,7 @@ describe('registerUser / loginUser', () => {
     expect(getActiveUser()).toEqual(expect.objectContaining({ provider: 'email', email: 'budi@email.com' }))
   })
 
-  it('menolak password kurang dari 6 karakter', async () => {
+  it('menolak password kurang dari 8 karakter', async () => {
     await expect(
       registerUser({ name: 'Budi Santoso', email: 'budi@email.com', password: '123' }),
     ).rejects.toThrow()
@@ -122,5 +122,75 @@ describe('registerPartner / getPartners', () => {
     })
     expect(p.id).toMatch(/^PT-/)
     expect((await getPartners()).length).toBe(1)
+  })
+})
+
+describe('keamanan kredensial akun', () => {
+  const email = 'siti@email.com'
+  const password = 'rahasia123'
+
+  const registerSiti = () => registerUser({ name: 'Siti Aminah', email, password })
+
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('menyimpan password sebagai hash, bukan plaintext', async () => {
+    await registerSiti()
+
+    const raw = localStorage.getItem('wismaku_users')
+    expect(raw).not.toContain(password)
+
+    const [stored] = JSON.parse(raw)
+    expect(stored.password).toBeUndefined()
+    expect(stored.passwordHash).toEqual(expect.objectContaining({ algo: 'PBKDF2-SHA512' }))
+  })
+
+  it('tidak membocorkan hash ke pemanggil', async () => {
+    const user = await registerSiti()
+
+    expect(user).toEqual(expect.objectContaining({ id: expect.stringMatching(/^US-/), email }))
+    expect(user).not.toHaveProperty('passwordHash')
+    expect(user).not.toHaveProperty('password')
+  })
+
+  it('menolak email duplikat tanpa peduli kapitalisasi', async () => {
+    await registerSiti()
+
+    await expect(
+      registerUser({ name: 'Siti Lain', email: 'SITI@Email.com', password: 'rahasia456' }),
+    ).rejects.toMatchObject({ code: 'EMAIL_TAKEN' })
+    expect(JSON.parse(localStorage.getItem('wismaku_users'))).toHaveLength(1)
+  })
+
+  it('meng-upgrade record plaintext lama saat login berhasil', async () => {
+    localStorage.setItem(
+      'wismaku_users',
+      JSON.stringify([{ id: 'US-LAMA', name: 'Akun Lama', email: 'lama@email.com', password: 'lama123' }]),
+    )
+
+    await loginUser('Lama@Email.com', 'lama123')
+
+    const [stored] = JSON.parse(localStorage.getItem('wismaku_users'))
+    expect(stored.password).toBeUndefined()
+    expect(stored.passwordHash).toEqual(expect.objectContaining({ algo: 'PBKDF2-SHA512' }))
+  })
+
+  it('mengunci email setelah 5 kali gagal lalu membuka setelah masa tunggu', async () => {
+    await registerSiti()
+
+    for (let i = 0; i < 5; i += 1) {
+      await expect(loginUser(email, 'salah1234')).rejects.toBeInstanceOf(Error)
+    }
+
+    await expect(loginUser(email, password)).rejects.toMatchObject({ code: 'ACCOUNT_LOCKED' })
+
+    const spy = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 61_000)
+    try {
+      await expect(loginUser(email, password)).resolves.toEqual(expect.objectContaining({ email }))
+    } finally {
+      spy.mockRestore()
+    }
+    expect(localStorage.getItem('wismaku_login_attempts')).toBeNull()
   })
 })

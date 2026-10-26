@@ -6,22 +6,41 @@ import { useLanguage } from '../i18n/useLanguage.js'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+/** Petakan kode error dari service ke pesan i18n. Kode tak dikenal -> pesan generik. */
+const errorMessage = (error, t) => {
+  if (error?.code === 'EMAIL_TAKEN') return t('auth.emailTaken')
+  if (error?.code === 'ACCOUNT_LOCKED') {
+    const seconds = Math.max(1, Math.ceil((error.retryAfterMs ?? 0) / 1000))
+    return t('auth.accountLocked', { seconds })
+  }
+  if (error?.code === 'CRYPTO_UNAVAILABLE') return t('auth.cryptoUnavailable')
+  return t('auth.invalidCredentials')
+}
+
 export default function AuthModal({ onClose, initialTab = 'login' }) {
   const { t } = useLanguage()
   const [tab, setTab] = useState(initialTab)
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
+  const [errorField, setErrorField] = useState('')
   const [busy, setBusy] = useState(false)
   const [provider, setProvider] = useState(null)
+
+  const fail = (message, field) => {
+    setError(message)
+    setErrorField(field)
+  }
 
   const set = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }))
     setError('')
+    setErrorField('')
   }
 
   const switchTab = (next) => {
     setTab(next)
     setError('')
+    setErrorField('')
   }
 
   const submit = async (e) => {
@@ -29,16 +48,30 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     const name = form.name.trim()
     const email = form.email.trim()
     const password = form.password
-    if (tab === 'register' && name.length < 3) return setError(t('member.nameTooShort'))
-    if (!EMAIL_RE.test(email)) return setError(t('member.emailInvalid'))
-    if (password.length < 6) return setError(t('auth.passwordTooShort'))
+
+    if (tab === 'register') {
+      if (name.length < 3) return fail(t('member.nameTooShort'), 'name')
+      if (!EMAIL_RE.test(email)) return fail(t('member.emailInvalid'), 'email')
+      if (password.length < 8) return fail(t('auth.passwordTooShort'), 'password')
+      if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+        return fail(t('auth.weakPassword'), 'password')
+      }
+    } else {
+      if (!EMAIL_RE.test(email)) return fail(t('member.emailInvalid'), 'email')
+      // Login tidak memaksa 8 karakter: akun lama bisa punya password lebih pendek.
+      if (!password) return fail(t('auth.passwordRequired'), 'password')
+    }
+
     setBusy(true)
     try {
       if (tab === 'register') await registerUser({ name, email, password })
       else await loginUser(email, password)
       onClose()
-    } catch {
-      setError(t('auth.invalidCredentials'))
+    } catch (err) {
+      setError(errorMessage(err, t))
+      setErrorField(
+        err?.code === 'INVALID_CREDENTIALS' ? 'password' : err?.code === 'EMAIL_TAKEN' ? 'email' : '',
+      )
       setBusy(false)
     }
   }
@@ -86,6 +119,8 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                 onChange={set('name')}
                 placeholder={t('auth.namePlaceholder')}
                 autoComplete="name"
+                aria-invalid={errorField === 'name'}
+                aria-describedby={errorField === 'name' ? 'auth-modal-error' : undefined}
               />
             </label>
           )}
@@ -98,6 +133,8 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               onChange={set('email')}
               placeholder={t('auth.emailPlaceholder')}
               autoComplete="email"
+              aria-invalid={errorField === 'email'}
+              aria-describedby={errorField === 'email' ? 'auth-modal-error' : undefined}
             />
           </label>
           <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
@@ -107,11 +144,37 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               type="password"
               value={form.password}
               onChange={set('password')}
-              placeholder={t('auth.passwordPlaceholder')}
+              placeholder={
+                tab === 'register' ? t('auth.passwordPlaceholder') : t('auth.passwordLoginPlaceholder')
+              }
               autoComplete={tab === 'register' ? 'new-password' : 'current-password'}
+              aria-invalid={errorField === 'password'}
+              aria-describedby={
+                errorField === 'password'
+                  ? tab === 'register'
+                    ? 'auth-modal-error auth-password-hint'
+                    : 'auth-modal-error'
+                  : tab === 'register'
+                    ? 'auth-password-hint'
+                    : undefined
+              }
             />
           </label>
-          {error && <p className="text-[12.5px] font-bold text-rd">{error}</p>}
+          {tab === 'register' && (
+            <p id="auth-password-hint" className="text-[11.5px] text-rd-muted">
+              {t('auth.passwordHint')}
+            </p>
+          )}
+          {error && (
+            <p
+              id="auth-modal-error"
+              className="text-[12.5px] font-bold text-rd"
+              role="alert"
+              aria-live="assertive"
+            >
+              {error}
+            </p>
+          )}
           <button className="btn btn-primary" type="submit" disabled={busy}>
             {busy ? t('booking.processing') : tab === 'login' ? t('auth.login') : t('auth.register')}
           </button>

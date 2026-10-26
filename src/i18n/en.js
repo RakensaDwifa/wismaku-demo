@@ -461,7 +461,6 @@ export const en = {
     noAccount: "Don't have an account?",
     goRegister: 'Sign Up Now',
     demoNote: 'Simulation demo — account is stored in Supabase (password hashed on server).',
-    oauthNotConfigured: 'Google/Facebook login is not available in this demo.',
   },
   provider: {
     google: {

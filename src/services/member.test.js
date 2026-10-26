@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   getActiveUser,
   getMember,
-  getLastFacebookProfile,
-  getLastGoogleProfile,
   getPartners,
   loginFacebook,
   loginGoogle,
@@ -24,6 +22,7 @@ const { mockAuth, mockFrom, qb } = vi.hoisted(() => {
     signInWithPassword: vi.fn(),
     signOut: vi.fn(),
     getUser: vi.fn(),
+    signInWithOAuth: vi.fn(),
     onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
   }
   const mockFrom = vi.fn()
@@ -183,24 +182,35 @@ describe('logout', () => {
 })
 
 // ---------------------------------------------------------------------------
-// OAuth (ditunda)
+// OAuth (Google / Facebook)
 // ---------------------------------------------------------------------------
 
 describe('loginGoogle / loginFacebook', () => {
-  it('melempar OAUTH_NOT_CONFIGURED', async () => {
-    await expect(loginGoogle({ name: 'Andi', email: 'andi@gmail.com' })).rejects.toMatchObject({
-      code: 'OAUTH_NOT_CONFIGURED',
-    })
-    await expect(loginFacebook({ name: 'Rina', email: 'rina@facebook.com' })).rejects.toMatchObject({
-      code: 'OAUTH_NOT_CONFIGURED',
-    })
-  })
-})
+  it('memanggil signInWithOAuth dengan provider yang benar', async () => {
+    if (!globalThis.window.location) globalThis.window.location = { origin: 'http://localhost:5173' }
+    mockAuth.signInWithOAuth.mockResolvedValue({ data: { url: 'https://provider.example' }, error: null })
+    await loginGoogle()
+    expect(mockAuth.signInWithOAuth).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'google',
+        options: expect.objectContaining({ redirectTo: expect.any(String) }),
+      }),
+    )
 
-describe('getLastGoogleProfile / getLastFacebookProfile', () => {
-  it('mengembalikan null (OAuth belum aktif)', () => {
-    expect(getLastGoogleProfile()).toBeNull()
-    expect(getLastFacebookProfile()).toBeNull()
+    mockAuth.signInWithOAuth.mockClear()
+    mockAuth.signInWithOAuth.mockResolvedValue({ data: { url: 'https://provider.example' }, error: null })
+    await loginFacebook()
+    expect(mockAuth.signInWithOAuth).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'facebook',
+        options: expect.objectContaining({ redirectTo: expect.any(String) }),
+      }),
+    )
+  })
+
+  it('melempar error bila Supabase gagal', async () => {
+    mockAuth.signInWithOAuth.mockResolvedValue({ data: null, error: { message: 'OAuth error' } })
+    await expect(loginGoogle()).rejects.toThrow()
   })
 })
 

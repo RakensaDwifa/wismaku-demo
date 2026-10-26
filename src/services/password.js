@@ -132,3 +132,27 @@ export async function verifyPassword(password, stored) {
   const actual = await deriveBits(String(password), salt, stored.iterations)
   return safeEqual(actual, expected)
 }
+
+/**
+ * Record decoy statis untuk menyetarakan waktu login.
+ *
+ * Dipakai saat email tidak terdaftar: verifikasi tetap dijalankan sekali dengan
+ * record ini supaya biayanya sama dengan akun asli (mencegah enumerasi akun
+ * lewat timing) tanpa perlu menghitung hash tambahan saat aplikasi dimuat.
+ *
+ * Salt/hash di bawah dihasilkan dari ALGORITHM/ITERATIONS saat ini. Kalau
+ * parameternya diubah, record ini harus di-generate ulang — ada test yang
+ * menjaga agar nilainya tidak basi.
+ */
+const DECOY_RECORD = {
+  algo: 'PBKDF2-SHA512',
+  iterations: 210_000,
+  salt: 'P6maBJJbKtr8xfUtZb-2pw',
+  hash: 'Vx5VjJ56uaRPGARx45yM16u99F354cBq-LCTIaDcKEA',
+}
+
+/** Parameter record decoy, diekspos hanya untuk assertion test. */
+export const DECOY_PARAMS = { algo: DECOY_RECORD.algo, iterations: DECOY_RECORD.iterations }
+
+/** Verifikasi terhadap record decoy. Hasilnya selalu diabaikan pemanggil. */
+export const verifyAgainstDecoy = (password) => verifyPassword(password, DECOY_RECORD)

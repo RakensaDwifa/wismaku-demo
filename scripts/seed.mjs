@@ -13,9 +13,9 @@
 // ============================================================================
 
 import { createClient } from '@supabase/supabase-js'
-import { cities } from '../src/data/cities.js'
-import { hotels } from '../src/data/hotels.js'
-import { coupons } from '../src/data/coupons.js'
+import { cities } from './seed-data/cities.js'
+import { hotels } from './seed-data/hotels.js'
+import { coupons } from './seed-data/coupons.js'
 
 const url = process.env.SUPABASE_URL
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY

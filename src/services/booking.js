@@ -1,133 +1,108 @@
-import { request, USE_MOCK } from './api.js'
+import { supabase } from '../lib/supabase.js'
 import { BookingPayloadSchema, parsePayload } from '../schemas/contracts.js'
-import { toYMD } from '../utils/format.js'
-import { hotels } from '../data/hotels.js'
+import { getActiveUser } from './member.js'
 
-const STORAGE_KEY = 'wismaku_bookings'
 const CHANGE_EVENT = 'wismaku:bookings-changed'
-const IMG_FALLBACK =
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=60'
 
 const notify = () => {
-  window.dispatchEvent(new Event(CHANGE_EVENT))
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(CHANGE_EVENT))
 }
 
-const bookRef = () => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
-  } catch {
-    return []
-  }
-}
-
-const toLocal = (payload) => ({
-  id: `WK-${Date.now().toString(36).toUpperCase()}`,
-  createdAt: new Date().toISOString(),
+const toDb = (payload, userId) => ({
+  user_id: userId,
+  hotel_id: String(payload.hotelId),
+  hotel_name: payload.hotelName,
+  hotel_img: payload.hotelImg ?? null,
+  check_in: payload.checkIn ?? null,
+  check_out: payload.checkOut ?? null,
+  nights: payload.nights,
+  rooms: payload.rooms,
+  guests: payload.guests,
+  room_type_id: payload.roomTypeId,
+  room_type_name: payload.roomTypeName,
+  room_price: payload.roomPrice,
+  coupon_code: payload.couponCode ?? null,
+  coupon_discount: payload.couponDiscount ?? 0,
+  member_discount: payload.memberDiscount ?? 0,
+  total_price: payload.totalPrice,
+  guest_name: payload.guestName,
+  email: payload.email,
+  phone: payload.phone,
   status: 'pending',
-  ...payload,
 })
 
-const migrateImg = (booking) => {
-  if (/^https?:\/\//.test(booking.hotelImg || '')) return booking
-  const hotel = hotels.find((h) => String(h.id) === String(booking.hotelId))
-  return { ...booking, hotelImg: hotel?.img ?? IMG_FALLBACK }
-}
+const fromDb = (row) => ({
+  id: row.id,
+  createdAt: row.created_at,
+  status: row.status,
+  hotelId: row.hotel_id,
+  hotelName: row.hotel_name,
+  hotelImg: row.hotel_img,
+  checkIn: row.check_in,
+  checkOut: row.check_out,
+  nights: row.nights,
+  rooms: row.rooms,
+  guests: row.guests,
+  roomTypeId: row.room_type_id,
+  roomTypeName: row.room_type_name,
+  roomPrice: row.room_price,
+  couponCode: row.coupon_code,
+  couponDiscount: row.coupon_discount,
+  memberDiscount: row.member_discount,
+  totalPrice: row.total_price,
+  guestName: row.guest_name,
+  email: row.email,
+  phone: row.phone,
+  paymentMethod: row.payment_method,
+  paidAt: row.paid_at,
+})
 
-const migrateDates = (booking) => {
-  if (booking.checkIn && booking.checkOut) return booking
-  const base = booking.createdAt ? new Date(booking.createdAt) : new Date()
-  return {
-    ...booking,
-    checkIn: toYMD(new Date(base.getTime() + 86400000)),
-    checkOut: toYMD(new Date(base.getTime() + 2 * 86400000)),
-  }
-}
-
-/**
- * Terapkan migrasi data booking lama (gambar hotel + tanggal check-in/out).
- *
- * Migrasi dijalankan pada titik TULIS dan satu kali saat modul dimuat -
- * bukan pada setiap pembacaan. Sebelumnya `getBookings()` menulis ulang
- * `localStorage` setiap kali dipanggil (side effect saat read).
- */
-const migrateList = (list) => list.map(migrateImg).map(migrateDates)
-
-const persist = (list) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(migrateList(list)))
-}
-
-/**
- * Jalankan migrasi pada data booking yang tersimpan dan tulis hasilnya.
- * Dipanggil satu kali saat modul dimuat serta pada setiap titik tulis.
- */
-export const migrateBookings = () => {
-  try {
-    const list = bookRef()
-    if (!list.length) return []
-    const migrated = migrateList(list)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
-    return migrated
-  } catch {
-    return []
-  }
-}
-
-// Migrasi satu kali saat modul dimuat, untuk booking yang dibuat sebelum
-// field `hotelImg` / `checkIn` / `checkOut` tersedia.
-migrateBookings()
-
-export async function getBookings({ email } = {}) {
-  if (USE_MOCK) {
-    const list = migrateList(bookRef())
-    if (email) {
-      const clean = String(email).trim().toLowerCase()
-      return list.filter((b) => b.email?.trim().toLowerCase() === clean)
-    }
-    return list
-  }
-  return request('/bookings')
+export async function getBookings() {
+  if (!supabase) return []
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) return []
+  return (data ?? []).map(fromDb)
 }
 
 export async function createBooking(payload) {
   const data = parsePayload(BookingPayloadSchema, payload)
-  if (USE_MOCK) {
-    const booking = toLocal(data)
-    const list = bookRef()
-    list.unshift(booking)
-    persist(list)
-    notify()
-    return booking
-  }
-  const booking = await request('/bookings', { method: 'POST', body: data })
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const user = await getActiveUser()
+  const { data: booking, error } = await supabase
+    .from('bookings')
+    .insert(toDb(data, user?.id))
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
   notify()
-  return booking
+  return fromDb(booking)
 }
 
 export async function cancelBooking(id) {
-  if (USE_MOCK) {
-    const list = bookRef().map((b) =>
-      b.id === id ? { ...b, status: 'cancelled', cancelledAt: new Date().toISOString() } : b,
-    )
-    persist(list)
-    notify()
-    return list
-  }
-  await request(`/bookings/${id}`, { method: 'DELETE' })
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id)
+  if (error) throw new Error(error.message)
   notify()
 }
 
 export async function payBooking(id, method) {
-  if (USE_MOCK) {
-    const list = bookRef().map((b) =>
-      b.id === id
-        ? { ...b, status: 'confirmed', paymentMethod: method, paidAt: new Date().toISOString() }
-        : b,
-    )
-    persist(list)
-    notify()
-    return list.find((b) => b.id === id)
-  }
-  const booking = await request(`/bookings/${id}/pay`, { method: 'POST', body: { method } })
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({ status: 'confirmed', payment_method: method, paid_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
   notify()
-  return booking
+  return fromDb(data)
 }
+
+// Kompatibilitas: migrateBookings dipanggil di modul lama. Sekarang no-op.
+export const migrateBookings = () => []
+export const migrateList = (list) => list
+export const migrateImg = (b) => b
+export const migrateDates = (b) => b

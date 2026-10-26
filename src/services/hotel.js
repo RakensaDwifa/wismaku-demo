@@ -1,30 +1,60 @@
-import { request, USE_MOCK } from './api.js'
-import { hotels as mockHotels, promos, testimonials } from '../data/hotels.js'
-import { cities as mockCities } from '../data/cities.js'
+import { supabase } from '../lib/supabase.js'
+import { promos, testimonials } from '../data/hotels.js'
 
-const withDelay = (value, ms = 300) => new Promise((resolve) => setTimeout(() => resolve(value), ms))
+const dbToHotel = (row) => ({
+  id: row.id,
+  name: row.name,
+  city: row.cities?.name ?? row.city_id,
+  area: row.area,
+  lat: row.lat,
+  lng: row.lng,
+  rating: row.rating,
+  reviews: row.review_count,
+  price: row.price_from,
+  originalPrice: row.original_price,
+  discount: row.discount,
+  img: row.img,
+  desc: row.description,
+  amenities: row.amenities ?? [],
+  gallery: row.gallery ?? [],
+  roomTypes: row.room_types ?? [],
+  policy: row.policies ?? {},
+  reviewList: [],
+})
 
 export async function fetchHotels() {
-  if (USE_MOCK) return withDelay(mockHotels)
-  return request('/hotels')
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const { data, error } = await supabase
+    .from('hotels')
+    .select('*, cities(name)')
+    .order('id', { ascending: true })
+  if (error) throw new Error(error.message)
+  return (data ?? []).map(dbToHotel)
 }
 
 export async function fetchHotel(id) {
-  if (USE_MOCK) return withDelay(mockHotels.find((h) => String(h.id) === String(id)) ?? null)
-  return request(`/hotels/${id}`)
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const { data, error } = await supabase
+    .from('hotels')
+    .select('*, cities(name)')
+    .eq('id', String(id))
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return data ? dbToHotel(data) : null
 }
 
 export async function fetchCities() {
-  if (USE_MOCK) return withDelay(mockCities)
-  return request('/cities')
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const { data, error } = await supabase.from('cities').select('name, image').order('name')
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((c) => ({ name: c.name, img: c.image }))
 }
 
 export async function fetchPromos() {
-  if (USE_MOCK) return withDelay(promos)
-  return request('/promos')
+  // Promo belum di-migrate ke DB; tetap dari data statis.
+  return promos
 }
 
 export async function fetchTestimonials() {
-  if (USE_MOCK) return withDelay(testimonials)
-  return request('/testimonials')
+  return testimonials
 }

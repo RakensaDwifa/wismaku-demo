@@ -1,48 +1,40 @@
-import { request, USE_MOCK } from './api.js'
+import { supabase } from '../lib/supabase.js'
 
-const FAV_KEY = 'wismaku_favorites'
 const CHANGE_EVENT = 'wismaku:favorites-changed'
 
-const keyFor = (user) =>
-  user?.email ? `wismaku_favorites:${String(user.email).trim().toLowerCase()}` : FAV_KEY
-
-const read = (key = FAV_KEY) => {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || []
-  } catch {
-    return []
-  }
-}
-
 const notify = () => {
-  window.dispatchEvent(new Event(CHANGE_EVENT))
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(CHANGE_EVENT))
 }
 
-export async function getFavorites(user) {
-  if (USE_MOCK) return read(keyFor(user))
-  return request('/favorites')
+export async function getFavorites() {
+  if (!supabase) return []
+  const { data, error } = await supabase.from('favorites').select('hotel_id')
+  if (error) return []
+  return (data ?? []).map((r) => String(r.hotel_id))
 }
 
-export async function isFavorite(id, user) {
-  if (USE_MOCK) return read(keyFor(user)).includes(String(id))
-  return request(`/favorites/${id}`).catch(() => false)
+export async function isFavorite(id) {
+  if (!supabase) return false
+  const { data, error } = await supabase
+    .from('favorites')
+    .select('hotel_id')
+    .eq('hotel_id', String(id))
+    .maybeSingle()
+  if (error) return false
+  return !!data
 }
 
-export async function toggleFavorite(id, user) {
+export async function toggleFavorite(id) {
   const key = String(id)
-  if (USE_MOCK) {
-    const scoped = keyFor(user)
-    const list = read(scoped)
-    const next = list.includes(key) ? list.filter((x) => x !== key) : [...list, key]
-    localStorage.setItem(scoped, JSON.stringify(next))
+  if (!supabase) {
     notify()
-    return { id: key, active: next.includes(key) }
+    return { id: key, active: false }
   }
-  const current = await isFavorite(id, user)
+  const current = await isFavorite(key)
   if (current) {
-    await request(`/favorites/${key}`, { method: 'DELETE' })
+    await supabase.from('favorites').delete().eq('hotel_id', key)
   } else {
-    await request('/favorites', { method: 'POST', body: { hotelId: key } })
+    await supabase.from('favorites').insert({ hotel_id: key })
   }
   notify()
   return { id: key, active: !current }

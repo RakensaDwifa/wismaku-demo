@@ -138,6 +138,8 @@ create table public.bookings (
   phone text not null,
   status text not null default 'pending'
     check (status in ('pending', 'confirmed', 'cancelled')),
+  payment_method text,
+  paid_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

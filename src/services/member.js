@@ -1,5 +1,5 @@
 import { request, USE_MOCK } from './api.js'
-import { hashPassword, needsRehash, verifyPassword } from './password.js'
+import { hashPassword, needsRehash, verifyAgainstDecoy, verifyPassword } from './password.js'
 import {
   LoginPayloadSchema,
   MemberPayloadSchema,
@@ -22,6 +22,8 @@ const CHANGE_EVENT = 'wismaku:session-changed'
 const MAX_LOGIN_ATTEMPTS = 5
 const LOGIN_LOCK_MS = 60_000
 const ATTEMPT_TTL_MS = 24 * 60 * 60 * 1000
+/** Batas jumlah email yang dicatat, supaya pencatatan tidak membengkakkan localStorage. */
+const MAX_ATTEMPT_ENTRIES = 50
 
 /*
  * ============================================================================
@@ -109,8 +111,18 @@ const readAttempts = () => {
 }
 
 const writeAttempts = (state, now) => {
-  const pruned = Object.entries(state).filter(([, entry]) => now - (entry?.updatedAt ?? 0) < ATTEMPT_TTL_MS)
-  write(ATTEMPTS_KEY, pruned.length ? Object.fromEntries(pruned) : null)
+  const entries = Object.entries(state)
+    .filter(([, entry]) => now - (entry?.updatedAt ?? 0) < ATTEMPT_TTL_MS)
+    // Entri yang sedang terkunci didahulukan agar lock tidak bisa diusir dengan
+    // membanjiri email lain; sisanya diurutkan dari yang paling baru.
+    .sort(([, a], [, b]) => {
+      const aLocked = a?.lockedUntil > now ? 1 : 0
+      const bLocked = b?.lockedUntil > now ? 1 : 0
+      if (aLocked !== bLocked) return bLocked - aLocked
+      return (b?.updatedAt ?? 0) - (a?.updatedAt ?? 0)
+    })
+    .slice(0, MAX_ATTEMPT_ENTRIES)
+  write(ATTEMPTS_KEY, entries.length ? Object.fromEntries(entries) : null)
 }
 
 const getRemainingLockMs = (email, now) => {
@@ -144,14 +156,11 @@ const clearFailedLogins = (email, now) => {
 }
 
 /**
- * Email yang tidak terdaftar tetap menjalankan satu verifikasi hash supaya waktu
- * responsnya setara dengan email yang ada (mencegah enumerasi akun lewat timing).
+ * Email yang tidak terdaftar tetap menjalankan satu verifikasi hash (record decoy
+ * statis) supaya waktu responsnya setara dengan email yang ada — mencegah
+ * enumerasi akun lewat timing tanpa menambah waktu muat aplikasi.
  */
-let dummyHash = null
-const equalizeTiming = async (password) => {
-  if (!dummyHash) dummyHash = await hashPassword('wismaku-timing-equalizer')
-  await verifyPassword(password, dummyHash)
-}
+const equalizeTiming = (password) => verifyAgainstDecoy(password)
 
 /* ---------------------------------------------------------------------------
  *  Migrasi record lama

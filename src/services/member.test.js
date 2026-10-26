@@ -193,4 +193,23 @@ describe('keamanan kredensial akun', () => {
     }
     expect(localStorage.getItem('wismaku_login_attempts')).toBeNull()
   })
+
+  it('membatasi jumlah entri percobaan login dan mempertahankan yang terkunci', async () => {
+    const now = Date.now()
+    const seeded = {}
+    for (let i = 0; i < 60; i += 1) {
+      seeded[`user${i}@email.com`] = { fails: 1, lockedUntil: null, updatedAt: now - (60 - i) * 1000 }
+    }
+    // entri lama tapi sedang terkunci: tidak boleh ikut terbuang
+    seeded['terkunci@email.com'] = { fails: 0, lockedUntil: now + 30_000, updatedAt: now - 3_600_000 }
+    localStorage.setItem('wismaku_login_attempts', JSON.stringify(seeded))
+
+    await expect(loginUser('baru@email.com', 'rahasia123')).rejects.toBeInstanceOf(Error)
+
+    const stored = JSON.parse(localStorage.getItem('wismaku_login_attempts'))
+    expect(Object.keys(stored)).toHaveLength(50)
+    expect(stored['baru@email.com']).toBeTruthy()
+    expect(stored['terkunci@email.com']).toBeTruthy()
+    expect(stored['user0@email.com']).toBeUndefined()
+  })
 })

@@ -79,10 +79,11 @@ melempar `OAUTH_NOT_CONFIGURED`. OAuth akan ditambahkan di PR terpisah.
 2. ~~Ganti sesi lokal dengan token server~~ 🟡 Masih JWT di localStorage; pertimbangkan
    httpOnly cookie + refresh token untuk produksi.
 3. ~~Terapkan rate limit di server~~ ✅ Supabase punya rate limit bawaan.
-4. Aktifkan OAuth sungguhan untuk Google/Facebook (konfigurasi provider di dashboard).
-5. Tambahkan CSP yang ketat (header `Content-Security-Policy`).
-6. Tambahkan audit log untuk aksi sensitif (login, booking, dll.).
-7. Pertimbangkan MFA (Supabase Auth mendukung TOTP).
+4. ~~RLS untuk isolasi data per pengguna~~ ✅ Aktif di semua tabel.
+5. Aktifkan OAuth sungguhan untuk Google/Facebook (konfigurasi provider di dashboard).
+6. Tambahkan CSP yang ketat (header `Content-Security-Policy`).
+7. Tambahkan audit log untuk aksi sensitif (login, booking, dll.).
+8. Pertimbangkan MFA (Supabase Auth mendukung TOTP).
 
 ## Melaporkan masalah
 

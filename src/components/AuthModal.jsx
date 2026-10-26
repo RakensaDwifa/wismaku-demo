@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { loginUser, registerUser } from '../services/member.js'
+import { loginUser, registerUser, loginGoogle, loginFacebook } from '../services/member.js'
 import Modal from './ui/Modal.jsx'
-import ProviderModal from './ProviderModal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -28,7 +27,6 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
   const [error, setError] = useState('')
   const [errorField, setErrorField] = useState('')
   const [busy, setBusy] = useState(false)
-  const [provider, setProvider] = useState(null)
 
   const fail = (message, field) => {
     setError(message)
@@ -85,9 +83,6 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
 
   return (
     <Modal onClose={onClose} labelledBy="auth-modal-title">
-      {provider && (
-        <ProviderModal provider={provider} onClose={() => setProvider(null)} onSuccess={onClose} />
-      )}
       <div className="px-5 pt-[18px] pb-[22px]">
         <div className="mb-4 flex rounded-[9px] bg-rd-soft p-1">
           <button
@@ -202,11 +197,18 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         </div>
         <div className="flex flex-col gap-2.5">
           <button
-            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd"
             type="button"
-            disabled
-            title={t('auth.oauthNotConfigured')}
-            onClick={() => setProvider('google')}
+            onClick={async () => {
+              setBusy(true)
+              try {
+                await loginGoogle()
+              } catch (err) {
+                setError(errorMessage(err, t))
+                setBusy(false)
+              }
+            }}
+            disabled={busy}
           >
             <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
               <path
@@ -232,11 +234,18 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
             </span>
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd"
             type="button"
-            disabled
-            title={t('auth.oauthNotConfigured')}
-            onClick={() => setProvider('facebook')}
+            onClick={async () => {
+              setBusy(true)
+              try {
+                await loginFacebook()
+              } catch (err) {
+                setError(errorMessage(err, t))
+                setBusy(false)
+              }
+            }}
+            disabled={busy}
           >
             <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
               <path

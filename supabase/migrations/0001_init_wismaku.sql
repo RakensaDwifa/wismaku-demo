@@ -70,6 +70,7 @@ create table public.profiles (
   name text,
   email text,
   provider text default 'email',
+  avatar_url text,
   joined_at timestamptz default now()
 );
 
@@ -80,12 +81,18 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, name, email, provider)
+  insert into public.profiles (id, name, email, provider, avatar_url)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    coalesce(
+      new.raw_user_meta_data->>'name',
+      new.raw_user_meta_data->>'full_name',
+      new.raw_user_meta_data->>'given_name',
+      split_part(new.email, '@', 1)
+    ),
     new.email,
-    coalesce(new.raw_app_meta_data->>'provider', 'email')
+    coalesce(new.raw_app_meta_data->>'provider', 'email'),
+    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture')
   );
   return new;
 end;

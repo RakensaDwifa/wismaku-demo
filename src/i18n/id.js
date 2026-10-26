@@ -469,7 +469,6 @@ export const id = {
     noAccount: 'Belum punya akun?',
     goRegister: 'Daftar Sekarang',
     demoNote: 'Simulasi demo — akun tersimpan di Supabase (password di-hash di server).',
-    oauthNotConfigured: 'Login Google/Facebook belum tersedia pada demo ini.',
   },
   provider: {
     google: {

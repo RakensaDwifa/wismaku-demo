@@ -50,8 +50,10 @@ jobs:
         run: |
           supabase status -o env > /tmp/supabase.env
           cat /tmp/supabase.env
-          echo "anon_key=$(grep '^ANON_KEY=' /tmp/supabase.env | cut -d= -f2-)" >> $GITHUB_OUTPUT
-          echo "service_role_key=$(grep '^SERVICE_ROLE_KEY=' /tmp/supabase.env | cut -d= -f2-)" >> $GITHUB_OUTPUT
+          ANON=$(grep '^ANON_KEY=' /tmp/supabase.env | cut -d= -f2- | tr -d '"')
+          SVC=$(grep '^SERVICE_ROLE_KEY=' /tmp/supabase.env | cut -d= -f2- | tr -d '"')
+          echo "anon_key=$ANON" >> $GITHUB_OUTPUT
+          echo "service_role_key=$SVC" >> $GITHUB_OUTPUT
 
       - name: Seed database
         env:

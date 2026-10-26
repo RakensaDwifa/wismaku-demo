@@ -92,7 +92,12 @@ password yang hilang dan pengguna tidak perlu mendaftar ulang.
 5. **Pembayaran tidak diproses.** Status pesanan hanya berubah di state lokal.
 6. **Rate limit disimpan di klien.** Menghapus `wismaku_login_attempts` dari DevTools
    akan mereset hitungan percobaan. Ini hanya meredam brute force santai, bukan penyerang
-   yang serius.
+   yang serius. Pencatatan dibatasi 50 email terakhir agar tidak membengkakkan
+   `localStorage`, dengan entri yang sedang terkunci diprioritaskan.
+7. **Identitas Google/Facebook terpisah dari akun email.** Login provider hanya menyimpan
+   profil di kunci sendiri (`wismaku_google_profile` / `wismaku_facebook_profile`) tanpa
+   verifikasi apa pun. Satu alamat email bisa dipakai di akun email sekaligus profil
+   provider, masing-masing dengan jalur login sendiri.
 
 ## Kalau ingin naik ke produksi
 

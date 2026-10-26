@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DECOY_PARAMS,
   PASSWORD_ALGORITHM,
   PASSWORD_ITERATIONS,
   hashPassword,
   isHashRecord,
   needsRehash,
+  verifyAgainstDecoy,
   verifyPassword,
 } from './password.js'
 
@@ -62,5 +64,18 @@ describe('needsRehash', () => {
     expect(needsRehash({ ...valid, iterations: PASSWORD_ITERATIONS - 1 })).toBe(true)
     expect(needsRehash({ ...valid, algo: 'MD5' })).toBe(true)
     expect(needsRehash(valid)).toBe(false)
+  })
+})
+
+describe('verifyAgainstDecoy', () => {
+  it('memakai parameter hashing yang sama dengan konstanta saat ini', () => {
+    // Kalau PASSWORD_ALGORITHM/PASSWORD_ITERATIONS diubah, record decoy harus
+    // di-generate ulang; test ini mencegah nilainya basi tanpa disadari.
+    expect(DECOY_PARAMS.algo).toBe(PASSWORD_ALGORITHM)
+    expect(DECOY_PARAMS.iterations).toBe(PASSWORD_ITERATIONS)
+  })
+
+  it('menolak password sembarang tanpa melempar error', async () => {
+    await expect(verifyAgainstDecoy('apa-saja-123')).resolves.toBe(false)
   })
 })

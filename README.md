@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/RakensaDwifa/wismaku-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/RakensaDwifa/wismaku-demo/actions/workflows/ci.yml)
 
-Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip RedDoorz. Dibangun sebagai proyek pembelajaran frontend: **React + Vite**, arsitektur siap-backend, dan mode mock untuk demo tanpa server.
+Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip RedDoorz. Dibangun sebagai proyek pembelajaran frontend: **React + Vite**, dengan backend **Supabase** (Auth + Postgres + RLS).
 
 ![Screenshot beranda](screenshots/home.png)
 
@@ -10,11 +10,11 @@ Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip Re
 
 Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketahui sebelum memakainya:
 
-- **Tidak ada backend.** Semua hotel, kota, promo, dan ulasan berasal dari `src/data/`. Data pengguna, favorit, dan pemesanan disimpan di `localStorage` browser.
-- **Password disimpan sebagai hash.** Pada mode mock, password di-hash dengan PBKDF2-HMAC-SHA512 + salt acak per akun lewat WebCrypto (lihat `src/services/password.js`). Password asli tidak pernah ditulis ke `localStorage`. Meski begitu, ini **bukan** auth produksi — lihat [SECURITY.md](SECURITY.md).
-- **Login Google/Facebook hanya simulasi.** Tidak ada OAuth sama sekali; akun dibuat otomatis di perangkat ini (tombolnya diberi label "Demo").
-- **Pembayaran tidak diproses.** Tidak ada transaksi nyata; status pesanan hanya berubah state lokal.
-- **Untuk-mode-API sudah disiapkan.** Ubah `VITE_USE_MOCK=false` untuk menghubungkan service (`src/services/*`) ke API backend sungguhan — setiap service sudah punya cabang `request()`.
+- **Backend Supabase.** Hotel, kota, kupon, dan ulasan berasal dari Supabase. Data pengguna (favorit, pemesanan, akun) disimpan di Postgres dengan Row Level Security — setiap pengguna hanya bisa mengakses datanya sendiri.
+- **Password di-hash di server.** Autentikasi memakai Supabase Auth (Argon2). Password tidak pernah disimpan di klien.
+- **Login Google/Facebook belum aktif.** Tombol ditampilkan tapi disabled (OAuth akan ditambahkan nanti). Hanya email/password yang berfungsi.
+- **Pembayaran tidak diproses.** Tidak ada transaksi nyata; status pesanan hanya berubah state lokal/DB.
+- **Mode mock sudah dihapus.** Aplikasi selalu memakai Supabase; butuh koneksi internet dan env vars yang benar.
 
 ## Fitur
 
@@ -25,7 +25,7 @@ Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketa
 - Kupon validasi (misl. `WISMA20`), diskon member WismaClub
 - Halaman pemesanan (riwayat + pembatalan) dan halaman favorit
 - Pendaftaran member WismaClub & partner penginapan (modal + validasi)
-- Mode **mock** (localStorage) atau **API sungguhan** cukup ganti satu env
+- Backend Supabase: Auth (email/password), Postgres, RLS per pengguna
 
 ## Teknologi
 
@@ -45,37 +45,45 @@ npm install
 npm run dev
 ```
 
-Buka `http://localhost:5173`. Mode mock aktif secara default (data lokal + localStorage).
+Buka `http://localhost:5173`.
 
 ### Konfigurasi lingkungan (`/.env`)
 
-```ini
-# true = pakai data lokal (src/data + localStorage), false = panggil API backend
-VITE_USE_MOCK=true
+Salin `.env.example` ke `.env` lalu isi:
 
-# Base URL API backend (kosongkan jika VITE_USE_MOCK=true)
-VITE_API_URL=
+```ini
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-key>
 ```
 
-Arsitektur service (`src/services/*`) sudah siap dihubungkan ke API: setiap fungsi
-memiliki cabang `request()` untuk mode non-mock.
+Variabel di atas wajib. Tanpa keduanya, client Supabase tidak terbentuk dan
+aplikasi tidak bisa mengambil data.
+
+### Setup database (sekali, untuk dev baru)
+
+1. Install Supabase CLI: `npm i -g supabase` (butuh Docker untuk `supabase start`).
+2. `supabase start` — menjalankan stack lokal (Postgres + Auth + Studio).
+3. `npm run seed` — mengisi katalog dari skrip `scripts/seed.mjs` (butuh `SUPABASE_URL` +
+   `SUPABASE_SERVICE_ROLE_KEY` di env shell).
+4. Atau pakai project remote: set `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`
+   ke project Supabase kamu.
 
 ## Arsitektur
 
-Alur data mengikuti dua lapisan: UI memanggil `hook`, `hook` memanggil `service`,
-dan `service` memilih antara data mock lokal atau `request()` ke API backend.
+Alur data mengikuti tiga lapisan: UI memanggil `hook`, `hook` memanggil `service`,
+dan `service` memanggil Supabase (Postgres + Auth) lewat `src/lib/supabase.js`.
 
 | Lapisan  | Tanggung jawab                       | Lokasi                          |
 | -------- | ------------------------------------ | ------------------------------- |
 | Pages/UI | Tampilan & interaksi pengguna        | `src/components/`, `src/pages/` |
 | Hooks    | Logika state + pemanggilan service   | `src/hooks/`                    |
-| Services | Akses data (mock / API) + validasi   | `src/services/`                 |
+| Services | Akses data (Supabase) + validasi     | `src/services/`                 |
 | Schemas  | Kontrak payload dengan Zod           | `src/schemas/`                  |
 | Utils    | Fungsi bantu (format, filter, image) | `src/utils/`                    |
-| Data     | Mock data untuk mode demo            | `src/data/`                     |
+| Lib      | Client Supabase singleton            | `src/lib/`                      |
 
-Setiap service mengekspos fungsi dengan cabang `if (USE_MOCK)` yang membaca/tulis
-`localStorage`, dan cabang `request()` yang memanggil API backend melalui `fetch`.
+Setiap service memanggil Supabase client; Row Level Security di server yang
+menegakkan batas akses per pengguna. Tidak ada lagi cabang `if (USE_MOCK)`.
 
 ## Struktur Proyek
 
@@ -84,8 +92,8 @@ src/
   components/   # Komponen UI (Header, Hero, HotelCard, Modal, ...)
   pages/        # HomePage, HotelDetailPage, BookingsPage, FavoritesPage
   hooks/        # useCatalog (data fetching), useFocusTrap, usePageMeta
-  services/     # hotel, booking, favorite, member, password, coupon, api
-  data/         # Data mock (hotels, cities, coupons)
+  services/     # hotel, booking, favorite, member, coupon, review
+  lib/          # Client Supabase singleton
   schemas/      # Validasi Zod kontrak payload
   utils/        # searchParams, filtering, format, image
   styles/       # tailwind.css (tokens, @utility btn*, CSS datepicker & slider)
@@ -110,9 +118,8 @@ lalu import repo (preset Vite otomatis: build `npm run build`, output `dist/`).
 
 ## Keamanan
 
-Autentikasi mode mock sudah diperbaiki: password di-hash (PBKDF2-HMAC-SHA512, salt acak per akun),
-email duplikat ditolak, dan login dibatasi 5 percobaan per 60 detik. Ringkasan lengkap beserta
-batasan yang masih ada tercantum di [SECURITY.md](SECURITY.md).
+Autentikasi memakai Supabase Auth (Argon2 di server) + RLS per pengguna. Ringkasan
+lengkap beserta batasan yang masih ada tercantum di [SECURITY.md](SECURITY.md).
 
 ## Lisensi
 

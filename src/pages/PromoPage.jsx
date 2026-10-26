@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
@@ -8,7 +8,7 @@ import HotelCard from '../components/HotelCard.jsx'
 import { HotelCardSkeleton, Skeleton } from '../components/Skeletons.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import { useHotels, usePromos } from '../hooks/useCatalog.js'
-import { coupons } from '../data/coupons.js'
+import { fetchCoupons } from '../services/coupon.js'
 import { fmtRupiah } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
@@ -21,6 +21,20 @@ export default function PromoPage() {
   const navigate = useNavigate()
   const { data: promos, loading: promosLoading, error: promosError, refetch: refetchPromos } = usePromos()
   const { hotels, loading: hotelsLoading, error: hotelsError, refetch: refetchHotels } = useHotels()
+  const [coupons, setCoupons] = useState([])
+  useEffect(() => {
+    let live = true
+    fetchCoupons()
+      .then((list) => {
+        if (live) setCoupons(list)
+      })
+      .catch(() => {
+        if (live) setCoupons([])
+      })
+    return () => {
+      live = false
+    }
+  }, [])
   const [visibleCount, setVisibleCount] = useState(INITIAL_LIMIT)
   const [copied, setCopied] = useState('')
 

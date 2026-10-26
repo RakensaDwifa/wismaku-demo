@@ -37,8 +37,43 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase stack
+        run: supabase start
+
+      - name: Capture Supabase keys
+        id: supabase
+        run: |
+          supabase status -o env > /tmp/supabase.env
+          cat /tmp/supabase.env
+          ANON=$(grep '^ANON_KEY=' /tmp/supabase.env | cut -d= -f2- | tr -d '"')
+          SVC=$(grep '^SERVICE_ROLE_KEY=' /tmp/supabase.env | cut -d= -f2- | tr -d '"')
+          echo "anon_key=$ANON" >> $GITHUB_OUTPUT
+          echo "service_role_key=$SVC" >> $GITHUB_OUTPUT
+
+      - name: Seed database
+        env:
+          SUPABASE_URL: http://127.0.0.1:54321
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.supabase.outputs.service_role_key }}
+        run: npm run seed
+
+      - name: Run tests
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_ANON_KEY: ${{ steps.supabase.outputs.anon_key }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.supabase.outputs.service_role_key }}
         run: npm test
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_ANON_KEY: ${{ steps.supabase.outputs.anon_key }}
         run: npm run build
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop

@@ -26,10 +26,28 @@ export const MemberPayloadSchema = z.object({
   email: z.string().email(),
 })
 
+/** Email dinormalisasi (trim + lowercase) supaya "Budi@Email.com" dan "budi@email.com" dianggap sama. */
+const EmailField = z.string().trim().toLowerCase().email('Email tidak valid.')
+
+/** Aturan password akun baru: minimal 8 karakter serta memuat huruf dan angka. */
+const NewPasswordField = z
+  .string()
+  .min(8, 'Password minimal 8 karakter.')
+  .refine((value) => /[A-Za-z]/.test(value) && /[0-9]/.test(value), 'Password harus memuat huruf dan angka.')
+
 export const UserPayloadSchema = z.object({
-  name: z.string().min(3),
-  email: z.string().email(),
-  password: z.string().min(6),
+  name: z.string().trim().min(3),
+  email: EmailField,
+  password: NewPasswordField,
+})
+
+/**
+ * Login sengaja TIDAK memakai aturan 8 karakter: akun lama (sebelum perbaikan
+ * keamanan) bisa punya password 6 karakter dan tetap harus bisa masuk.
+ */
+export const LoginPayloadSchema = z.object({
+  email: EmailField,
+  password: z.string().min(1, 'Password wajib diisi.'),
 })
 
 export const PartnerPayloadSchema = z.object({
@@ -59,6 +77,7 @@ export const schemaDocs = {
   BookingPayload: BookingPayloadSchema,
   MemberPayload: MemberPayloadSchema,
   UserPayload: UserPayloadSchema,
+  LoginPayload: LoginPayloadSchema,
   PartnerPayload: PartnerPayloadSchema,
   ReviewPayload: ReviewPayloadSchema,
 }

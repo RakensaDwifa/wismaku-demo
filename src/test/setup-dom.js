@@ -1,6 +1,18 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach } from 'vitest'
+import { webcrypto } from 'node:crypto'
+
+/**
+ * jsdom menyediakan `crypto.getRandomValues` tetapi TIDAK menyediakan `crypto.subtle`.
+ * Service auth memakai PBKDF2 lewat SubtleCrypto, jadi di sini diambil dari Node.
+ */
+if (!globalThis.crypto?.subtle) {
+  Object.defineProperty(globalThis.crypto, 'subtle', {
+    value: webcrypto.subtle,
+    configurable: true,
+  })
+}
 
 /**
  * Setup untuk project test `component` (environment: jsdom).

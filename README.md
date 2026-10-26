@@ -11,7 +11,7 @@ Website demo tiruan pemesanan penginapan (OTA) dengan tampilan dan alur mirip Re
 Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketahui sebelum memakainya:
 
 - **Tidak ada backend.** Semua hotel, kota, promo, dan ulasan berasal dari `src/data/`. Data pengguna, favorit, dan pemesanan disimpan di `localStorage` browser.
-- **Password disimpan plaintext.** Pada mode mock, password tidak di-hash dan tersimpan apa adanya di `localStorage`. Ini disengaja untuk keperluan demo dan **tidak boleh** dijadikan basis autentikasi produksi.
+- **Password disimpan sebagai hash.** Pada mode mock, password di-hash dengan PBKDF2-HMAC-SHA512 + salt acak per akun lewat WebCrypto (lihat `src/services/password.js`). Password asli tidak pernah ditulis ke `localStorage`. Meski begitu, ini **bukan** auth produksi — lihat [SECURITY.md](SECURITY.md).
 - **Login Google/Facebook hanya simulasi.** Tidak ada OAuth sama sekali; akun dibuat otomatis di perangkat ini (tombolnya diberi label "Demo").
 - **Pembayaran tidak diproses.** Tidak ada transaksi nyata; status pesanan hanya berubah state lokal.
 - **Untuk-mode-API sudah disiapkan.** Ubah `VITE_USE_MOCK=false` untuk menghubungkan service (`src/services/*`) ke API backend sungguhan — setiap service sudah punya cabang `request()`.
@@ -84,7 +84,7 @@ src/
   components/   # Komponen UI (Header, Hero, HotelCard, Modal, ...)
   pages/        # HomePage, HotelDetailPage, BookingsPage, FavoritesPage
   hooks/        # useCatalog (data fetching), useFocusTrap, usePageMeta
-  services/     # hotel, booking, favorite, member, coupon, api
+  services/     # hotel, booking, favorite, member, password, coupon, api
   data/         # Data mock (hotels, cities, coupons)
   schemas/      # Validasi Zod kontrak payload
   utils/        # searchParams, filtering, format, image
@@ -107,6 +107,12 @@ dengan urutan gerbang: `format:check` → `lint` → `test` → `build`.
 Deploy produksi ditangani [Vercel](https://vercel.com) lewat integrasi GitHub: push ke `main`
 lalu import repo (preset Vite otomatis: build `npm run build`, output `dist/`).
 `vercel.json` berisi rewrite agar deep link SPA berfungsi.
+
+## Keamanan
+
+Autentikasi mode mock sudah diperbaiki: password di-hash (PBKDF2-HMAC-SHA512, salt acak per akun),
+email duplikat ditolak, dan login dibatasi 5 percobaan per 60 detik. Ringkasan lengkap beserta
+batasan yang masih ada ada di [SECURITY.md](SECURITY.md).
 
 ## Lisensi
 

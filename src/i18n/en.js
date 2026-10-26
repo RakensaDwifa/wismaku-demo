@@ -460,7 +460,8 @@ export const en = {
     providerDemoNote: 'Demo simulation — not real OAuth sign-in.',
     noAccount: "Don't have an account?",
     goRegister: 'Sign Up Now',
-    demoNote: 'Simulation demo — account is saved on this device (localStorage) with a hashed password.',
+    demoNote: 'Simulation demo — account is stored in Supabase (password hashed on server).',
+    oauthNotConfigured: 'Google/Facebook login is not available in this demo.',
   },
   provider: {
     google: {

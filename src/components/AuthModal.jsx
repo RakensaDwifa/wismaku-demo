@@ -8,12 +8,16 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /** Petakan kode error dari service ke pesan i18n. Kode tak dikenal -> pesan generik. */
 const errorMessage = (error, t) => {
-  if (error?.code === 'EMAIL_TAKEN') return t('auth.emailTaken')
-  if (error?.code === 'ACCOUNT_LOCKED') {
-    const seconds = Math.max(1, Math.ceil((error.retryAfterMs ?? 0) / 1000))
-    return t('auth.accountLocked', { seconds })
+  const msg = (error?.message ?? '').toLowerCase()
+  if (error?.code === 'OAUTH_NOT_CONFIGURED') return t('auth.oauthNotConfigured')
+  if (error?.code === 'SUPABASE_NOT_CONFIGURED') return t('auth.cryptoUnavailable')
+  if (error?.code === 'INVALID_CREDENTIALS') return t('auth.invalidCredentials')
+  if (msg.includes('already') && msg.includes('registered')) return t('auth.emailTaken')
+  if (msg.includes('invalid') && (msg.includes('credential') || msg.includes('login'))) {
+    return t('auth.invalidCredentials')
   }
-  if (error?.code === 'CRYPTO_UNAVAILABLE') return t('auth.cryptoUnavailable')
+  if (error?.code === 'EMAIL_TAKEN') return t('auth.emailTaken')
+  // Supabase mengembalikan pesan generik untuk kredensial salah; jangan bocorkan detail.
   return t('auth.invalidCredentials')
 }
 
@@ -198,8 +202,10 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         </div>
         <div className="flex flex-col gap-2.5">
           <button
-            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd"
+            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd disabled:cursor-not-allowed disabled:opacity-50"
             type="button"
+            disabled
+            title={t('auth.oauthNotConfigured')}
             onClick={() => setProvider('google')}
           >
             <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
@@ -226,8 +232,10 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
             </span>
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd"
+            className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd disabled:cursor-not-allowed disabled:opacity-50"
             type="button"
+            disabled
+            title={t('auth.oauthNotConfigured')}
             onClick={() => setProvider('facebook')}
           >
             <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">

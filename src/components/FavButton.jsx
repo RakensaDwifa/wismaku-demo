@@ -11,8 +11,9 @@ export default function FavButton({ hotelId, className = '' }) {
 
   useEffect(() => {
     let live = true
-    const syncUser = () => {
-      if (live) setUser(getActiveUser())
+    const syncUser = async () => {
+      const u = await getActiveUser()
+      if (live) setUser(u)
     }
     syncUser()
     window.addEventListener('wismaku:session-changed', syncUser)

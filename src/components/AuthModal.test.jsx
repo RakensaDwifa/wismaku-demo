@@ -60,6 +60,7 @@ describe('AuthModal', () => {
     await user.click(submitButton('Daftar'))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Email ini sudah terdaftar.')
+    expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true')
   })
 
   it('menampilkan pesan generik dan menandai field password saat kredensial salah', async () => {
@@ -74,6 +75,8 @@ describe('AuthModal', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Email atau password salah.'))
     expect(screen.getByLabelText('Password')).toHaveAttribute('aria-invalid', 'true')
+    // hint password hanya dirender di tab Daftar, jadi di tab Masuk referensinya cukup error saja
+    expect(screen.getByLabelText('Password')).toHaveAttribute('aria-describedby', 'auth-modal-error')
   })
 
   it('menutup modal setelah login berhasil', async () => {

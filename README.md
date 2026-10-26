@@ -112,7 +112,7 @@ lalu import repo (preset Vite otomatis: build `npm run build`, output `dist/`).
 
 Autentikasi mode mock sudah diperbaiki: password di-hash (PBKDF2-HMAC-SHA512, salt acak per akun),
 email duplikat ditolak, dan login dibatasi 5 percobaan per 60 detik. Ringkasan lengkap beserta
-batasan yang masih ada ada di [SECURITY.md](SECURITY.md).
+batasan yang masih ada tercantum di [SECURITY.md](SECURITY.md).
 
 ## Lisensi
 

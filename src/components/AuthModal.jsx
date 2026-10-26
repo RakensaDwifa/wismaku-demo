@@ -69,7 +69,9 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
       onClose()
     } catch (err) {
       setError(errorMessage(err, t))
-      setErrorField(err?.code === 'INVALID_CREDENTIALS' ? 'password' : '')
+      setErrorField(
+        err?.code === 'INVALID_CREDENTIALS' ? 'password' : err?.code === 'EMAIL_TAKEN' ? 'email' : '',
+      )
       setBusy(false)
     }
   }
@@ -149,7 +151,9 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               aria-invalid={errorField === 'password'}
               aria-describedby={
                 errorField === 'password'
-                  ? 'auth-modal-error auth-password-hint'
+                  ? tab === 'register'
+                    ? 'auth-modal-error auth-password-hint'
+                    : 'auth-modal-error'
                   : tab === 'register'
                     ? 'auth-password-hint'
                     : undefined

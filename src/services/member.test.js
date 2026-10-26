@@ -50,7 +50,7 @@ describe('registerUser / loginUser', () => {
     expect(getActiveUser()).toEqual(expect.objectContaining({ provider: 'email', email: 'budi@email.com' }))
   })
 
-  it('menolak password kurang dari 6 karakter', async () => {
+  it('menolak password kurang dari 8 karakter', async () => {
     await expect(
       registerUser({ name: 'Budi Santoso', email: 'budi@email.com', password: '123' }),
     ).rejects.toThrow()

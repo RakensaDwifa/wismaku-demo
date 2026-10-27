@@ -23,7 +23,7 @@ export async function getReviews(hotelId) {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('reviews')
-    .select('*')
+    .select('id, hotel_id, name, city, rating, text, created_at')
     .eq('hotel_id', String(hotelId))
     .order('created_at', { ascending: false })
   if (error) return []

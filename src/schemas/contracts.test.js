@@ -41,10 +41,13 @@ describe('BookingPayloadSchema', () => {
     expect(BookingPayloadSchema.safeParse({ ...validBooking, roomPrice: 0 }).success).toBe(false)
   })
 
-  it('menerima hotelImg berupa URL maupun tidak diisi', () => {
+  it('menerima hotelImg berupa URL http(s) maupun tidak diisi, dan menolak skema berbahaya', () => {
     expect(BookingPayloadSchema.safeParse(validBooking).success).toBe(true)
     expect(BookingPayloadSchema.safeParse({ ...validBooking, hotelImg: 'https://a.com/x.jpg' }).success).toBe(
       true,
+    )
+    expect(BookingPayloadSchema.safeParse({ ...validBooking, hotelImg: 'javascript:alert(1)' }).success).toBe(
+      false,
     )
   })
 })

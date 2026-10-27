@@ -3,8 +3,8 @@ import { getFavorites, isFavorite, toggleFavorite } from './favorite.js'
 
 const { mockFrom, qb } = vi.hoisted(() => {
   const mockFrom = vi.fn()
-  function qb({ thenData = null, maybeSingleData = null } = {}) {
-    const resolved = { data: thenData, error: null }
+  function qb({ thenData = null, maybeSingleData = null, thenError = null } = {}) {
+    const resolved = { data: thenData, error: thenError }
     const msResolved = { data: maybeSingleData, error: null }
     const b = {
       select: vi.fn(() => b),
@@ -57,5 +57,16 @@ describe('favorite service', () => {
     mockFrom.mockImplementation(() => qb({ thenData: [], maybeSingleData: null }))
     const r = await toggleFavorite(7)
     expect(r.id).toBe('7')
+  })
+
+  it('melempar error jika insert ke Supabase gagal', async () => {
+    mockFrom.mockImplementation(() =>
+      qb({
+        thenData: null,
+        maybeSingleData: null,
+        thenError: { message: 'new row violates row-level security policy' },
+      }),
+    )
+    await expect(toggleFavorite(1)).rejects.toThrow('new row violates row-level security policy')
   })
 })

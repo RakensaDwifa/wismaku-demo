@@ -3,7 +3,11 @@ import { z } from 'zod'
 export const BookingPayloadSchema = z.object({
   hotelId: z.union([z.number().int().positive(), z.string().min(1)]),
   hotelName: z.string().min(1),
-  hotelImg: z.string().url().optional(),
+  hotelImg: z
+    .string()
+    .url()
+    .refine((u) => /^https?:\/\//i.test(u), 'URL gambar harus menggunakan http(s).')
+    .optional(),
   checkIn: z.string().nullable().optional(),
   checkOut: z.string().nullable().optional(),
   nights: z.number().int().min(1),

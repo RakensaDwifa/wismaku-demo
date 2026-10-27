@@ -24,18 +24,18 @@ export async function isFavorite(id) {
   return !!data
 }
 
-export async function toggleFavorite(id) {
+export async function toggleFavorite(id, user) {
   const key = String(id)
   if (!supabase) {
     notify()
     return { id: key, active: false }
   }
   const current = await isFavorite(key)
-  if (current) {
-    await supabase.from('favorites').delete().eq('hotel_id', key)
-  } else {
-    await supabase.from('favorites').insert({ hotel_id: key })
-  }
+  const payload = user?.id ? { user_id: user.id, hotel_id: key } : { hotel_id: key }
+  const { error } = current
+    ? await supabase.from('favorites').delete().eq('hotel_id', key)
+    : await supabase.from('favorites').insert(payload)
+  if (error) throw new Error(error.message)
   notify()
   return { id: key, active: !current }
 }

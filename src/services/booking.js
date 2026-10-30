@@ -76,7 +76,12 @@ export async function createBooking(payload) {
     .insert(toDb(data, user?.id))
     .select()
     .single()
-  if (error) throw new Error(error.message)
+  if (error) {
+    if (error.code === '42501' || /row-level security/i.test(error.message ?? '')) {
+      throw new Error('Silakan masuk terlebih dahulu untuk membuat pesanan.')
+    }
+    throw new Error(error.message)
+  }
   notify()
   return fromDb(booking)
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getBookings } from '../services/booking.js'
-import { getMember, getActiveUser, logout } from '../services/member.js'
+import { getMember, getActiveUser, logout, OPEN_AUTH_EVENT } from '../services/member.js'
 import { getFavorites } from '../services/favorite.js'
 import useFocusTrap from '../hooks/useFocusTrap.js'
 import { scrollToCenter } from '../utils/scroll.js'
@@ -30,6 +30,7 @@ export default function Header() {
   const [user, setUser] = useState(null)
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
+  const [avatarFailed, setAvatarFailed] = useState(false)
   const drawerRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -105,6 +106,7 @@ export default function Header() {
         if (live) {
           setUser(u)
           setMember(m)
+          setAvatarFailed(false)
         }
       } catch {
         if (live) {
@@ -125,8 +127,16 @@ export default function Header() {
     const onKey = (e) => {
       if (e.key === 'Escape') setMenuOpen(false)
     }
+    const onOpenAuth = (e) => {
+      setAuthTab(e.detail?.tab ?? 'login')
+      setAuthOpen(true)
+    }
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    window.addEventListener(OPEN_AUTH_EVENT, onOpenAuth)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      window.removeEventListener(OPEN_AUTH_EVENT, onOpenAuth)
+    }
   }, [])
 
   useEffect(() => {
@@ -201,22 +211,35 @@ export default function Header() {
             className={`${btnBase} hidden border border-rd bg-white text-rd hover:bg-[#f0fdfa] min-[993px]:inline-flex`}
             to="/bookings"
           >
-            Pesanan Saya{orders.length > 0 ? ` (${orders.length})` : ''}
+            {orders.length > 0 ? t('header.bookingsCount', { count: orders.length }) : t('header.bookings')}
           </Link>
           {member ? (
-            <span
-              className="hidden whitespace-nowrap rounded-full bg-gradient-to-br from-rd-grad-1 to-rd-grad-2 px-3 py-1.5 text-xs font-extrabold text-white min-[993px]:inline-block"
+            <Link
+              to="/account"
+              className="hidden whitespace-nowrap rounded-full bg-gradient-to-br from-rd-grad-1 to-rd-grad-2 px-3 py-1.5 text-xs font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:inline-block"
               title={`Member WismaClub: ${member.name}`}
             >
               &#9733; Member
-            </span>
+            </Link>
           ) : user ? (
-            <span
-              className="hidden size-9 place-items-center rounded-full bg-rd text-sm font-extrabold text-white min-[993px]:grid"
+            <Link
+              to="/account"
+              className="hidden size-9 overflow-hidden place-items-center rounded-full bg-rd text-sm font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:grid"
               title={`${user.name} (${user.email})`}
+              aria-label={t('account.title')}
             >
-              {user.name.charAt(0).toUpperCase()}
-            </span>
+              {user.avatarUrl && !avatarFailed ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="size-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={() => setAvatarFailed(true)}
+                />
+              ) : (
+                user.name.charAt(0).toUpperCase()
+              )}
+            </Link>
           ) : (
             <>
               <button

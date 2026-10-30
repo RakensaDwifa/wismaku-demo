@@ -5,11 +5,13 @@ import FavButton from './FavButton.jsx'
 import { LanguageProvider } from '../i18n/index.jsx'
 
 const mockGetActiveUser = vi.fn()
+const mockOpenAuthModal = vi.fn()
 const mockIsFavorite = vi.fn()
 const mockToggleFavorite = vi.fn()
 
 vi.mock('../services/member.js', () => ({
   getActiveUser: (...args) => mockGetActiveUser(...args),
+  openAuthModal: (...args) => mockOpenAuthModal(...args),
 }))
 
 vi.mock('../services/favorite.js', () => ({
@@ -28,6 +30,7 @@ describe('FavButton', () => {
   beforeEach(() => {
     localStorage.clear()
     mockGetActiveUser.mockReset()
+    mockOpenAuthModal.mockReset()
     mockIsFavorite.mockReset()
     mockToggleFavorite.mockReset()
     mockGetActiveUser.mockResolvedValue(null)
@@ -88,5 +91,18 @@ describe('FavButton', () => {
     const button = await screen.findByRole('button')
     await waitFor(() => expect(button).toHaveAttribute('aria-pressed', 'false'))
     expect(button).toHaveAccessibleName('Tambahkan ke favorit')
+  })
+
+  it('membuka modal login saat tamu belum masuk mengklik favorit', async () => {
+    const user = userEvent.setup()
+    mockGetActiveUser.mockResolvedValue(null)
+    renderButton()
+
+    const button = await screen.findByRole('button')
+    await user.click(button)
+
+    expect(mockOpenAuthModal).toHaveBeenCalledWith('login')
+    expect(mockToggleFavorite).not.toHaveBeenCalled()
+    expect(button).toHaveAttribute('aria-pressed', 'false')
   })
 })

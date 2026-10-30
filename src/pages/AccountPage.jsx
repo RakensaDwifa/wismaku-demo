@@ -22,6 +22,7 @@ export default function AccountPage() {
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
   const [memberOpen, setMemberOpen] = useState(false)
+  const [avatarFailed, setAvatarFailed] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -31,6 +32,7 @@ export default function AccountPage() {
         if (!live) return
         setUser(u)
         setMember(m)
+        setAvatarFailed(false)
         if (u) {
           const [bs, fs] = await Promise.all([getBookings({ email: u.email }), getFavorites(u)])
           if (live) setCounts({ bookings: bs.length, favorites: fs.length })
@@ -114,12 +116,22 @@ export default function AccountPage() {
                   {t('account.profile')}
                 </h3>
                 <div className="flex items-center gap-4">
-                  <div
-                    className="grid size-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(95deg,#14b8a6,#0d9488)] text-[22px] font-extrabold text-white"
-                    aria-hidden="true"
-                  >
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
+                  {user.avatarUrl && !avatarFailed ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="size-14 shrink-0 rounded-full border border-rd-border object-cover"
+                      referrerPolicy="no-referrer"
+                      onError={() => setAvatarFailed(true)}
+                    />
+                  ) : (
+                    <div
+                      className="grid size-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(95deg,#14b8a6,#0d9488)] text-[22px] font-extrabold text-white"
+                      aria-hidden="true"
+                    >
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className="truncate text-[17px] font-extrabold text-rd-text">{user.name}</p>
                     <p className="truncate text-[13px] text-rd-muted">{user.email}</p>

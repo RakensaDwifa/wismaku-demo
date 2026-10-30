@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { addReview, getReviews } from '../services/review.js'
-import { getActiveUser, getMember } from '../services/member.js'
+import { getActiveUser, getMember, openAuthModal } from '../services/member.js'
 import { fmtDate } from '../utils/format.js'
 import { srcSet } from '../utils/image.js'
 import Modal from './ui/Modal.jsx'
@@ -72,6 +72,12 @@ export default function HotelDetailContent({ hotel }) {
 
   const submitReview = async (e) => {
     e.preventDefault()
+    const currentUser = await getActiveUser()
+    if (!currentUser) {
+      setReviewError(t('review.loginRequired'))
+      openAuthModal('login')
+      return
+    }
     const name = reviewForm.name.trim()
     const city = reviewForm.city.trim()
     const text = reviewForm.text.trim()

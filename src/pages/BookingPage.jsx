@@ -10,7 +10,7 @@ import { usePageMeta } from '../hooks/usePageMeta.js'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { createBooking } from '../services/booking.js'
 import { applyCoupon } from '../services/coupon.js'
-import { getMember, getActiveUser } from '../services/member.js'
+import { getMember, getActiveUser, openAuthModal } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 const MEMBER_DISCOUNT_PCT = 0.1
@@ -39,6 +39,7 @@ export default function BookingPage() {
   const [coupon, setCoupon] = useState(null)
   const [couponError, setCouponError] = useState('')
   const [isMember, setIsMember] = useState(false)
+  const [user, setUser] = useState(null)
 
   const roomType = hotel?.roomTypes?.find((t) => t.id === roomTypeId) ??
     hotel?.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel?.price ?? 0 }
@@ -62,13 +63,17 @@ export default function BookingPage() {
       try {
         const [m, u] = await Promise.all([getMember(), getActiveUser()])
         if (live) {
+          setUser(u)
           setIsMember(Boolean(m))
           if (u) {
             setForm((f) => ({ ...f, name: f.name || u.name, email: f.email || u.email }))
           }
         }
       } catch {
-        if (live) setIsMember(false)
+        if (live) {
+          setUser(null)
+          setIsMember(false)
+        }
       }
     }
     sync()
@@ -97,6 +102,12 @@ export default function BookingPage() {
 
   const submit = async (e) => {
     e.preventDefault()
+    const currentUser = user ?? (await getActiveUser())
+    if (!currentUser) {
+      setError(t('booking.loginRequired'))
+      openAuthModal('login')
+      return
+    }
     const name = form.name.trim()
     const email = form.email.trim()
     const phone = form.phone.trim()

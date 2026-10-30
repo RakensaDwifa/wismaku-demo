@@ -34,11 +34,14 @@ belum, dan batas antara "demo yang lebih aman" dengan "sistem yang siap produksi
 
 ### 2. Row Level Security (RLS)
 
-Semua tabel di schema `public` mengaktifkan RLS. Kebijakan per tabel:
+Semua tabel di schema `public` mengaktifkan RLS, diperkuat dengan migrasi `0002_security_hardening.sql`:
 
-- `cities`, `hotels`, `coupons`, `reviews`: baca publik (anon).
+- `cities`, `hotels`, `reviews`: baca publik (anon); `reviews` dibatasi satu ulasan per `(hotel_id, user_id)`.
+- `coupons`: baca publik dibatasi hanya untuk kupon yang aktif dan belum kedaluwarsa (`active = true`).
 - `profiles`, `members`, `favorites`, `bookings`, `partners`: baca/tulis hanya
   milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`).
+- Trigger `profiles_protect_immutable` mengunci kolom `id`, `email`, `provider`, dan `joined_at` dari modifikasi klien.
+- Trigger `bookings_enforce_integrity` menghitung ulang `total_price` di server dan mencegah perubahan status pesanan yang sudah dibatalkan (`cancelled`).
 
 Akibatnya, meskipun anon key diekspos di bundle frontend, pengguna tidak bisa
 membaca atau mengubah data pengguna lain — server yang menegakkan batas ini.
@@ -76,8 +79,8 @@ given_name) atau bagian sebelum `@` dari email. Avatar URL disimpan dari provide
 3. ~~Terapkan rate limit di server~~ Supabase punya rate limit bawaan.
 4. ~~RLS untuk isolasi data per pengguna~~ Aktif di semua tabel.
 5. ~~Aktifkan OAuth sungguhan~~ Sudah (Google + Facebook).
-6. Tambahkan CSP yang ketat (header `Content-Security-Policy`).
-7. Tambahkan audit log untuk aksi sensitif (login, booking, dll.).
+6. ~~Tambahkan CSP yang ketat (header `Content-Security-Policy`)~~ Sudah (`vercel.json` + `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`).
+7. Tambahkan audit log terpusat untuk aksi bisnis sensitif & integrasi payment gateway sungguhan.
 8. Pertimbangkan MFA (Supabase Auth mendukung TOTP).
 
 ## Melaporkan masalah

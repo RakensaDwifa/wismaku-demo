@@ -12,7 +12,7 @@ Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketa
 
 - **Backend Supabase.** Hotel, kota, kupon, dan ulasan berasal dari Supabase. Data pengguna (favorit, pemesanan, akun) disimpan di Postgres dengan Row Level Security — setiap pengguna hanya bisa mengakses datanya sendiri.
 - **Password di-hash di server.** Autentikasi memakai Supabase Auth (Argon2). Password tidak pernah disimpan di klien.
-- **Login Google/Facebook belum aktif.** Tombol ditampilkan tapi disabled (OAuth akan ditambahkan nanti). Hanya email/password yang berfungsi.
+- **Login OAuth Google & Facebook aktif.** Selain email/password, pengguna bisa masuk menggunakan akun Google atau Facebook via Supabase Auth.
 - **Pembayaran tidak diproses.** Tidak ada transaksi nyata; status pesanan hanya berubah state lokal/DB.
 - **Mode mock sudah dihapus.** Aplikasi selalu memakai Supabase; butuh koneksi internet dan env vars yang benar.
 
@@ -25,7 +25,7 @@ Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketa
 - Kupon validasi (misl. `WISMA20`), diskon member WismaClub
 - Halaman pemesanan (riwayat + pembatalan) dan halaman favorit
 - Pendaftaran member WismaClub & partner penginapan (modal + validasi)
-- Backend Supabase: Auth (email/password), Postgres, RLS per pengguna
+- Backend Supabase: Auth (email/password + OAuth Google/Facebook), Postgres, RLS per pengguna
 
 ## Teknologi
 
@@ -114,7 +114,7 @@ dengan urutan gerbang: `format:check` → `lint` → `test` → `build`.
 
 Deploy produksi ditangani [Vercel](https://vercel.com) lewat integrasi GitHub: push ke `main`
 lalu import repo (preset Vite otomatis: build `npm run build`, output `dist/`).
-`vercel.json` berisi rewrite agar deep link SPA berfungsi.
+`vercel.json` berisi rewrite agar deep link SPA berfungsi serta security headers (`Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`).
 
 ## Keamanan
 

@@ -97,6 +97,28 @@ describe('getActiveUser', () => {
     const user = await getActiveUser()
     expect(user).toEqual(expect.objectContaining({ id: 'u-1', email: 'budi@email.com' }))
   })
+
+  it('menyertakan avatarUrl dan loggedInAt asli serta menggabungkan request paralel', async () => {
+    mockAuth.getUser.mockResolvedValue({
+      data: {
+        user: {
+          id: 'u-1',
+          email: 'budi@email.com',
+          last_sign_in_at: '2026-10-27T05:20:11.000Z',
+        },
+      },
+      error: null,
+    })
+    mockFrom.mockImplementation(() =>
+      qb({ data: profileRow({ avatar_url: 'https://lh3.googleusercontent.com/a/avatar.jpg' }), error: null }),
+    )
+    const [u1, u2, u3] = await Promise.all([getActiveUser(), getActiveUser(), getActiveUser()])
+    expect(mockAuth.getUser).toHaveBeenCalledTimes(1)
+    expect(u1).toEqual(u2)
+    expect(u2).toEqual(u3)
+    expect(u1.avatarUrl).toBe('https://lh3.googleusercontent.com/a/avatar.jpg')
+    expect(u1.loggedInAt).toBe('2026-10-27T05:20:11.000Z')
+  })
 })
 
 describe('registerUser', () => {

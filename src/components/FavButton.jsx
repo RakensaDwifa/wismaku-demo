@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { isFavorite, toggleFavorite } from '../services/favorite.js'
-import { getActiveUser } from '../services/member.js'
+import { getActiveUser, openAuthModal } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function FavButton({ hotelId, className = '' }) {
@@ -25,13 +25,22 @@ export default function FavButton({ hotelId, className = '' }) {
 
   useEffect(() => {
     let live = true
-    isFavorite(hotelId, user)
-      .then((v) => {
-        if (live) setActive(Boolean(v))
-      })
-      .catch(() => {})
+    const syncFav = () => {
+      if (!user) {
+        if (live) setActive(false)
+        return
+      }
+      isFavorite(hotelId, user)
+        .then((v) => {
+          if (live) setActive(Boolean(v))
+        })
+        .catch(() => {})
+    }
+    syncFav()
+    window.addEventListener('wismaku:favorites-changed', syncFav)
     return () => {
       live = false
+      window.removeEventListener('wismaku:favorites-changed', syncFav)
     }
   }, [hotelId, user])
 
@@ -39,7 +48,13 @@ export default function FavButton({ hotelId, className = '' }) {
     if (busy) return
     setBusy(true)
     try {
-      const result = await toggleFavorite(hotelId, user)
+      const currentUser = user ?? (await getActiveUser())
+      if (!currentUser) {
+        openAuthModal('login')
+        setBusy(false)
+        return
+      }
+      const result = await toggleFavorite(hotelId, currentUser)
       setActive(result.active)
     } catch {
       /* abaikan error */

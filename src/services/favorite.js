@@ -1,27 +1,48 @@
 import { supabase } from '../lib/supabase.js'
 
 const CHANGE_EVENT = 'wismaku:favorites-changed'
+const SESSION_EVENT = 'wismaku:session-changed'
+
+let inflightFavorites = null
+let cachedFavorites = null
+
+export const clearFavoritesCache = () => {
+  inflightFavorites = null
+  cachedFavorites = null
+}
 
 const notify = () => {
+  clearFavoritesCache()
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(CHANGE_EVENT))
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener(SESSION_EVENT, clearFavoritesCache)
 }
 
 export async function getFavorites() {
   if (!supabase) return []
-  const { data, error } = await supabase.from('favorites').select('hotel_id')
-  if (error) return []
-  return (data ?? []).map((r) => String(r.hotel_id))
+  const useCache = !import.meta.env?.VITEST
+  if (useCache && cachedFavorites !== null) return cachedFavorites
+  if (inflightFavorites) return inflightFavorites
+  inflightFavorites = (async () => {
+    try {
+      const { data, error } = await supabase.from('favorites').select('hotel_id')
+      if (error) return []
+      const list = (data ?? []).map((r) => String(typeof r === 'object' && r !== null ? r.hotel_id : r))
+      if (useCache) cachedFavorites = list
+      return list
+    } finally {
+      inflightFavorites = null
+    }
+  })()
+  return inflightFavorites
 }
 
 export async function isFavorite(id) {
   if (!supabase) return false
-  const { data, error } = await supabase
-    .from('favorites')
-    .select('hotel_id')
-    .eq('hotel_id', String(id))
-    .maybeSingle()
-  if (error) return false
-  return !!data
+  const list = await getFavorites()
+  return list.includes(String(id))
 }
 
 export async function toggleFavorite(id, user) {

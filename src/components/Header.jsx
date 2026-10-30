@@ -215,7 +215,7 @@ export default function Header() {
           </Link>
           {member ? (
             <Link
-              to="/account"
+              to="/akun"
               className="hidden whitespace-nowrap rounded-full bg-gradient-to-br from-rd-grad-1 to-rd-grad-2 px-3 py-1.5 text-xs font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:inline-block"
               title={`Member WismaClub: ${member.name}`}
             >
@@ -223,7 +223,7 @@ export default function Header() {
             </Link>
           ) : user ? (
             <Link
-              to="/account"
+              to="/akun"
               className="hidden size-9 overflow-hidden place-items-center rounded-full bg-rd text-sm font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:grid"
               title={`${user.name} (${user.email})`}
               aria-label={t('account.title')}

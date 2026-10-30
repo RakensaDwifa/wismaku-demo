@@ -6,12 +6,14 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/',
   build: {
-    chunkSizeWarningLimit: 700,
+    chunkSizeWarningLimit: 400,
     rollupOptions: {
       output: {
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
           date: ['date-fns', 'react-day-picker'],
+          supabase: ['@supabase/supabase-js'],
+          validation: ['zod'],
         },
       },
     },

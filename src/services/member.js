@@ -8,6 +8,24 @@ import {
 } from '../schemas/contracts.js'
 
 const CHANGE_EVENT = 'wismaku:session-changed'
+export const OPEN_AUTH_EVENT = 'wismaku:open-auth'
+const SESSION_TTL_MS = 5000
+
+let inflightUser = null
+let cachedUser = undefined
+let cachedAt = 0
+
+export const clearSessionCache = () => {
+  inflightUser = null
+  cachedUser = undefined
+  cachedAt = 0
+}
+
+export const openAuthModal = (tab = 'login') => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(OPEN_AUTH_EVENT, { detail: { tab } }))
+  }
+}
 
 const notConfigured = () => {
   const error = new Error('Supabase belum dikonfigurasi. Set VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY.')
@@ -22,6 +40,7 @@ const authError = (code, message) => {
 }
 
 const notify = () => {
+  clearSessionCache()
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(CHANGE_EVENT))
 }
 
@@ -42,7 +61,9 @@ const toAppUser = (authUser, profile) => {
     name: profile?.name ?? authUser.email?.split('@')[0] ?? '',
     email: authUser.email ?? profile?.email ?? '',
     provider: profile?.provider ?? 'email',
-    loggedInAt: new Date().toISOString(),
+    avatarUrl:
+      profile?.avatar_url ?? authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? null,
+    loggedInAt: authUser.last_sign_in_at ?? profile?.joined_at ?? null,
   }
 }
 
@@ -52,10 +73,29 @@ const toAppUser = (authUser, profile) => {
 
 export async function getActiveUser() {
   if (!supabase) return null
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) return null
-  const profile = await fetchProfile(data.user.id)
-  return toAppUser(data.user, profile)
+  const useTtl = !import.meta.env?.VITEST
+  if (useTtl && cachedUser !== undefined && Date.now() - cachedAt < SESSION_TTL_MS) {
+    return cachedUser
+  }
+  if (inflightUser) return inflightUser
+  inflightUser = (async () => {
+    try {
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data?.user) {
+        cachedUser = null
+        cachedAt = Date.now()
+        return null
+      }
+      const profile = await fetchProfile(data.user.id)
+      const user = toAppUser(data.user, profile)
+      cachedUser = user
+      cachedAt = Date.now()
+      return user
+    } finally {
+      inflightUser = null
+    }
+  })()
+  return inflightUser
 }
 
 export async function registerUser(payload) {

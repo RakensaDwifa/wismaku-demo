@@ -69,4 +69,15 @@ describe('favorite service', () => {
     )
     await expect(toggleFavorite(1)).rejects.toThrow('new row violates row-level security policy')
   })
+
+  it('menggabungkan pemanggilan isFavorite paralel menjadi satu query tabel favorites', async () => {
+    let selectCalls = 0
+    mockFrom.mockImplementation(() => {
+      selectCalls += 1
+      return qb({ thenData: [{ hotel_id: '1' }, { hotel_id: '5' }], maybeSingleData: null })
+    })
+    const results = await Promise.all([isFavorite('1'), isFavorite('2'), isFavorite('5')])
+    expect(results).toEqual([true, false, true])
+    expect(selectCalls).toBe(1)
+  })
 })

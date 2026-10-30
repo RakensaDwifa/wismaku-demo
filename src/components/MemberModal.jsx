@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { registerMember } from '../services/member.js'
+import { useEffect, useState } from 'react'
+import { getActiveUser, openAuthModal, registerMember } from '../services/member.js'
 import Modal from './ui/Modal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -9,6 +9,20 @@ export default function MemberModal({ onClose }) {
   const [error, setError] = useState('')
   const [member, setMember] = useState(null)
 
+  useEffect(() => {
+    let live = true
+    getActiveUser()
+      .then((u) => {
+        if (live && u) {
+          setForm((f) => ({ name: f.name || u.name, email: f.email || u.email }))
+        }
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [])
+
   const set = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }))
     setError('')
@@ -16,6 +30,13 @@ export default function MemberModal({ onClose }) {
 
   const submit = async (e) => {
     e.preventDefault()
+    const currentUser = await getActiveUser()
+    if (!currentUser) {
+      setError(t('member.loginRequired'))
+      onClose()
+      openAuthModal('login')
+      return
+    }
     const name = form.name.trim()
     const email = form.email.trim()
     if (name.length < 3) return setError(t('member.nameTooShort'))

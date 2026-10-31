@@ -58,9 +58,7 @@ export default function HotelCard({ hotel, nights = 0, onOpen }) {
             <span className="block text-xs text-rd-muted">{t('hotelCard.from')}</span>
             <div className="mt-0.5 flex items-baseline gap-2">
               <strong className="text-[19px] font-extrabold text-rd">{fmtRupiah(hotel.price)}</strong>
-              <span className="text-[13px] text-[#9a9a9a] line-through">
-                {fmtRupiah(hotel.originalPrice)}
-              </span>
+              <span className="text-[13px] text-rd-muted line-through">{fmtRupiah(hotel.originalPrice)}</span>
             </div>
             <span className="text-xs text-rd-muted">{t('hotelCard.perNight')}</span>
             {total > 0 && (

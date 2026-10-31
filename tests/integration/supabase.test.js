@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { supabase } from './supabase.js'
+import { supabase } from '../../src/lib/supabase.js'
 
 describe('supabase client', () => {
   it('diekspor sebagai instance client yang valid', () => {

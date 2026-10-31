@@ -45,6 +45,11 @@ export default function HotelDetailContent({ hotel }) {
   const allReviews = myReview ? [myReview, ...rawReviews.filter((r) => r !== myReview)] : rawReviews
   const previewReviews = allReviews.slice(0, REVIEW_PREVIEW_SIZE)
   const reviewTotalPages = Math.max(1, Math.ceil(allReviews.length / REVIEW_PAGE_SIZE))
+  const liveCount = allReviews.length
+  const liveRating =
+    liveCount > 0
+      ? Number((allReviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / liveCount).toFixed(1))
+      : 0
   const cancelDays = hotel.policy?.cancelRule.match(/(\d+) hari/)?.[1] ?? '1'
 
   useEffect(() => {
@@ -271,12 +276,14 @@ export default function HotelDetailContent({ hotel }) {
         {allReviews.length > 0 ? (
           <>
             <div className="mt-3 mb-[14px] flex items-center gap-3">
-              <span className="text-[22px] font-extrabold text-rd">{hotel.rating}</span>
+              <span className="text-[22px] font-extrabold text-rd">{liveRating}</span>
               <span className="text-[13px] text-rd-muted">
-                {t('detail.reviewsMeta', {
-                  total: hotel.reviews,
-                  recent: allReviews.length,
-                })}
+                {liveCount > REVIEW_PREVIEW_SIZE
+                  ? t('detail.reviewsMeta', {
+                      total: liveCount,
+                      recent: previewReviews.length,
+                    })
+                  : t('review.fromReviews', { total: liveCount })}
               </span>
             </div>
             <ul className="mb-5 flex list-none flex-col gap-[14px] p-0">
@@ -435,9 +442,9 @@ export default function HotelDetailContent({ hotel }) {
               {t('review.allTitle', { count: allReviews.length })}
             </h3>
             <div className="mt-1 mb-3 flex items-center gap-2">
-              <span className="text-[18px] font-extrabold text-rd">{hotel.rating}</span>
+              <span className="text-[18px] font-extrabold text-rd">{liveRating}</span>
               <span className="text-[12.5px] text-rd-muted">
-                {t('review.fromReviews', { total: hotel.reviews })}
+                {t('review.fromReviews', { total: liveCount })}
               </span>
             </div>
             <ul className="flex list-none flex-col gap-3 p-0">

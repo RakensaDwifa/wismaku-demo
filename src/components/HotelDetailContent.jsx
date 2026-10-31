@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { addReview, deleteReview, getReviews, updateReview } from '../services/review.js'
 import { getActiveUser, getMember, openAuthModal } from '../services/member.js'
 import { fmtDate } from '../utils/format.js'
+import { sortFilterReviews } from '../utils/reviews.js'
 import { srcSet } from '../utils/image.js'
 import Modal from './ui/Modal.jsx'
 import { id as idDict } from '../i18n/id.js'
@@ -25,6 +26,8 @@ export default function HotelDetailContent({ hotel }) {
   const [reviewBusy, setReviewBusy] = useState(false)
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [reviewPage, setReviewPage] = useState(0)
+  const [reviewSort, setReviewSort] = useState('newest')
+  const [reviewStar, setReviewStar] = useState(0)
 
   const translateSeedText = (r) => {
     if (r.userId != null) return r.text
@@ -44,7 +47,8 @@ export default function HotelDetailContent({ hotel }) {
   const myReview = rawReviews.find(isOwnReview) ?? null
   const allReviews = myReview ? [myReview, ...rawReviews.filter((r) => r !== myReview)] : rawReviews
   const previewReviews = allReviews.slice(0, REVIEW_PREVIEW_SIZE)
-  const reviewTotalPages = Math.max(1, Math.ceil(allReviews.length / REVIEW_PAGE_SIZE))
+  const shownReviews = sortFilterReviews(allReviews, { sort: reviewSort, star: reviewStar, pinned: myReview })
+  const reviewTotalPages = Math.max(1, Math.ceil(shownReviews.length / REVIEW_PAGE_SIZE))
   const liveCount = allReviews.length
   const liveRating =
     liveCount > 0
@@ -447,8 +451,48 @@ export default function HotelDetailContent({ hotel }) {
                 {t('review.fromReviews', { total: liveCount })}
               </span>
             </div>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <label className="text-[12.5px] font-bold text-rd-text" htmlFor="review-sort">
+                {t('review.sortLabel')}
+              </label>
+              <select
+                id="review-sort"
+                className="rounded-[9px] border border-rd-border bg-white px-2.5 py-1.5 text-[13px]"
+                value={reviewSort}
+                onChange={(e) => {
+                  setReviewSort(e.target.value)
+                  setReviewPage(0)
+                }}
+              >
+                <option value="newest">{t('review.sortNewest')}</option>
+                <option value="highest">{t('review.sortHighest')}</option>
+                <option value="lowest">{t('review.sortLowest')}</option>
+              </select>
+              <label className="ml-2 text-[12.5px] font-bold text-rd-text" htmlFor="review-star">
+                {t('review.filterLabel')}
+              </label>
+              <select
+                id="review-star"
+                className="rounded-[9px] border border-rd-border bg-white px-2.5 py-1.5 text-[13px]"
+                value={reviewStar}
+                onChange={(e) => {
+                  setReviewStar(Number(e.target.value))
+                  setReviewPage(0)
+                }}
+              >
+                <option value={0}>{t('review.filterAll')}</option>
+                {[5, 4, 3, 2, 1].map((n) => (
+                  <option key={n} value={n}>
+                    {t('review.filterStar', { n })}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {shownReviews.length === 0 && (
+              <p className="py-4 text-center text-[13.5px] text-rd-muted">{t('review.filterEmpty')}</p>
+            )}
             <ul className="flex list-none flex-col gap-3 p-0">
-              {allReviews
+              {shownReviews
                 .slice(reviewPage * REVIEW_PAGE_SIZE, (reviewPage + 1) * REVIEW_PAGE_SIZE)
                 .map((r, i) => renderReviewItem(r, r.id ?? `r-${reviewPage}-${i}`))}
             </ul>

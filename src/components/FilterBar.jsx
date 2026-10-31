@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import {
   SORT_OPTIONS,
   ALL_AMENITIES,
@@ -13,9 +14,26 @@ const RATING_OPTIONS = [
   { value: 4, labelKey: 'filter.rating4' },
 ]
 
-// ponytail: format ribuan langsung via value string (kursor di akhir); tambah pelacak posisi caret jika perlu sisip digit tengah
+// ponytail: hanya bilangan bulat Rupiah (tanpa desimal); pakai Intl pecahan/library masking bila tambah mata uang desimal
 const fmtNum = (n) => (n > 0 ? n.toLocaleString('id-ID') : '')
 const parseDigits = (s) => s.replace(/\D/g, '')
+
+const caretForDigits = (formatted, digits) => {
+  if (digits <= 0) return 0
+  let seen = 0
+  for (let i = 0; i < formatted.length; i++) {
+    if (formatted[i] >= '0' && formatted[i] <= '9' && ++seen === digits) return i + 1
+  }
+  return formatted.length
+}
+
+const onPriceKeyDown = (e) => {
+  const el = e.currentTarget
+  const { selectionStart: s, selectionEnd: end, value } = el
+  if (s !== end || s == null) return
+  if (e.key === 'Backspace' && s > 1 && value[s - 1] === '.') el.setSelectionRange(s - 2, s)
+  else if (e.key === 'Delete' && value[s] === '.') el.setSelectionRange(s, s + 2)
+}
 
 export default function FilterBar({ hotels, allHotels, filters, onChange }) {
   const { t } = useLanguage()
@@ -24,6 +42,14 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
   const minPos = filters.minPrice || bounds.min
   const maxPos = filters.maxPrice || maxBound
   const activeCount = countActiveFilters(filters)
+  const caretRef = useRef(null)
+
+  useLayoutEffect(() => {
+    if (!caretRef.current) return
+    const { el, pos } = caretRef.current
+    caretRef.current = null
+    if (document.activeElement === el) el.setSelectionRange(pos, pos)
+  })
 
   const set = (patch) => onChange({ ...filters, ...patch })
 
@@ -52,14 +78,26 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
     })
   }
 
-  const onMinInput = (e) => {
-    const raw = parseDigits(e.target.value)
-    set({ minPrice: raw ? Math.min(Number(raw), maxBound) : 0 })
-  }
+  const handlePriceInput = (e, key, currentVal) => {
+    const el = e.target
+    const caret = el.selectionStart ?? el.value.length
+    const allDigits = parseDigits(el.value)
+    const trimmed = allDigits.replace(/^0+/, '')
+    const leadingZeros = allDigits.length - trimmed.length
+    const digitsBefore = Math.max(0, parseDigits(el.value.slice(0, caret)).length - leadingZeros)
+    const rawNum = trimmed ? Number(trimmed) : 0
+    const nextVal = rawNum ? Math.min(rawNum, maxBound) : 0
+    const nextFormatted = fmtNum(nextVal)
+    const nextPos = rawNum > maxBound ? nextFormatted.length : caretForDigits(nextFormatted, digitsBefore)
 
-  const onMaxInput = (e) => {
-    const raw = parseDigits(e.target.value)
-    set({ maxPrice: raw ? Math.min(Number(raw), maxBound) : 0 })
+    if (nextVal === currentVal) {
+      queueMicrotask(() => {
+        if (document.activeElement === el) el.setSelectionRange(nextPos, nextPos)
+      })
+      return
+    }
+    caretRef.current = { el, pos: nextPos }
+    set({ [key]: nextVal })
   }
 
   const onMinBlur = () => {
@@ -242,7 +280,8 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                   aria-label={t('filter.min')}
                   value={fmtNum(filters.minPrice)}
                   placeholder={bounds.min.toLocaleString('id-ID')}
-                  onChange={onMinInput}
+                  onKeyDown={onPriceKeyDown}
+                  onChange={(e) => handlePriceInput(e, 'minPrice', filters.minPrice)}
                   onBlur={onMinBlur}
                 />
               </span>
@@ -261,7 +300,8 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
                   aria-label={t('filter.max')}
                   value={fmtNum(filters.maxPrice)}
                   placeholder={maxBound.toLocaleString('id-ID')}
-                  onChange={onMaxInput}
+                  onKeyDown={onPriceKeyDown}
+                  onChange={(e) => handlePriceInput(e, 'maxPrice', filters.maxPrice)}
                   onBlur={onMaxBlur}
                 />
               </span>

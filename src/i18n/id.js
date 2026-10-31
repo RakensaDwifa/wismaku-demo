@@ -151,6 +151,8 @@ export const id = {
   },
   review: {
     yours: 'Ulasan Anda',
+    verifiedGuest: 'Tamu Terverifikasi',
+    empty: 'Belum ada ulasan untuk penginapan ini. Jadilah yang pertama mengulas!',
     viewAll: 'Lihat Semua Ulasan ({{count}})',
     writeTitle: 'Tulis Ulasan',
     ratingAria: 'Rating bintang',

@@ -150,6 +150,8 @@ export const en = {
   },
   review: {
     yours: 'Your Review',
+    verifiedGuest: 'Verified Guest',
+    empty: 'No reviews for this stay yet. Be the first to review!',
     viewAll: 'View All Reviews ({{count}})',
     writeTitle: 'Write a Review',
     ratingAria: 'Star rating',

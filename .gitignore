@@ -23,3 +23,7 @@ Thumbs.db
 npm-debug.log*
 .vercel
 supabase/.temp/
+
+# Playwright
+test-results/
+playwright-report/

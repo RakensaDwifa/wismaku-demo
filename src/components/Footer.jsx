@@ -71,7 +71,7 @@ export default function Footer({ onOpenPartner }) {
                       ) : (
                         <a
                           href="#partner"
-                          className="cursor-not-allowed text-[13px] text-[#b9b9b9] opacity-65"
+                          className="cursor-not-allowed text-[13px] text-[#b9b9b9]"
                           aria-disabled={l !== t('nav.partner')}
                           onClick={(e) => {
                             e.preventDefault()

@@ -176,7 +176,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
           type="button"
           onClick={openCity}
           aria-expanded={cityOpen}
-          aria-controls="sw-suggest-box"
+          aria-controls={cityOpen ? 'sw-suggest-box' : undefined}
           aria-haspopup="listbox"
         >
           {destination || t('widget.destinationPlaceholder')}
@@ -252,8 +252,7 @@ export default function SearchWidget({ cities, hotels = [], onSearch, initial = 
           type="button"
           onClick={() => setGuestOpen((v) => !v)}
           aria-expanded={guestOpen}
-          aria-controls="sw-guest-box"
-          aria-haspopup="group"
+          aria-controls={guestOpen ? 'sw-guest-box' : undefined}
         >
           {t('widget.roomsGuests', { rooms, guests: adults + children })}
         </button>

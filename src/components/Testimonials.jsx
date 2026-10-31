@@ -16,6 +16,7 @@ export default function Testimonials({ items }) {
             >
               <div
                 className="mb-3 flex gap-[3px]"
+                role="img"
                 aria-label={t('testimonials.rating', { rating: item.rating })}
               >
                 {Array.from({ length: 5 }).map((_, i) => (

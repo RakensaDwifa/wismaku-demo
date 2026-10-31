@@ -1,9 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createBooking, getBookings, cancelBooking, payBooking, migrateBookings } from './booking.js'
+import {
+  createBooking,
+  getBookings,
+  getBookingById,
+  cancelBooking,
+  createSnapTransaction,
+  verifyBookingPayment,
+  migrateBookings,
+} from './booking.js'
 
-const { mockFrom, mockGetActiveUser, qb } = vi.hoisted(() => {
+const { mockFrom, mockInvoke, mockGetActiveUser, qb } = vi.hoisted(() => {
   const mockGetActiveUser = vi.fn().mockResolvedValue({ id: 'u-1', name: 'Budi', email: 'budi@email.com' })
   const mockFrom = vi.fn()
+  const mockInvoke = vi.fn()
   function qb(resolved) {
     const b = {
       select: vi.fn(() => b),
@@ -20,11 +29,11 @@ const { mockFrom, mockGetActiveUser, qb } = vi.hoisted(() => {
     b.then = (resolve, reject) => Promise.resolve(resolved).then(resolve, reject)
     return b
   }
-  return { mockFrom, mockGetActiveUser, qb }
+  return { mockFrom, mockInvoke, mockGetActiveUser, qb }
 })
 
 vi.mock('../lib/supabase.js', () => ({
-  supabase: { from: mockFrom },
+  supabase: { from: mockFrom, functions: { invoke: mockInvoke } },
 }))
 
 vi.mock('./member.js', () => ({
@@ -147,11 +156,11 @@ describe('cancelBooking', () => {
   })
 })
 
-describe('payBooking', () => {
-  it('menandai pemesanan sebagai confirmed dengan metode pembayaran', async () => {
+describe('getBookingById', () => {
+  it('mengembalikan satu pemesanan beserta metadata Midtrans', async () => {
     const row = {
       id: 'b-1',
-      status: 'confirmed',
+      status: 'pending',
       created_at: '2026-08-01T00:00:00Z',
       hotel_id: '1',
       hotel_name: 'Hotel Test',
@@ -171,19 +180,77 @@ describe('payBooking', () => {
       guest_name: 'Budi Santoso',
       email: 'budi@example.com',
       phone: '081234567890',
-      payment_method: 'qris',
-      paid_at: '2026-08-01T01:00:00Z',
+      snap_token: 'snap-tok-123',
+      midtrans_order_id: 'WK-B1-XYZ',
     }
     mockFrom.mockImplementation(() => qb({ data: row, error: null }))
-    const paid = await payBooking('b-1', 'qris')
-    expect(paid.status).toBe('confirmed')
-    expect(paid.paymentMethod).toBe('qris')
-    expect(paid.paidAt).toBeTruthy()
+    const found = await getBookingById('b-1')
+    expect(found.id).toBe('b-1')
+    expect(found.snapToken).toBe('snap-tok-123')
+    expect(found.midtransOrderId).toBe('WK-B1-XYZ')
   })
 
-  it('melempar error untuk id tak dikenal', async () => {
-    mockFrom.mockImplementation(() => qb({ data: null, error: { message: 'No rows found' } }))
-    await expect(payBooking('WK-NOPE', 'va')).rejects.toThrow()
+  it('mengembalikan null untuk id yang tidak ditemukan', async () => {
+    mockFrom.mockImplementation(() => qb({ data: null, error: null }))
+    expect(await getBookingById('tidak-ada')).toBeNull()
+  })
+})
+
+describe('createSnapTransaction & verifyBookingPayment', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset()
+  })
+
+  it('meminta token Snap ke Edge Function midtrans-token', async () => {
+    mockInvoke.mockResolvedValue({
+      data: { status: 'pending', token: 'snap-token-1', orderId: 'WK-B1-1', clientKey: 'Mid-client-test' },
+      error: null,
+    })
+    const res = await createSnapTransaction('b-1')
+    expect(mockInvoke).toHaveBeenCalledWith('midtrans-token', {
+      body: { bookingId: 'b-1', action: 'token' },
+    })
+    expect(res.token).toBe('snap-token-1')
+  })
+
+  it('mengirim action reset saat ganti metode pembayaran', async () => {
+    mockInvoke.mockResolvedValue({
+      data: { status: 'pending', token: 'snap-token-2', orderId: 'WK-B1-2', clientKey: 'Mid-client-test' },
+      error: null,
+    })
+    const res = await createSnapTransaction('b-1', { reset: true })
+    expect(mockInvoke).toHaveBeenCalledWith('midtrans-token', {
+      body: { bookingId: 'b-1', action: 'reset' },
+    })
+    expect(res.token).toBe('snap-token-2')
+  })
+
+  it('mengekstrak pesan error JSON dari response Edge Function non-2xx', async () => {
+    mockInvoke.mockResolvedValue({
+      data: null,
+      error: {
+        message: 'Edge Function returned a non-2xx status code',
+        context: {
+          json: () => Promise.resolve({ error: 'Pesanan yang sudah dibatalkan tidak dapat dibayar.' }),
+        },
+      },
+    })
+    await expect(createSnapTransaction('b-cancelled')).rejects.toThrow(
+      'Pesanan yang sudah dibatalkan tidak dapat dibayar.',
+    )
+  })
+
+  it('memverifikasi status pembayaran ke server', async () => {
+    mockInvoke.mockResolvedValue({
+      data: { status: 'confirmed', paymentMethod: 'qris', midtransStatus: 'settlement' },
+      error: null,
+    })
+    const res = await verifyBookingPayment('b-1')
+    expect(mockInvoke).toHaveBeenCalledWith('midtrans-token', {
+      body: { bookingId: 'b-1', action: 'verify' },
+    })
+    expect(res.status).toBe('confirmed')
+    expect(res.paymentMethod).toBe('qris')
   })
 })
 

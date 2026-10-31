@@ -4,12 +4,13 @@ import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
-import { getBookings, payBooking } from '../services/booking.js'
+import { createSnapTransaction, getBookingById, verifyBookingPayment } from '../services/booking.js'
+import { loadMidtransSnap } from '../lib/midtrans.js'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
-const METHODS = ['va', 'qris', 'ewallet']
+const CHANNELS = ['va', 'qris', 'card']
 
 export default function PaymentPage() {
   const { t, lang } = useLanguage()
@@ -18,15 +19,16 @@ export default function PaymentPage() {
   const navigate = useNavigate()
   const [booking, setBooking] = useState(null)
   const [loaded, setLoaded] = useState(false)
-  const [method, setMethod] = useState('va')
   const [busy, setBusy] = useState(false)
+  const [checking, setChecking] = useState(false)
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
 
   useEffect(() => {
     let live = true
-    getBookings()
-      .then((list) => {
-        if (live) setBooking(list.find((b) => b.id === id) ?? null)
+    getBookingById(id)
+      .then((item) => {
+        if (live) setBooking(item)
       })
       .catch(() => {
         if (live) setBooking(null)
@@ -39,21 +41,89 @@ export default function PaymentPage() {
     }
   }, [id])
 
-  const pay = async () => {
+  const syncAfterPopup = async (showPendingHint = false) => {
+    try {
+      const res = await verifyBookingPayment(id)
+      if (res?.status === 'confirmed') {
+        navigate(`/pesanan/sukses/${id}`)
+        return
+      }
+      const fresh = await getBookingById(id)
+      if (fresh) setBooking(fresh)
+      if (showPendingHint && res?.status !== 'cancelled') {
+        setInfo(t('payment.pendingInfo'))
+      }
+    } catch {
+      const fresh = await getBookingById(id).catch(() => null)
+      if (fresh) setBooking(fresh)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const openSnap = async (reset = false) => {
     setBusy(true)
     setError('')
+    setInfo('')
     try {
-      await payBooking(id, method)
-      navigate(`/pesanan/sukses/${id}`)
+      const tx = await createSnapTransaction(id, { reset })
+      if (tx?.status === 'confirmed') {
+        navigate(`/pesanan/sukses/${id}`)
+        return
+      }
+      setBooking((prev) =>
+        prev ? { ...prev, snapToken: tx.token, midtransOrderId: tx.orderId ?? prev.midtransOrderId } : prev,
+      )
+      const snap = await loadMidtransSnap(tx.clientKey)
+      snap.pay(tx.token, {
+        onSuccess: () => {
+          syncAfterPopup(false)
+        },
+        onPending: () => {
+          syncAfterPopup(true)
+        },
+        onError: () => {
+          setError(t('payment.payFailed'))
+          setBusy(false)
+        },
+        onClose: () => {
+          syncAfterPopup(false)
+        },
+      })
     } catch (err) {
       setError(err.message || t('payment.payFailed'))
       setBusy(false)
     }
   }
 
+  const checkStatus = async () => {
+    setChecking(true)
+    setError('')
+    setInfo('')
+    try {
+      const res = await verifyBookingPayment(id)
+      if (res?.status === 'confirmed') {
+        navigate(`/pesanan/sukses/${id}`)
+        return
+      }
+      const fresh = await getBookingById(id)
+      if (fresh) setBooking(fresh)
+      if (res?.status !== 'cancelled') {
+        setInfo(t('payment.stillPending'))
+      }
+    } catch (err) {
+      setError(err.message || t('payment.payFailed'))
+    } finally {
+      setChecking(false)
+    }
+  }
+
   if (loaded && booking?.status === 'confirmed') {
     return <Navigate to={`/pesanan/sukses/${id}`} replace />
   }
+
+  const isCancelled = booking?.status === 'cancelled'
+  const hasSnapSession = Boolean(booking?.snapToken)
 
   return (
     <>
@@ -105,7 +175,9 @@ export default function PaymentPage() {
                 {t('payment.title')}
               </h1>
               <p className="mt-1 text-[13.5px] text-rd-muted">
-                {t('payment.awaiting', { id: booking.id, total: fmtRupiah(booking.totalPrice) })}.
+                {isCancelled
+                  ? t('payment.cancelledTitle')
+                  : t('payment.awaiting', { id: booking.id, total: fmtRupiah(booking.totalPrice) })}
               </p>
 
               <div className="mt-6 grid items-start gap-6 min-[993px]:grid-cols-[1fr_360px]">
@@ -144,95 +216,99 @@ export default function PaymentPage() {
                     </div>
                   </section>
 
-                  <section className="rounded-2xl border border-rd-border bg-white p-5">
-                    <h2 className="text-[18px] font-extrabold">{t('payment.methodTitle')}</h2>
-                    <div
-                      className="mt-4 flex flex-col gap-3"
-                      role="radiogroup"
-                      aria-label={t('payment.methodAria')}
-                    >
-                      {METHODS.map((m) => {
-                        const meta = t('payment.methods')[m]
-                        const icon = (
-                          <svg
-                            viewBox="0 0 24 24"
-                            width="26"
-                            height="26"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            aria-hidden="true"
-                          >
-                            {m === 'va' && (
-                              <path
-                                d="M3 10.5 12 4l9 6.5M5.5 9.5V19m4.5-9.5V19m4.5-9.5V19m4.5-9.5V19M3 19.5h18"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            )}
-                            {m === 'qris' && (
-                              <>
-                                <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
-                                <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
-                                <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
-                                <path
-                                  d="M13.5 13.5h3.5v3.5h-3.5zM17 20.5h3.5M17 17v3.5M20.5 13.5V17"
-                                  strokeLinejoin="round"
-                                />
-                              </>
-                            )}
-                            {m === 'ewallet' && (
-                              <path
-                                d="M20 8H8a3.5 3.5 0 0 0 0 7h10M17 11.5h.01"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            )}
-                          </svg>
-                        )
-                        return (
-                          <label
-                            key={m}
-                            className={`flex cursor-pointer items-center gap-4 rounded-[12px] border px-4 py-3.5 transition-all duration-150 focus-within:border-rd ${
-                              method === m
-                                ? 'border-rd bg-rd-soft'
-                                : 'border-rd-border bg-white hover:border-[#c9ccd4]'
-                            }`}
-                          >
-                            <input
-                              className="sr-only"
-                              type="radio"
-                              name="payment-method"
-                              value={m}
-                              checked={method === m}
-                              onChange={() => setMethod(m)}
-                            />
-                            <span
-                              className={`grid size-11 shrink-0 place-items-center rounded-[10px] ${
-                                method === m ? 'bg-rd text-white' : 'bg-[#f1f3f5] text-rd-muted'
-                              }`}
+                  {isCancelled ? (
+                    <section className="rounded-2xl border border-[#fecaca] bg-[#fef2f2] p-5">
+                      <span className="inline-block rounded-full bg-[rgba(239,68,68,0.14)] px-3 py-1 text-[11.5px] font-extrabold text-[#dc2626]">
+                        {t('bookings.cancelled')}
+                      </span>
+                      <h2 className="mt-2.5 text-[18px] font-extrabold text-[#991b1b]">
+                        {t('payment.cancelledTitle')}
+                      </h2>
+                      <p className="mt-1 text-[13.5px] leading-[1.55] text-[#7f1d1d]">
+                        {t('payment.cancelledNote')}
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-2.5">
+                        <Link className="btn btn-primary btn-sm" to="/bookings">
+                          {t('pages.viewBookings')}
+                        </Link>
+                        <Link className="btn btn-outline btn-sm" to="/hasil">
+                          {t('pages.searchStays')}
+                        </Link>
+                      </div>
+                    </section>
+                  ) : (
+                    <section className="rounded-2xl border border-rd-border bg-white p-5">
+                      <h2 className="text-[18px] font-extrabold">{t('payment.methodTitle')}</h2>
+                      <p className="mt-1 text-[13px] text-rd-muted">{t('payment.methodSubtitle')}</p>
+                      <ul className="mt-4 flex flex-col gap-3">
+                        {CHANNELS.map((c) => {
+                          const meta = t('payment.methods')[c]
+                          return (
+                            <li
+                              key={c}
+                              className="flex items-center gap-4 rounded-[12px] border border-rd-border bg-[#fafafa] px-4 py-3.5"
                             >
-                              {icon}
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="block text-[14px] font-extrabold text-rd-text">
-                                {meta.label}
+                              <span className="grid size-11 shrink-0 place-items-center rounded-[10px] bg-rd-soft text-rd">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  width="24"
+                                  height="24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  aria-hidden="true"
+                                >
+                                  {c === 'va' && (
+                                    <path
+                                      d="M3 10.5 12 4l9 6.5M5.5 9.5V19m4.5-9.5V19m4.5-9.5V19m4.5-9.5V19M3 19.5h18"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  )}
+                                  {c === 'qris' && (
+                                    <>
+                                      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+                                      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+                                      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+                                      <path
+                                        d="M13.5 13.5h3.5v3.5h-3.5zM17 20.5h3.5M17 17v3.5M20.5 13.5V17"
+                                        strokeLinejoin="round"
+                                      />
+                                    </>
+                                  )}
+                                  {c === 'card' && (
+                                    <path
+                                      d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5v-9Zm0 3h18M7 15h4"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  )}
+                                </svg>
                               </span>
-                              <span className="block text-[12.5px] text-rd-muted">{meta.desc}</span>
-                            </span>
-                            <span
-                              className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
-                                method === m ? 'border-rd' : 'border-[#c9ccd4]'
-                              }`}
-                              aria-hidden="true"
-                            >
-                              {method === m && <span className="size-2.5 rounded-full bg-rd" />}
-                            </span>
-                          </label>
-                        )
-                      })}
-                    </div>
-                  </section>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-[14px] font-extrabold text-rd-text">
+                                  {meta.label}
+                                </span>
+                                <span className="block text-[12.5px] text-rd-muted">{meta.desc}</span>
+                              </span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                      <p className="mt-4 rounded-[10px] border border-[#e2e8f0] bg-[#f8fafc] px-3.5 py-2.5 text-[12px] leading-[1.55] text-rd-muted">
+                        {t('payment.sandboxHint')}{' '}
+                        <a
+                          href="https://simulator.sandbox.midtrans.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-bold text-rd underline hover:opacity-80"
+                        >
+                          {t('payment.sandboxSimulator')}
+                        </a>{' '}
+                        {t('payment.sandboxHintSuffix')}
+                      </p>
+                    </section>
+                  )}
                 </div>
 
                 <aside className="h-fit rounded-2xl border border-rd-border bg-white p-4 shadow-rd min-[993px]:sticky min-[993px]:top-[90px]">
@@ -265,15 +341,55 @@ export default function PaymentPage() {
                       <b>{fmtRupiah(booking.totalPrice)}</b>
                     </div>
                   </div>
-                  {error && <p className="mt-2 text-[12.5px] font-bold text-rd">{error}</p>}
-                  <button className="btn btn-primary mt-4 w-full" type="button" onClick={pay} disabled={busy}>
-                    {busy
-                      ? t('payment.processing')
-                      : t('payment.payNow', { total: fmtRupiah(booking.totalPrice) })}
-                  </button>
-                  <p className="mt-3 text-center text-[11.5px] leading-[1.5] text-rd-muted">
-                    {t('payment.demoNote')}
-                  </p>
+
+                  {error && <p className="mt-3 text-[12.5px] font-bold text-rd">{error}</p>}
+                  {info && (
+                    <p className="mt-3 rounded-[9px] bg-[rgba(20,184,166,0.1)] px-3 py-2 text-[12px] font-semibold leading-[1.45] text-rd-teal">
+                      {info}
+                    </p>
+                  )}
+
+                  {!isCancelled && (
+                    <>
+                      <button
+                        className="btn btn-primary mt-4 w-full"
+                        type="button"
+                        onClick={() => openSnap(false)}
+                        disabled={busy || checking}
+                      >
+                        {busy
+                          ? t('payment.processing')
+                          : hasSnapSession
+                            ? t('payment.continueSnap', { total: fmtRupiah(booking.totalPrice) })
+                            : t('payment.payNow', { total: fmtRupiah(booking.totalPrice) })}
+                      </button>
+
+                      {hasSnapSession && (
+                        <div className="mt-2.5 flex flex-col gap-2">
+                          <button
+                            className="btn btn-outline btn-sm w-full"
+                            type="button"
+                            onClick={checkStatus}
+                            disabled={busy || checking}
+                          >
+                            {checking ? t('payment.verifying') : t('payment.checkStatus')}
+                          </button>
+                          <button
+                            className="text-center text-[12px] font-bold text-rd-muted underline transition-colors hover:text-rd disabled:opacity-50"
+                            type="button"
+                            onClick={() => openSnap(true)}
+                            disabled={busy || checking}
+                          >
+                            {t('payment.changeMethod')}
+                          </button>
+                        </div>
+                      )}
+
+                      <p className="mt-3 text-center text-[11.5px] leading-[1.5] text-rd-muted">
+                        {t('payment.demoNote')}
+                      </p>
+                    </>
+                  )}
                 </aside>
               </div>
             </>

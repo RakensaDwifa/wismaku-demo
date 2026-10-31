@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
-import { getBookings } from '../services/booking.js'
+import { getBookingById } from '../services/booking.js'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { fmtRupiah, fmtDate } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
@@ -24,9 +24,9 @@ export default function BookingSuccessPage() {
 
   useEffect(() => {
     let live = true
-    getBookings()
-      .then((list) => {
-        if (live) setBooking(list.find((b) => b.id === id) ?? null)
+    getBookingById(id)
+      .then((item) => {
+        if (live) setBooking(item)
       })
       .catch(() => {
         if (live) setBooking(null)

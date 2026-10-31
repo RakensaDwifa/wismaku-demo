@@ -13,7 +13,7 @@ Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketa
 - **Backend Supabase.** Hotel, kota, kupon, dan ulasan berasal dari Supabase. Data pengguna (favorit, pemesanan, akun) disimpan di Postgres dengan Row Level Security — setiap pengguna hanya bisa mengakses datanya sendiri.
 - **Password di-hash di server.** Autentikasi memakai Supabase Auth (Argon2). Password tidak pernah disimpan di klien.
 - **Login OAuth Google & Facebook aktif.** Selain email/password, pengguna bisa masuk menggunakan akun Google atau Facebook via Supabase Auth.
-- **Pembayaran tidak diproses.** Tidak ada transaksi nyata; status pesanan hanya berubah state lokal/DB.
+- **Pembayaran via Midtrans Snap Sandbox.** Halaman `/bayar/:id` membuka pop-up resmi `snap.js` Midtrans Sandbox (mode pengujian tanpa uang asli) yang diverifikasi server-to-server oleh Supabase Edge Functions (`midtrans-token` & `midtrans-webhook`).
 - **Mode mock sudah dihapus.** Aplikasi selalu memakai Supabase; butuh koneksi internet dan env vars yang benar.
 
 ## Fitur

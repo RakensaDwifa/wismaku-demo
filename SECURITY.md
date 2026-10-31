@@ -41,10 +41,15 @@ Semua tabel di schema `public` mengaktifkan RLS, diperkuat dengan migrasi `0002_
 - `profiles`, `members`, `favorites`, `bookings`, `partners`: baca/tulis hanya
   milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`).
 - Trigger `profiles_protect_immutable` mengunci kolom `id`, `email`, `provider`, dan `joined_at` dari modifikasi klien.
-- Trigger `bookings_enforce_integrity` menghitung ulang `total_price` di server dan mencegah perubahan status pesanan yang sudah dibatalkan (`cancelled`).
+- Trigger `bookings_enforce_integrity` menghitung ulang `total_price` di server, mencegah perubahan status pesanan yang sudah dibatalkan (`cancelled`), dan melalui migrasi `0003_midtrans_payment.sql` **mengunci status `confirmed` serta kolom pembayaran (`paid_at`, `payment_method`, `snap_token`, `midtrans_order_id`) agar hanya dapat diubah oleh `service_role` di server**.
 
 Akibatnya, meskipun anon key diekspos di bundle frontend, pengguna tidak bisa
-membaca atau mengubah data pengguna lain — server yang menegakkan batas ini.
+membaca atau mengubah data pengguna lain maupun menandai pesanannya lunas secara sepihak dari DevTools.
+
+### 2b. Pembayaran server-side (Midtrans Snap Sandbox + Supabase Edge Functions)
+
+- Pembuatan transaksi Snap (`midtrans-token`) memverifikasi JWT pemilik pesanan dan memanggil API Midtrans menggunakan `MIDTRANS_SERVER_KEY` yang tersimpan eksklusif di Supabase Edge Function Secrets.
+- Konfirmasi pelunasan diverifikasi dua jalur di sisi server: sinkron melalui `GET /v2/{order_id}/status` setelah pop-up selesai, serta asinkron melalui webhook `midtrans-webhook` dengan validasi `SHA-512(order_id + status_code + gross_amount + server_key)` secara _constant-time_.
 
 ### 3. Auto-create profil
 
@@ -67,7 +72,7 @@ given_name) atau bagian sebelum `@` dari email. Avatar URL disimpan dari provide
    ke httpOnly cookie.
 2. **XSS tetap menang.** Hashing tidak relevan lagi, tapi XSS tetap bisa mencuri
    sesi. Ini batas yang tidak bisa ditutup dari sisi klien.
-3. **Pembayaran tidak diproses.** Status pesanan hanya berubah di state lokal/DB.
+3. **Pembayaran berjalan di mode Sandbox.** Transaksi diproses melalui Midtrans Snap Sandbox (uang uji coba, bukan rekening produksi).
 4. **Tidak ada admin role.** `getPartners()` hanya mengembalikan milik sendiri;
    belum ada dashboard admin.
 
@@ -80,7 +85,7 @@ given_name) atau bagian sebelum `@` dari email. Avatar URL disimpan dari provide
 4. ~~RLS untuk isolasi data per pengguna~~ Aktif di semua tabel.
 5. ~~Aktifkan OAuth sungguhan~~ Sudah (Google + Facebook).
 6. ~~Tambahkan CSP yang ketat (header `Content-Security-Policy`)~~ Sudah (`vercel.json` + `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`).
-7. Tambahkan audit log terpusat untuk aksi bisnis sensitif & integrasi payment gateway sungguhan.
+7. ~~Integrasi payment gateway server-side~~ Sudah di mode Sandbox (Midtrans Snap + Edge Functions); ganti endpoint & key ke Midtrans Production saat go-live serta tambahkan audit log terpusat.
 8. Pertimbangkan MFA (Supabase Auth mendukung TOTP).
 
 ## Melaporkan masalah

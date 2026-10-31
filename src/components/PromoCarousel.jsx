@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { srcSet } from '../utils/image.js'
 import ErrorBanner from './ErrorBanner.jsx'
 import { Skeleton } from './Skeletons.jsx'
@@ -63,8 +64,8 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
           >
             {promos.map((p, i) => (
               <div
-                className={`absolute inset-0 opacity-0 transition-opacity duration-[0.6s] pointer-events-none after:absolute after:inset-0 after:content-[''] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.55),transparent_65%)] ${
-                  i === active ? 'opacity-100 pointer-events-auto' : ''
+                className={`absolute inset-0 transition-opacity duration-[0.6s] after:pointer-events-none after:absolute after:inset-0 after:content-[''] after:bg-[linear-gradient(90deg,rgba(0,0,0,0.55),transparent_65%)] ${
+                  i === active ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                 }`}
                 key={p.id}
                 aria-hidden={i !== active}
@@ -84,14 +85,14 @@ export default function PromoCarousel({ promos, onShowHotels, loading = false, e
                   <p className="mt-2 text-base text-white/90 max-sm:text-[13.5px]">
                     {t(`data.promos.${p.id}.subtitle`)}
                   </p>
-                  <button
-                    className="mt-[18px] inline-block rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] px-5 py-2.5 text-[13.5px] font-extrabold text-white transition-all hover:-translate-y-0.5 hover:shadow-rd"
-                    type="button"
-                    onClick={onShowHotels}
+                  <Link
+                    to="/hasil"
+                    tabIndex={i === active ? undefined : -1}
+                    className="mt-[18px] inline-block rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] px-5 py-2.5 text-[13.5px] font-extrabold text-white transition-all hover:-translate-y-0.5 hover:shadow-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     title={t('promo.bookTitle')}
                   >
                     {t('promo.bookNow')}
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}

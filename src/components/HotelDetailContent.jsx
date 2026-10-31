@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { addReview, getReviews } from '../services/review.js'
+import { addReview, deleteReview, getReviews, updateReview } from '../services/review.js'
 import { getActiveUser, getMember, openAuthModal } from '../services/member.js'
 import { fmtDate } from '../utils/format.js'
 import { srcSet } from '../utils/image.js'
@@ -20,6 +20,9 @@ export default function HotelDetailContent({ hotel }) {
   const [reviewRating, setReviewRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [reviewError, setReviewError] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [reviewBusy, setReviewBusy] = useState(false)
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [reviewPage, setReviewPage] = useState(0)
 
@@ -100,21 +103,64 @@ export default function HotelDetailContent({ hotel }) {
     if (city && city.length < 2) return setReviewError(t('review.cityTooShort'))
     if (!reviewRating) return setReviewError(t('review.ratingRequired'))
     if (text.length < 5) return setReviewError(t('review.textTooShort'))
+    setReviewBusy(true)
     try {
-      const rev = await addReview({
+      const payload = {
         hotelId: hotel.id,
         name,
         city: city || undefined,
         rating: reviewRating,
         text,
-      })
+      }
+      const rev = editing && myReview ? await updateReview(myReview.id, payload) : await addReview(payload)
       setActiveUser(currentUser)
-      setReviews((list) => [rev, ...list.filter((x) => x.id !== rev.id)])
+      setReviews((list) =>
+        editing
+          ? list.map((x) => (x.id === rev.id ? rev : x))
+          : [rev, ...list.filter((x) => x.id !== rev.id)],
+      )
+      setEditing(false)
       setReviewForm({ name: currentUser.name ?? name, city: '', text: '' })
       setReviewRating(0)
       setReviewError('')
     } catch (err) {
       setReviewError(err.message || t('review.sendFailed'))
+    } finally {
+      setReviewBusy(false)
+    }
+  }
+
+  const startEditReview = () => {
+    if (!myReview) return
+    setReviewForm({ name: myReview.name, city: myReview.city ?? '', text: myReview.text })
+    setReviewRating(myReview.rating)
+    setReviewError('')
+    setEditing(true)
+  }
+
+  const cancelEditReview = () => {
+    setEditing(false)
+    setReviewForm({ name: activeUser?.name ?? '', city: '', text: '' })
+    setReviewRating(0)
+    setReviewError('')
+  }
+
+  const confirmDeleteReview = async () => {
+    if (!myReview) return
+    setReviewBusy(true)
+    try {
+      await deleteReview(myReview.id)
+      setReviews((list) => list.filter((x) => x.id !== myReview.id))
+      setDeleteOpen(false)
+      setEditing(false)
+      setReviewForm({ name: activeUser?.name ?? '', city: '', text: '' })
+      setReviewRating(0)
+      setReviewError('')
+    } catch (err) {
+      setDeleteOpen(false)
+      setReviewError(err.message || t('review.deleteFailed'))
+    } finally {
+      setReviewBusy(false)
     }
   }
 
@@ -252,13 +298,15 @@ export default function HotelDetailContent({ hotel }) {
         ) : (
           <p className="mt-3 text-[13.5px] text-rd-muted">{t('review.empty')}</p>
         )}
-        {!myReview ? (
+        {!myReview || editing ? (
           <form
             className="mt-4 flex flex-col gap-3 rounded-xl border border-dashed border-rd-border p-4"
             onSubmit={submitReview}
             noValidate
           >
-            <h3 className="text-[14px] font-extrabold">{t('review.writeTitle')}</h3>
+            <h3 className="text-[14px] font-extrabold">
+              {editing ? t('review.editTitle') : t('review.writeTitle')}
+            </h3>
             <div
               className="inline-flex gap-0.5"
               role="radiogroup"
@@ -317,14 +365,51 @@ export default function HotelDetailContent({ hotel }) {
               />
             </label>
             {reviewError && <p className="text-[12.5px] font-bold text-rd">{reviewError}</p>}
-            <button className="btn btn-primary btn-sm self-start" type="submit">
-              {t('review.submit')}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button className="btn btn-primary btn-sm" type="submit" disabled={reviewBusy}>
+                {reviewBusy
+                  ? t('booking.processing')
+                  : editing
+                    ? t('review.saveChanges')
+                    : t('review.submit')}
+              </button>
+              {editing && (
+                <button
+                  className="btn btn-outline btn-sm"
+                  type="button"
+                  disabled={reviewBusy}
+                  onClick={cancelEditReview}
+                >
+                  {t('review.cancelEdit')}
+                </button>
+              )}
+            </div>
           </form>
         ) : (
-          <p className="mt-4 rounded-[10px] bg-[rgba(20,184,166,0.1)] px-[14px] py-3 text-[13.5px] font-bold text-rd-teal">
-            {t('review.thanks')}
-          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] bg-[rgba(20,184,166,0.1)] px-[14px] py-3">
+            <div>
+              <p className="text-[13.5px] font-bold text-rd-teal">{t('review.thanks')}</p>
+              {reviewError && <p className="mt-1 text-[12px] font-bold text-rd">{reviewError}</p>}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                className="btn btn-outline btn-sm"
+                type="button"
+                disabled={reviewBusy}
+                onClick={startEditReview}
+              >
+                {t('review.editBtn')}
+              </button>
+              <button
+                className="btn btn-outline btn-sm text-rd hover:border-rd"
+                type="button"
+                disabled={reviewBusy}
+                onClick={() => setDeleteOpen(true)}
+              >
+                {t('review.deleteBtn')}
+              </button>
+            </div>
+          </div>
         )}
       </section>
 
@@ -383,6 +468,35 @@ export default function HotelDetailContent({ hotel }) {
                 </button>
               </div>
             )}
+          </div>
+        </Modal>
+      )}
+
+      {deleteOpen && (
+        <Modal onClose={() => !reviewBusy && setDeleteOpen(false)} labelledBy="delete-review-title">
+          <div className="px-5 pt-[18px] pb-[22px]">
+            <h3 id="delete-review-title" className="text-[19px] font-extrabold leading-[1.3]">
+              {t('review.deleteTitle')}
+            </h3>
+            <p className="mt-2 text-[14px] leading-[1.55] text-rd-muted">{t('review.deleteDesc')}</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="btn btn-outline btn-sm"
+                type="button"
+                disabled={reviewBusy}
+                onClick={() => setDeleteOpen(false)}
+              >
+                {t('review.cancelEdit')}
+              </button>
+              <button
+                className="btn btn-primary btn-sm"
+                type="button"
+                disabled={reviewBusy}
+                onClick={confirmDeleteReview}
+              >
+                {reviewBusy ? t('booking.processing') : t('review.confirmDelete')}
+              </button>
+            </div>
           </div>
         </Modal>
       )}

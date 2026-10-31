@@ -41,15 +41,19 @@ function useAsync(fetcher, initial) {
     run()
   }, [run])
 
-  return { data, error, loading, refetch }
+  return { data, error, loading, refetch, refresh: run }
 }
 
 export function useHotels() {
-  const { data, ...rest } = useAsync(
+  const { data, refresh, ...rest } = useAsync(
     useCallback(() => fetchHotels(), []),
     [],
   )
-  return { hotels: data, ...rest }
+  useEffect(() => {
+    window.addEventListener('wismaku:reviews-changed', refresh)
+    return () => window.removeEventListener('wismaku:reviews-changed', refresh)
+  }, [refresh])
+  return { hotels: data, refresh, ...rest }
 }
 
 export function useCities() {

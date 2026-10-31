@@ -55,6 +55,15 @@ export default function SearchResultsPage() {
   const filtered = filterHotels(hotels, query)
   const list = applySort(applyFilters(filtered, filters), filters.sort)
   const derived = parseSearchParams(searchParams)
+  const stayQuery = new URLSearchParams(
+    buildSearchParams({
+      checkIn: derived.checkIn,
+      checkOut: derived.checkOut,
+      rooms: searchParams.get('rooms'),
+      adults: searchParams.get('adults'),
+      children: searchParams.get('children'),
+    }),
+  ).toString()
   const visible = list.slice(0, visibleCount)
   const remaining = list.length - visibleCount
   const activeFilterCount = countActiveFilters(filters)
@@ -204,7 +213,9 @@ export default function SearchResultsPage() {
                           key={h.id}
                           hotel={h}
                           nights={derived.nights}
-                          onOpen={(hotel) => navigate(`/hotel/${hotel.id}`)}
+                          onOpen={(hotel) =>
+                            navigate(stayQuery ? `/hotel/${hotel.id}?${stayQuery}` : `/hotel/${hotel.id}`)
+                          }
                         />
                       ))}
                     </div>

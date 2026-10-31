@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fmtRupiah, fmtDate } from '../utils/format.js'
+import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import Modal from './ui/Modal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -10,6 +10,7 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const cancelled = booking.status === 'cancelled'
   const pending = booking.status === 'pending'
+  const stay = resolveStayDates(booking)
 
   const badgeClass = cancelled
     ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
@@ -39,7 +40,7 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
           </span>
         </div>
         <span>
-          {fmtDate(booking.checkIn, lang)} &rarr; {fmtDate(booking.checkOut, lang)}
+          {fmtDate(stay.checkIn, lang)} &rarr; {fmtDate(stay.checkOut, lang)}
         </span>
         <span>
           {t('bookings.summary', { nights: booking.nights, rooms: booking.rooms, guests: booking.guests })}

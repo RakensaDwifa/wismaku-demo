@@ -5,7 +5,7 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
-import { fmtRupiah, fmtDate } from '../utils/format.js'
+import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { createBooking } from '../services/booking.js'
@@ -28,8 +28,12 @@ export default function BookingPage() {
   const rooms = Number(searchParams.get('rooms')) || 1
   const adults = Number(searchParams.get('adults')) || 2
   const children = Number(searchParams.get('children')) || 0
-  const nights = search.nights || 1
-  const hasDates = search.nights > 0
+  const stay = resolveStayDates({
+    checkIn: search.checkIn,
+    checkOut: search.checkOut,
+    nights: search.nights || 1,
+  })
+  const nights = stay.nights
   const guests = adults + children
 
   const [form, setForm] = useState({ name: '', email: '', phone: '' })
@@ -120,8 +124,8 @@ export default function BookingPage() {
         hotelId: hotel.id,
         hotelName: hotel.name,
         hotelImg: hotel.img,
-        checkIn: hasDates ? search.checkIn : null,
-        checkOut: hasDates ? search.checkOut : null,
+        checkIn: stay.checkIn,
+        checkOut: stay.checkOut,
         nights,
         rooms,
         guests,
@@ -206,7 +210,7 @@ export default function BookingPage() {
             <span aria-hidden="true">&rsaquo;</span>
             <Link
               className="font-semibold text-rd-muted transition-colors hover:text-rd"
-              to={`/hotel/${hotel.id}`}
+              to={searchParams.size ? `/hotel/${hotel.id}?${searchParams.toString()}` : `/hotel/${hotel.id}`}
             >
               {hotel.name}
             </Link>
@@ -238,14 +242,10 @@ export default function BookingPage() {
                   </div>
                 </div>
                 <div className="mt-4 flex flex-col gap-1.5 rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
-                  {hasDates ? (
-                    <p>
-                      {fmtDate(search.checkIn, lang)} &rarr; {fmtDate(search.checkOut, lang)}{' '}
-                      {t('bookingBox.nightsShort', { nights })}
-                    </p>
-                  ) : (
-                    <p className="text-rd-muted">{t('booking.noDates', { nights })}</p>
-                  )}
+                  <p>
+                    {fmtDate(stay.checkIn, lang)} &rarr; {fmtDate(stay.checkOut, lang)}{' '}
+                    {t('bookingBox.nightsShort', { nights })}
+                  </p>
                   <p>{t('booking.summary', { rooms, guests, type: t(`data.roomTypes.${roomType.id}`) })}</p>
                 </div>
 

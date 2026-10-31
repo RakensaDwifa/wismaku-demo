@@ -46,5 +46,8 @@ enable_confirmations = false
 [functions.midtrans-token]
 verify_jwt = true
 
+[functions.delete-account]
+verify_jwt = true
+
 [functions.midtrans-webhook]
 verify_jwt = false

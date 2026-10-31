@@ -5,6 +5,7 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import AuthModal from '../components/AuthModal.jsx'
 import MemberModal from '../components/MemberModal.jsx'
+import AccountSecurity from '../components/AccountSecurity.jsx'
 import { getActiveUser, getMember, logout } from '../services/member.js'
 import { getBookings } from '../services/booking.js'
 import { getFavorites } from '../services/favorite.js'
@@ -232,6 +233,7 @@ export default function AccountPage() {
                   {t('account.logout')}
                 </button>
               </div>
+              <AccountSecurity user={user} onDeleted={() => navigate('/')} />
             </div>
           )}
         </div>

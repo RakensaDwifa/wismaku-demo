@@ -1,5 +1,11 @@
 import { useState } from 'react'
-import { loginUser, registerUser, loginGoogle, loginFacebook } from '../services/member.js'
+import {
+  loginUser,
+  registerUser,
+  loginGoogle,
+  loginFacebook,
+  requestPasswordReset,
+} from '../services/member.js'
 import Modal from './ui/Modal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -27,6 +33,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
   const [error, setError] = useState('')
   const [errorField, setErrorField] = useState('')
   const [busy, setBusy] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const fail = (message, field) => {
     setError(message)
@@ -43,6 +50,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     setTab(next)
     setError('')
     setErrorField('')
+    setResetSent(false)
   }
 
   const submit = async (e) => {
@@ -50,6 +58,21 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     const name = form.name.trim()
     const email = form.email.trim()
     const password = form.password
+
+    if (tab === 'forgot') {
+      if (!EMAIL_RE.test(email)) return fail(t('member.emailInvalid'), 'email')
+      setBusy(true)
+      try {
+        await requestPasswordReset(email)
+        setResetSent(true)
+      } catch {
+        // Jangan bocorkan apakah email terdaftar: tampilkan pesan sukses yang sama.
+        setResetSent(true)
+      } finally {
+        setBusy(false)
+      }
+      return
+    }
 
     if (tab === 'register') {
       if (name.length < 3) return fail(t('member.nameTooShort'), 'name')
@@ -105,8 +128,13 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
           </button>
         </div>
         <h3 id="auth-modal-title" className="text-[19px] font-extrabold leading-[1.3]">
-          {tab === 'login' ? t('auth.tabLogin') : t('auth.tabRegister')}
+          {tab === 'login'
+            ? t('auth.tabLogin')
+            : tab === 'forgot'
+              ? t('auth.forgotTitle')
+              : t('auth.tabRegister')}
         </h3>
+        {tab === 'forgot' && <p className="mt-1 text-[13px] text-rd-muted">{t('auth.forgotDesc')}</p>}
         <form className="mt-3 flex flex-col gap-3" onSubmit={submit} noValidate>
           {tab === 'register' && (
             <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
@@ -136,29 +164,45 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               aria-describedby={errorField === 'email' ? 'auth-modal-error' : undefined}
             />
           </label>
-          <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-            {t('auth.password')}
-            <input
-              className={inputCls}
-              type="password"
-              value={form.password}
-              onChange={set('password')}
-              placeholder={
-                tab === 'register' ? t('auth.passwordPlaceholder') : t('auth.passwordLoginPlaceholder')
-              }
-              autoComplete={tab === 'register' ? 'new-password' : 'current-password'}
-              aria-invalid={errorField === 'password'}
-              aria-describedby={
-                errorField === 'password'
-                  ? tab === 'register'
-                    ? 'auth-modal-error auth-password-hint'
-                    : 'auth-modal-error'
-                  : tab === 'register'
-                    ? 'auth-password-hint'
-                    : undefined
-              }
-            />
-          </label>
+          {tab !== 'forgot' && (
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
+              {t('auth.password')}
+              <input
+                className={inputCls}
+                type="password"
+                value={form.password}
+                onChange={set('password')}
+                placeholder={
+                  tab === 'register' ? t('auth.passwordPlaceholder') : t('auth.passwordLoginPlaceholder')
+                }
+                autoComplete={tab === 'register' ? 'new-password' : 'current-password'}
+                aria-invalid={errorField === 'password'}
+                aria-describedby={
+                  errorField === 'password'
+                    ? tab === 'register'
+                      ? 'auth-modal-error auth-password-hint'
+                      : 'auth-modal-error'
+                    : tab === 'register'
+                      ? 'auth-password-hint'
+                      : undefined
+                }
+              />
+            </label>
+          )}
+          {tab === 'login' && (
+            <button
+              className="self-end text-[12.5px] font-extrabold text-rd hover:underline"
+              type="button"
+              onClick={() => switchTab('forgot')}
+            >
+              {t('auth.forgotLink')}
+            </button>
+          )}
+          {resetSent && (
+            <p className="text-[12.5px] font-bold text-rd-teal" role="status">
+              {t('auth.resetSent')}
+            </p>
+          )}
           {tab === 'register' && (
             <p id="auth-password-hint" className="text-[11.5px] text-rd-muted">
               {t('auth.passwordHint')}
@@ -175,9 +219,26 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
             </p>
           )}
           <button className="btn btn-primary" type="submit" disabled={busy}>
-            {busy ? t('booking.processing') : tab === 'login' ? t('auth.login') : t('auth.register')}
+            {busy
+              ? t('booking.processing')
+              : tab === 'login'
+                ? t('auth.login')
+                : tab === 'forgot'
+                  ? t('auth.sendReset')
+                  : t('auth.register')}
           </button>
         </form>
+        {tab === 'forgot' && (
+          <p className="mt-3 text-[12.5px]">
+            <button
+              className="font-extrabold text-rd hover:underline"
+              type="button"
+              onClick={() => switchTab('login')}
+            >
+              {t('auth.backToLogin')}
+            </button>
+          </p>
+        )}
         {tab === 'login' && (
           <p className="mt-3 text-[12.5px] text-rd-muted">
             {t('auth.noAccount')}{' '}
@@ -190,12 +251,16 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
             </button>
           </p>
         )}
-        <div className="my-4 flex items-center gap-3">
-          <span className="h-px flex-1 bg-rd-border" />
-          <span className="text-[11px] font-bold tracking-wide text-rd-muted uppercase">{t('auth.or')}</span>
-          <span className="h-px flex-1 bg-rd-border" />
-        </div>
-        <div className="flex flex-col gap-2.5">
+        {tab !== 'forgot' && (
+          <div className="my-4 flex items-center gap-3">
+            <span className="h-px flex-1 bg-rd-border" />
+            <span className="text-[11px] font-bold tracking-wide text-rd-muted uppercase">
+              {t('auth.or')}
+            </span>
+            <span className="h-px flex-1 bg-rd-border" />
+          </div>
+        )}
+        <div className={`flex flex-col gap-2.5${tab === 'forgot' ? ' hidden' : ''}`}>
           <button
             className="inline-flex items-center justify-center gap-2.5 rounded-[9px] border border-rd-border bg-white py-2.5 text-[13.5px] font-bold text-rd-text transition-colors hover:border-rd hover:text-rd"
             type="button"

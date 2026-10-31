@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  deleteAccount,
   getActiveUser,
   getMember,
   getPartners,
@@ -10,21 +11,26 @@ import {
   registerMember,
   registerPartner,
   registerUser,
+  requestPasswordReset,
+  updatePassword,
 } from './member.js'
 
 // ---------------------------------------------------------------------------
 // Mock Supabase client
 // ---------------------------------------------------------------------------
 
-const { mockAuth, mockFrom, qb } = vi.hoisted(() => {
+const { mockAuth, mockFrom, mockInvoke, qb } = vi.hoisted(() => {
   const mockAuth = {
     signUp: vi.fn(),
     signInWithPassword: vi.fn(),
     signOut: vi.fn(),
     getUser: vi.fn(),
     signInWithOAuth: vi.fn(),
+    resetPasswordForEmail: vi.fn(),
+    updateUser: vi.fn(),
     onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
   }
+  const mockInvoke = vi.fn()
   const mockFrom = vi.fn()
   function qb(resolved) {
     const b = {
@@ -40,11 +46,11 @@ const { mockAuth, mockFrom, qb } = vi.hoisted(() => {
     b.then = (resolve, reject) => Promise.resolve(resolved).then(resolve, reject)
     return b
   }
-  return { mockAuth, mockFrom, qb }
+  return { mockAuth, mockFrom, mockInvoke, qb }
 })
 
 vi.mock('../lib/supabase.js', () => ({
-  supabase: { auth: mockAuth, from: mockFrom },
+  supabase: { auth: mockAuth, from: mockFrom, functions: { invoke: mockInvoke } },
 }))
 
 const profileRow = (overrides = {}) => ({
@@ -200,6 +206,59 @@ describe('logout', () => {
     mockAuth.signOut.mockResolvedValue({ error: null })
     await logout()
     expect(mockAuth.signOut).toHaveBeenCalled()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Pemulihan, ubah password, hapus akun
+// ---------------------------------------------------------------------------
+
+describe('requestPasswordReset / updatePassword', () => {
+  it('meminta email reset dengan email ternormalisasi dan redirect ke /akun', async () => {
+    mockAuth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null })
+    await requestPasswordReset('  BUDI@Email.com ')
+    expect(mockAuth.resetPasswordForEmail).toHaveBeenCalledWith(
+      'budi@email.com',
+      expect.objectContaining({ redirectTo: expect.stringMatching(/\/akun$/) }),
+    )
+  })
+
+  it('menolak email tidak valid sebelum memanggil Supabase', async () => {
+    await expect(requestPasswordReset('bukan-email')).rejects.toThrow()
+    expect(mockAuth.resetPasswordForEmail).not.toHaveBeenCalled()
+  })
+
+  it('memperbarui password valid dan menolak password lemah', async () => {
+    mockAuth.updateUser.mockResolvedValue({ data: {}, error: null })
+    await updatePassword('rahasia123')
+    expect(mockAuth.updateUser).toHaveBeenCalledWith({ password: 'rahasia123' })
+
+    mockAuth.updateUser.mockClear()
+    await expect(updatePassword('abc')).rejects.toThrow()
+    await expect(updatePassword('hurufsaja')).rejects.toThrow(/huruf dan angka/i)
+    expect(mockAuth.updateUser).not.toHaveBeenCalled()
+  })
+})
+
+describe('deleteAccount', () => {
+  it('memanggil Edge Function delete-account lalu keluar secara lokal', async () => {
+    mockInvoke.mockResolvedValue({ data: { ok: true }, error: null })
+    mockAuth.signOut.mockResolvedValue({ error: null })
+    await deleteAccount('budi@email.com')
+    expect(mockInvoke).toHaveBeenCalledWith('delete-account', { body: { confirmEmail: 'budi@email.com' } })
+    expect(mockAuth.signOut).toHaveBeenCalledWith({ scope: 'local' })
+  })
+
+  it('meneruskan pesan error dari server dan tidak keluar', async () => {
+    mockInvoke.mockResolvedValue({
+      data: null,
+      error: {
+        message: 'x',
+        context: { json: () => Promise.resolve({ error: 'Email konfirmasi tidak cocok.' }) },
+      },
+    })
+    await expect(deleteAccount('salah@email.com')).rejects.toThrow('Email konfirmasi tidak cocok.')
+    expect(mockAuth.signOut).not.toHaveBeenCalled()
   })
 })
 

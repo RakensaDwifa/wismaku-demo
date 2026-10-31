@@ -513,6 +513,12 @@ export const id = {
     noAccount: 'Belum punya akun?',
     goRegister: 'Daftar Sekarang',
     demoNote: 'Simulasi demo — akun tersimpan di Supabase (password di-hash di server).',
+    forgotLink: 'Lupa password?',
+    forgotTitle: 'Reset Password',
+    forgotDesc: 'Masukkan email akun Anda. Kami kirim tautan untuk membuat password baru.',
+    sendReset: 'Kirim Tautan Reset',
+    resetSent: 'Jika email terdaftar, tautan reset password sudah dikirim. Periksa kotak masuk Anda.',
+    backToLogin: 'Kembali ke halaman masuk',
   },
   provider: {
     google: {
@@ -562,6 +568,20 @@ export const id = {
     guestDesc: 'Masuk untuk melihat profil, pesanan, dan favorit Anda.',
     login: 'Masuk',
     register: 'Daftar',
+    securityTitle: 'Keamanan Akun',
+    changePassword: 'Ubah Password',
+    newPassword: 'Password Baru',
+    newPasswordHint: 'Minimal 8 karakter, kombinasi huruf dan angka.',
+    savePassword: 'Simpan Password',
+    passwordUpdated: 'Password berhasil diperbarui.',
+    deleteTitle: 'Hapus Akun',
+    deleteDesc:
+      'Menghapus akun akan menghapus profil, favorit, pesanan, dan keanggotaan Anda secara permanen. Tindakan ini tidak dapat dibatalkan.',
+    deleteBtn: 'Hapus Akun Saya',
+    deleteConfirmLabel: 'Ketik email Anda ({{email}}) untuk konfirmasi',
+    deleteConfirmBtn: 'Ya, Hapus Permanen',
+    deleteFailed: 'Gagal menghapus akun.',
+    cancel: 'Batal',
   },
   help: {
     title: 'Pusat Bantuan',

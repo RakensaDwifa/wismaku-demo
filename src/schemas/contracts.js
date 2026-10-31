@@ -54,6 +54,10 @@ export const LoginPayloadSchema = z.object({
   password: z.string().min(1, 'Password wajib diisi.'),
 })
 
+export const ResetRequestSchema = z.object({ email: EmailField })
+
+export const ChangePasswordSchema = z.object({ password: NewPasswordField })
+
 export const PartnerPayloadSchema = z.object({
   ownerName: z.string().min(3),
   propertyName: z.string().min(3),

@@ -6,10 +6,12 @@ import { LanguageProvider } from '../i18n/index.jsx'
 
 const mockLoginUser = vi.fn()
 const mockRegisterUser = vi.fn()
+const mockRequestReset = vi.fn()
 
 vi.mock('../services/member.js', () => ({
   loginUser: (...args) => mockLoginUser(...args),
   registerUser: (...args) => mockRegisterUser(...args),
+  requestPasswordReset: (...args) => mockRequestReset(...args),
 }))
 
 const renderModal = (props = {}) => {
@@ -111,5 +113,33 @@ describe('AuthModal', () => {
     await user.click(submitButton('Daftar'))
 
     await waitFor(() => expect(onClose).toHaveBeenCalled())
+  })
+
+  it('alur lupa password: kirim tautan dan tampilkan pesan netral', async () => {
+    const user = userEvent.setup()
+    mockRequestReset.mockResolvedValue(undefined)
+    renderModal()
+
+    await user.click(screen.getByRole('button', { name: 'Lupa password?' }))
+    expect(screen.getByRole('heading', { name: 'Reset Password' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Password')).not.toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Email'), 'siti@email.com')
+    await user.click(screen.getByRole('button', { name: 'Kirim Tautan Reset' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Jika email terdaftar')
+    expect(mockRequestReset).toHaveBeenCalledWith('siti@email.com')
+  })
+
+  it('lupa password menampilkan pesan netral walau service gagal (tidak bocorkan email)', async () => {
+    const user = userEvent.setup()
+    mockRequestReset.mockRejectedValue(new Error('User not found'))
+    renderModal()
+
+    await user.click(screen.getByRole('button', { name: 'Lupa password?' }))
+    await user.type(screen.getByLabelText('Email'), 'tidak-ada@email.com')
+    await user.click(screen.getByRole('button', { name: 'Kirim Tautan Reset' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Jika email terdaftar')
   })
 })

@@ -13,6 +13,10 @@ const RATING_OPTIONS = [
   { value: 4, labelKey: 'filter.rating4' },
 ]
 
+// ponytail: format ribuan langsung via value string (kursor di akhir); tambah pelacak posisi caret jika perlu sisip digit tengah
+const fmtNum = (n) => (n > 0 ? n.toLocaleString('id-ID') : '')
+const parseDigits = (s) => s.replace(/\D/g, '')
+
 export default function FilterBar({ hotels, allHotels, filters, onChange }) {
   const { t } = useLanguage()
   const bounds = priceBounds(allHotels || hotels)
@@ -49,15 +53,25 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
   }
 
   const onMinInput = (e) => {
-    const v = e.target.value
-    if (v === '') return set({ minPrice: 0 })
-    setMinPrice(v)
+    const raw = parseDigits(e.target.value)
+    set({ minPrice: raw ? Math.min(Number(raw), maxBound) : 0 })
   }
 
   const onMaxInput = (e) => {
-    const v = e.target.value
-    if (v === '') return set({ maxPrice: 0 })
-    setMaxPrice(v)
+    const raw = parseDigits(e.target.value)
+    set({ maxPrice: raw ? Math.min(Number(raw), maxBound) : 0 })
+  }
+
+  const onMinBlur = () => {
+    if (filters.minPrice > 0 && filters.maxPrice > 0 && filters.minPrice > filters.maxPrice) {
+      set({ maxPrice: filters.minPrice })
+    }
+  }
+
+  const onMaxBlur = () => {
+    if (filters.minPrice > 0 && filters.maxPrice > 0 && filters.maxPrice < filters.minPrice) {
+      set({ minPrice: filters.maxPrice })
+    }
   }
 
   return (
@@ -215,30 +229,42 @@ export default function FilterBar({ hotels, allHotels, filters, onChange }) {
             />
           </div>
           <div className="flex items-center gap-2.5">
-            <label className="flex flex-1 flex-col gap-1 text-[12px] font-semibold text-rd-muted">
+            <label className="flex min-w-0 flex-1 flex-col gap-1 text-[12px] font-semibold text-rd-muted">
               {t('filter.min')}
-              <input
-                className="rounded-[10px] border border-rd-border bg-white px-3 py-2 text-[14px] text-rd-text focus:border-rd focus:outline-none"
-                type="number"
-                min={bounds.min}
-                max={maxBound}
-                value={filters.minPrice || ''}
-                placeholder={String(bounds.min)}
-                onChange={onMinInput}
-              />
+              <span className="flex items-center gap-1.5 rounded-[10px] border border-rd-border bg-white px-2.5 py-2 transition-[border-color] duration-150 focus-within:border-rd">
+                <span className="select-none text-[13px] font-bold text-rd-muted" aria-hidden="true">
+                  Rp
+                </span>
+                <input
+                  className="w-full min-w-0 bg-transparent text-[13.5px] text-rd-text focus:outline-none"
+                  type="text"
+                  inputMode="numeric"
+                  aria-label={t('filter.min')}
+                  value={fmtNum(filters.minPrice)}
+                  placeholder={bounds.min.toLocaleString('id-ID')}
+                  onChange={onMinInput}
+                  onBlur={onMinBlur}
+                />
+              </span>
             </label>
             <span className="pt-[18px] text-[13px] text-rd-muted">&ndash;</span>
-            <label className="flex flex-1 flex-col gap-1 text-[12px] font-semibold text-rd-muted">
+            <label className="flex min-w-0 flex-1 flex-col gap-1 text-[12px] font-semibold text-rd-muted">
               {t('filter.max')}
-              <input
-                className="rounded-[10px] border border-rd-border bg-white px-3 py-2 text-[14px] text-rd-text focus:border-rd focus:outline-none"
-                type="number"
-                min={bounds.min}
-                max={maxBound}
-                value={filters.maxPrice || ''}
-                placeholder={String(maxBound)}
-                onChange={onMaxInput}
-              />
+              <span className="flex items-center gap-1.5 rounded-[10px] border border-rd-border bg-white px-2.5 py-2 transition-[border-color] duration-150 focus-within:border-rd">
+                <span className="select-none text-[13px] font-bold text-rd-muted" aria-hidden="true">
+                  Rp
+                </span>
+                <input
+                  className="w-full min-w-0 bg-transparent text-[13.5px] text-rd-text focus:outline-none"
+                  type="text"
+                  inputMode="numeric"
+                  aria-label={t('filter.max')}
+                  value={fmtNum(filters.maxPrice)}
+                  placeholder={maxBound.toLocaleString('id-ID')}
+                  onChange={onMaxInput}
+                  onBlur={onMaxBlur}
+                />
+              </span>
             </label>
           </div>
         </fieldset>

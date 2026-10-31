@@ -55,6 +55,8 @@ const fromDb = (row) => ({
   phone: row.phone,
   paymentMethod: row.payment_method,
   paidAt: row.paid_at,
+  snapToken: row.snap_token ?? null,
+  midtransOrderId: row.midtrans_order_id ?? null,
 })
 
 export async function getBookings() {
@@ -65,6 +67,13 @@ export async function getBookings() {
     .order('created_at', { ascending: false })
   if (error) return []
   return (data ?? []).map(fromDb)
+}
+
+export async function getBookingById(id) {
+  if (!supabase || !id) return null
+  const { data, error } = await supabase.from('bookings').select('*').eq('id', id).maybeSingle()
+  if (error || !data) return null
+  return fromDb(data)
 }
 
 export async function createBooking(payload) {
@@ -93,17 +102,31 @@ export async function cancelBooking(id) {
   notify()
 }
 
-export async function payBooking(id, method) {
+async function invokeMidtrans(body) {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
-  const { data, error } = await supabase
-    .from('bookings')
-    .update({ status: 'confirmed', payment_method: method, paid_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) throw new Error(error.message)
+  const { data, error } = await supabase.functions.invoke('midtrans-token', { body })
+  if (error) {
+    let msg = error.message
+    if (typeof error.context?.json === 'function') {
+      const payload = await error.context.json().catch(() => null)
+      if (payload?.error) msg = payload.error
+    }
+    throw new Error(msg || 'Gagal menghubungi layanan pembayaran.')
+  }
+  if (data?.error) throw new Error(data.error)
+  return data
+}
+
+export async function createSnapTransaction(id, { reset = false } = {}) {
+  const data = await invokeMidtrans({ bookingId: id, action: reset ? 'reset' : 'token' })
   notify()
-  return fromDb(data)
+  return data
+}
+
+export async function verifyBookingPayment(id) {
+  const data = await invokeMidtrans({ bookingId: id, action: 'verify' })
+  notify()
+  return data
 }
 
 // Kompatibilitas: migrateBookings dipanggil di modul lama. Sekarang no-op.

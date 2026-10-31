@@ -184,16 +184,36 @@ export const id = {
     awaiting: 'Pesanan {{id}} menunggu pembayaran {{total}}.',
     summaryTitle: 'Ringkasan Pesanan',
     underName: 'a.n. {{name}}',
-    methodTitle: 'Pilih Metode Pembayaran',
-    methodAria: 'Metode pembayaran',
-    payFailed: 'Pembayaran gagal, coba lagi.',
-    processing: 'Memproses Pembayaran...',
+    methodTitle: 'Metode Pembayaran (Midtrans Snap)',
+    methodSubtitle:
+      'Klik tombol Bayar Sekarang untuk memilih kanal pembayaran di jendela pop-up resmi Midtrans Sandbox.',
+    payFailed: 'Pembayaran gagal diproses, silakan coba lagi.',
+    processing: 'Membuka Midtrans Snap...',
+    verifying: 'Memverifikasi Pembayaran...',
     payNow: 'Bayar Sekarang - {{total}}',
-    demoNote: 'Simulasi demo — pembayaran tidak benar-benar diproses.',
+    continueSnap: 'Lanjutkan Pembayaran - {{total}}',
+    checkStatus: 'Cek Status Pembayaran',
+    changeMethod: 'Ganti Metode Pembayaran',
+    pendingInfo:
+      'Instruksi pembayaran telah dibuat. Selesaikan pembayaran di Simulator Midtrans Sandbox lalu klik Cek Status Pembayaran.',
+    stillPending: 'Pembayaran masih menunggu penyelesaian di Midtrans Sandbox.',
+    cancelledTitle: 'Pesanan Telah Dibatalkan',
+    cancelledNote:
+      'Pesanan ini sudah berstatus dibatalkan sehingga tidak dapat dibayar lagi. Silakan buat pesanan baru bila masih ingin menginap.',
+    sandboxHint: 'Mode Uji Midtrans Sandbox — gunakan',
+    sandboxSimulator: 'Payment Simulator Midtrans',
+    sandboxHintSuffix: 'untuk menyimulasikan pelunasan VA, QRIS, atau E-Wallet.',
+    demoNote: 'Transaksi diproses aman melalui Midtrans Snap Sandbox (mode pengujian tanpa uang asli).',
     methods: {
-      va: { label: 'Transfer Bank / Virtual Account', desc: 'BCA, Mandiri, BRI — nomor VA otomatis dikirim' },
-      qris: { label: 'QRIS', desc: 'Scan kode QR dari e-wallet atau m-banking' },
-      ewallet: { label: 'E-Wallet', desc: 'GoPay, OVO, atau DANA' },
+      va: {
+        label: 'Transfer Bank / Virtual Account',
+        desc: 'BCA, BNI, BRI, Mandiri, Permata — nomor VA otomatis di pop-up Snap',
+      },
+      qris: { label: 'QRIS & E-Wallet', desc: 'QRIS, GoPay, atau ShopeePay instan' },
+      card: {
+        label: 'Kartu Kredit / Debit & Minimarket',
+        desc: 'Visa, Mastercard, JCB, Indomaret, Alfamart',
+      },
     },
   },
   booking: {
@@ -309,6 +329,8 @@ export const id = {
     va: 'Transfer Bank / Virtual Account',
     qris: 'QRIS',
     ewallet: 'E-Wallet',
+    credit_card: 'Kartu Kredit / Debit',
+    cstore: 'Minimarket (Indomaret / Alfamart)',
   },
   bookings: {
     cancelled: 'Dibatalkan',

@@ -88,4 +88,13 @@ describe.skipIf(skip)('RLS: isolasi data per pengguna', () => {
     expect(data).toBeTruthy()
     expect(data.id).toBe(bookingIdA)
   })
+
+  it('user A tidak bisa mengonfirmasi status pembayaran langsung dari klien', async () => {
+    const { error } = await clientA
+      .from('bookings')
+      .update({ status: 'confirmed', payment_method: 'qris' })
+      .eq('id', bookingIdA)
+    expect(error).toBeTruthy()
+    expect(error.message).toMatch(/server pembayaran/i)
+  })
 })

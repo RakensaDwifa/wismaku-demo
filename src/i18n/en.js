@@ -183,19 +183,36 @@ export const en = {
     awaiting: 'Booking {{id}} is awaiting payment of {{total}}.',
     summaryTitle: 'Booking Summary',
     underName: 'under {{name}}',
-    methodTitle: 'Select Payment Method',
-    methodAria: 'Payment method',
-    payFailed: 'Payment failed, please try again.',
-    processing: 'Processing Payment...',
+    methodTitle: 'Payment Channels (Midtrans Snap)',
+    methodSubtitle:
+      'Click Pay Now to choose your preferred payment channel inside the official Midtrans Sandbox pop-up.',
+    payFailed: 'Payment failed to process, please try again.',
+    processing: 'Opening Midtrans Snap...',
+    verifying: 'Verifying Payment...',
     payNow: 'Pay Now - {{total}}',
-    demoNote: 'Simulation demo — payment is not actually processed.',
+    continueSnap: 'Continue Payment - {{total}}',
+    checkStatus: 'Check Payment Status',
+    changeMethod: 'Change Payment Method',
+    pendingInfo:
+      'Payment instructions created. Complete the payment in Midtrans Sandbox Simulator, then click Check Payment Status.',
+    stillPending: 'Payment is still awaiting completion in Midtrans Sandbox.',
+    cancelledTitle: 'Booking Cancelled',
+    cancelledNote:
+      'This booking has been cancelled and can no longer be paid. Please create a new booking if you still wish to stay.',
+    sandboxHint: 'Midtrans Sandbox Test Mode — use',
+    sandboxSimulator: 'Midtrans Payment Simulator',
+    sandboxHintSuffix: 'to simulate paying Virtual Account, QRIS, or E-Wallet.',
+    demoNote: 'Processed securely via Midtrans Snap Sandbox (test mode, no real money charged).',
     methods: {
       va: {
         label: 'Bank Transfer / Virtual Account',
-        desc: 'BCA, Mandiri, BRI — VA number sent automatically',
+        desc: 'BCA, BNI, BRI, Mandiri, Permata — VA number generated in Snap pop-up',
       },
-      qris: { label: 'QRIS', desc: 'Scan QR code from e-wallet or m-banking' },
-      ewallet: { label: 'E-Wallet', desc: 'GoPay, OVO, or DANA' },
+      qris: { label: 'QRIS & E-Wallet', desc: 'Instant QRIS, GoPay, or ShopeePay' },
+      card: {
+        label: 'Credit / Debit Card & Convenience Store',
+        desc: 'Visa, Mastercard, JCB, Indomaret, Alfamart',
+      },
     },
   },
   booking: {
@@ -311,6 +328,8 @@ export const en = {
     va: 'Bank Transfer / Virtual Account',
     qris: 'QRIS',
     ewallet: 'E-Wallet',
+    credit_card: 'Credit / Debit Card',
+    cstore: 'Convenience Store (Indomaret / Alfamart)',
   },
   bookings: {
     cancelled: 'Cancelled',

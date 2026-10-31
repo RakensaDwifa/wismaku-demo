@@ -56,7 +56,10 @@ describe.skipIf(skip)('RLS: isolasi data per pengguna', () => {
   })
 
   afterAll(async () => {
-    if (bookingIdA) await clientA?.from('bookings').delete().eq('id', bookingIdA)
+    if (bookingIdA) {
+      await clientA?.from('bookings').update({ status: 'cancelled' }).eq('id', bookingIdA)
+      await clientA?.from('bookings').delete().eq('id', bookingIdA)
+    }
   })
 
   it('user B tidak bisa membaca booking user A', async () => {
@@ -96,5 +99,32 @@ describe.skipIf(skip)('RLS: isolasi data per pengguna', () => {
       .eq('id', bookingIdA)
     expect(error).toBeTruthy()
     expect(error.message).toMatch(/server pembayaran/i)
+  })
+
+  it('user A tidak bisa menghapus booking miliknya selama masih aktif (belum cancelled)', async () => {
+    const { data } = await clientA.from('bookings').delete().eq('id', bookingIdA).select()
+    expect(data).toEqual([])
+    const { data: check } = await clientA.from('bookings').select('status').eq('id', bookingIdA).single()
+    expect(check.status).toBe('pending')
+  })
+
+  it('user A bisa menghapus booking miliknya setelah dibatalkan, namun user B tetap ditolak', async () => {
+    const { error: cancelErr } = await clientA
+      .from('bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', bookingIdA)
+    expect(cancelErr).toBeNull()
+
+    const { data: blockedB } = await clientB.from('bookings').delete().eq('id', bookingIdA).select()
+    expect(blockedB).toEqual([])
+
+    const { data: deletedA, error: delErr } = await clientA
+      .from('bookings')
+      .delete()
+      .eq('id', bookingIdA)
+      .select('id')
+    expect(delErr).toBeNull()
+    expect(deletedA).toHaveLength(1)
+    bookingIdA = null
   })
 })

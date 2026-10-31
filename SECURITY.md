@@ -39,7 +39,7 @@ Semua tabel di schema `public` mengaktifkan RLS, diperkuat dengan migrasi `0002_
 - `cities`, `hotels`, `reviews`: baca publik (anon); `reviews` dibatasi satu ulasan per `(hotel_id, user_id)`.
 - `coupons`: baca publik dibatasi hanya untuk kupon yang aktif dan belum kedaluwarsa (`active = true`).
 - `profiles`, `members`, `favorites`, `bookings`, `partners`: baca/tulis hanya
-  milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`).
+  milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`); penghapusan baris `bookings` (`0004_bookings_delete_cancelled.sql`) dibatasi hanya untuk pesanan milik sendiri yang sudah berstatus `cancelled`.
 - Trigger `profiles_protect_immutable` mengunci kolom `id`, `email`, `provider`, dan `joined_at` dari modifikasi klien.
 - Trigger `bookings_enforce_integrity` menghitung ulang `total_price` di server, mencegah perubahan status pesanan yang sudah dibatalkan (`cancelled`), dan melalui migrasi `0003_midtrans_payment.sql` **mengunci status `confirmed` serta kolom pembayaran (`paid_at`, `payment_method`, `snap_token`, `midtrans_order_id`) agar hanya dapat diubah oleh `service_role` di server**.
 

@@ -346,6 +346,12 @@ export const id = {
     cancelDesc: 'Pesanan {{id}} — {{name}} akan dibatalkan dan statusnya berubah menjadi "Dibatalkan".',
     keep: 'Tidak Jadi',
     confirmCancel: 'Ya, Batalkan',
+    cancelFailed: 'Gagal membatalkan pesanan.',
+    delete: 'Hapus',
+    deleteTitle: 'Hapus Riwayat Pesanan?',
+    deleteDesc: 'Pesanan {{id}} — {{name}} akan dihapus permanen dari daftar Pemesanan Saya.',
+    confirmDelete: 'Ya, Hapus',
+    deleteFailed: 'Gagal menghapus pesanan.',
   },
   member: {
     title: 'Gabung WismaClub, Gratis!',

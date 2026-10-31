@@ -4,6 +4,7 @@ import {
   getBookings,
   getBookingById,
   cancelBooking,
+  deleteBooking,
   createSnapTransaction,
   verifyBookingPayment,
   migrateBookings,
@@ -22,9 +23,11 @@ const { mockFrom, mockInvoke, mockGetActiveUser, qb } = vi.hoisted(() => {
       single: vi.fn(() => Promise.resolve(resolved)),
       insert: vi.fn(() => b),
       update: vi.fn(() => b),
+      delete: vi.fn(() => b),
     }
     b.insert.mockReturnValue(b)
     b.update.mockReturnValue(b)
+    b.delete.mockReturnValue(b)
     b.select.mockReturnValue(b)
     b.then = (resolve, reject) => Promise.resolve(resolved).then(resolve, reject)
     return b
@@ -153,6 +156,30 @@ describe('cancelBooking', () => {
     await cancelBooking('b-1')
     // verifikasi from('bookings') dipanggil
     expect(mockFrom).toHaveBeenCalledWith('bookings')
+  })
+})
+
+describe('deleteBooking', () => {
+  it('menghapus pesanan yang berstatus cancelled dan memancarkan event perubahan', async () => {
+    const builder = qb({ data: [{ id: 'b-1' }], error: null })
+    mockFrom.mockImplementation(() => builder)
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent')
+
+    await deleteBooking('b-1')
+
+    expect(mockFrom).toHaveBeenCalledWith('bookings')
+    expect(builder.delete).toHaveBeenCalled()
+    expect(builder.eq).toHaveBeenCalledWith('id', 'b-1')
+    expect(builder.eq).toHaveBeenCalledWith('status', 'cancelled')
+    expect(dispatchSpy).toHaveBeenCalled()
+    dispatchSpy.mockRestore()
+  })
+
+  it('melempar error bila baris tidak terhapus (bukan cancelled atau tidak ditemukan)', async () => {
+    mockFrom.mockImplementation(() => qb({ data: [], error: null }))
+    await expect(deleteBooking('b-active')).rejects.toThrow(
+      'Hanya pesanan yang sudah dibatalkan yang dapat dihapus.',
+    )
   })
 })
 

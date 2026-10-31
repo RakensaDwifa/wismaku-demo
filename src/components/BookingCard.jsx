@@ -4,9 +4,10 @@ import { fmtRupiah, fmtDate } from '../utils/format.js'
 import Modal from './ui/Modal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
 
-export default function BookingCard({ booking, onCancel }) {
+export default function BookingCard({ booking, onCancel, onDelete }) {
   const { t, lang } = useLanguage()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const cancelled = booking.status === 'cancelled'
   const pending = booking.status === 'pending'
 
@@ -73,6 +74,15 @@ export default function BookingCard({ booking, onCancel }) {
             {t('bookings.cancel')}
           </button>
         )}
+        {cancelled && onDelete && (
+          <button
+            className="rounded-[7px] border border-[#ef4444] bg-white px-2.5 py-[5px] text-[12px] font-bold text-[#ef4444] transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ef4444] hover:bg-[#ef4444] hover:text-white"
+            type="button"
+            onClick={() => setDeleteOpen(true)}
+          >
+            {t('bookings.delete')}
+          </button>
+        )}
       </div>
       {confirmOpen && (
         <Modal onClose={() => setConfirmOpen(false)} labelledBy="cancel-booking-title">
@@ -96,6 +106,33 @@ export default function BookingCard({ booking, onCancel }) {
                 }}
               >
                 {t('bookings.confirmCancel')}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {deleteOpen && (
+        <Modal onClose={() => setDeleteOpen(false)} labelledBy="delete-booking-title">
+          <div className="px-5 pt-[18px] pb-[22px]">
+            <h3 id="delete-booking-title" className="text-[19px] font-extrabold leading-[1.3]">
+              {t('bookings.deleteTitle')}
+            </h3>
+            <p className="mt-1 mb-2 text-[13px] text-rd-muted">
+              {t('bookings.deleteDesc', { id: booking.id, name: booking.hotelName })}
+            </p>
+            <div className="flex flex-wrap items-center justify-between gap-[14px] border-t border-[#eee] pt-4">
+              <button className="btn btn-outline" type="button" onClick={() => setDeleteOpen(false)}>
+                {t('bookings.keep')}
+              </button>
+              <button
+                className="rounded-[10px] bg-[#ef4444] px-4 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-[#dc2626] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ef4444]"
+                type="button"
+                onClick={() => {
+                  setDeleteOpen(false)
+                  onDelete(booking.id)
+                }}
+              >
+                {t('bookings.confirmDelete')}
               </button>
             </div>
           </div>

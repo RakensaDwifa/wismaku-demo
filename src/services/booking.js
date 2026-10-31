@@ -102,6 +102,21 @@ export async function cancelBooking(id) {
   notify()
 }
 
+export async function deleteBooking(id) {
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const { data, error } = await supabase
+    .from('bookings')
+    .delete()
+    .eq('id', id)
+    .eq('status', 'cancelled')
+    .select('id')
+  if (error) throw new Error(error.message)
+  if (!data || data.length === 0) {
+    throw new Error('Hanya pesanan yang sudah dibatalkan yang dapat dihapus.')
+  }
+  notify()
+}
+
 async function invokeMidtrans(body) {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
   const { data, error } = await supabase.functions.invoke('midtrans-token', { body })

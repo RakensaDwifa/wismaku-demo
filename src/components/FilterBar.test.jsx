@@ -58,4 +58,36 @@ describe('FilterBar input harga', () => {
 
     expect(maxInput).toHaveValue('300.000')
   })
+
+  it('menjaga posisi kursor saat menyisipkan digit atau huruf di tengah angka', async () => {
+    const user = userEvent.setup()
+    render(<ControlledFilterBar initial={{ ...DEFAULT_FILTERS, minPrice: 25000 }} />)
+
+    const minInput = screen.getByLabelText('Min')
+    expect(minInput).toHaveValue('25.000')
+
+    await user.type(minInput, '0', { initialSelectionStart: 1, initialSelectionEnd: 1 })
+    expect(minInput).toHaveValue('205.000')
+    expect(minInput.selectionStart).toBe(2)
+
+    await user.type(minInput, 'x', { initialSelectionStart: 2, initialSelectionEnd: 2 })
+    expect(minInput).toHaveValue('205.000')
+    expect(minInput.selectionStart).toBe(2)
+  })
+
+  it('melompati titik pemisah ribuan saat menekan Backspace atau Delete', async () => {
+    const user = userEvent.setup()
+    render(<ControlledFilterBar initial={{ ...DEFAULT_FILTERS, minPrice: 250000, maxPrice: 254000 }} />)
+
+    const minInput = screen.getByLabelText('Min')
+    const maxInput = screen.getByLabelText('Maks')
+
+    await user.type(minInput, '{Backspace}', { initialSelectionStart: 4, initialSelectionEnd: 4 })
+    expect(minInput).toHaveValue('25.000')
+    expect(minInput.selectionStart).toBe(2)
+
+    await user.type(maxInput, '{Delete}', { initialSelectionStart: 3, initialSelectionEnd: 3 })
+    expect(maxInput).toHaveValue('25.400')
+    expect(maxInput.selectionStart).toBe(4)
+  })
 })

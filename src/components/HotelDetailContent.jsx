@@ -4,15 +4,18 @@ import { getActiveUser, getMember, openAuthModal } from '../services/member.js'
 import { fmtDate } from '../utils/format.js'
 import { srcSet } from '../utils/image.js'
 import Modal from './ui/Modal.jsx'
+import { id as idDict } from '../i18n/id.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 const REVIEW_PAGE_SIZE = 6
+const REVIEW_PREVIEW_SIZE = 3
 
 export default function HotelDetailContent({ hotel }) {
   const { t, lang } = useLanguage()
   const [imgIdx, setImgIdx] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
-  const [userReviews, setUserReviews] = useState([])
+  const [reviews, setReviews] = useState([])
+  const [activeUser, setActiveUser] = useState(null)
   const [reviewForm, setReviewForm] = useState({ name: '', city: '', text: '' })
   const [reviewRating, setReviewRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
@@ -20,13 +23,24 @@ export default function HotelDetailContent({ hotel }) {
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [reviewPage, setReviewPage] = useState(0)
 
-  const allReviews = [
-    ...userReviews,
+  const translateSeedText = (r) => {
+    if (r.userId != null) return r.text
+    const seedIdx = idDict.data.reviewText?.[hotel.id]?.indexOf(r.text) ?? -1
+    return seedIdx >= 0 ? t(`data.reviewText.${hotel.id}.${seedIdx}`) : r.text
+  }
+
+  const rawReviews = [
+    ...reviews.map((r) => ({ ...r, translated: translateSeedText(r) })),
     ...(hotel.reviewList ?? []).map((r, i) => ({
       ...r,
+      userId: r.userId ?? null,
       translated: t(`data.reviewText.${hotel.id}.${i}`),
     })),
   ]
+  const isOwnReview = (r) => Boolean(activeUser?.id && r.userId === activeUser.id)
+  const myReview = rawReviews.find(isOwnReview) ?? null
+  const allReviews = myReview ? [myReview, ...rawReviews.filter((r) => r !== myReview)] : rawReviews
+  const previewReviews = allReviews.slice(0, REVIEW_PREVIEW_SIZE)
   const reviewTotalPages = Math.max(1, Math.ceil(allReviews.length / REVIEW_PAGE_SIZE))
   const cancelDays = hotel.policy?.cancelRule.match(/(\d+) hari/)?.[1] ?? '1'
 
@@ -35,9 +49,9 @@ export default function HotelDetailContent({ hotel }) {
     const sync = async () => {
       try {
         const list = await getReviews(hotel.id)
-        if (live) setUserReviews(list)
+        if (live) setReviews(list)
       } catch {
-        if (live) setUserReviews([])
+        if (live) setReviews([])
       }
     }
     sync()
@@ -55,11 +69,12 @@ export default function HotelDetailContent({ hotel }) {
         const u = await getActiveUser()
         const m = u ? null : await getMember()
         const name = u?.name ?? m?.name
-        if (live && name) {
-          setReviewForm((f) => (f.name ? f : { ...f, name }))
+        if (live) {
+          setActiveUser(u ?? null)
+          if (name) setReviewForm((f) => (f.name ? f : { ...f, name }))
         }
       } catch {
-        /* abaikan */
+        if (live) setActiveUser(null)
       }
     }
     prefill()
@@ -93,8 +108,9 @@ export default function HotelDetailContent({ hotel }) {
         rating: reviewRating,
         text,
       })
-      setUserReviews((list) => [rev, ...list])
-      setReviewForm({ name: '', city: '', text: '' })
+      setActiveUser(currentUser)
+      setReviews((list) => [rev, ...list.filter((x) => x.id !== rev.id)])
+      setReviewForm({ name: currentUser.name ?? name, city: '', text: '' })
       setReviewRating(0)
       setReviewError('')
     } catch (err) {
@@ -106,6 +122,31 @@ export default function HotelDetailContent({ hotel }) {
     setReviewForm((f) => ({ ...f, [key]: e.target.value }))
     setReviewError('')
   }
+
+  const renderReviewItem = (r, key) => (
+    <li className="rounded-[10px] bg-rd-soft px-[14px] py-3 text-[13.5px]" key={key}>
+      <div className="mb-0.5 flex flex-wrap items-center justify-between gap-2.5">
+        <b className="inline-flex flex-wrap items-center gap-1.5 text-[13.5px]">
+          {r.name}
+          {isOwnReview(r) && (
+            <span className="rounded-full bg-[rgba(20,184,166,0.15)] px-2 py-[2px] text-[10.5px] font-extrabold tracking-[0.4px] uppercase text-rd-teal">
+              {t('review.yours')}
+            </span>
+          )}
+          {r.verifiedGuest && (
+            <span className="rounded-full bg-[rgba(16,185,129,0.14)] px-2 py-[2px] text-[10.5px] font-extrabold tracking-[0.3px] text-[#047857]">
+              ✓ {t('review.verifiedGuest')}
+            </span>
+          )}
+        </b>
+        <span className="text-[12px] text-[#f5a623] tracking-[1px]">{'★'.repeat(r.rating)}</span>
+      </div>
+      <span className="text-[11.5px] text-rd-muted">
+        {r.city ? `${r.city} · ${fmtDate(r.date, lang)}` : fmtDate(r.date, lang)}
+      </span>
+      <p className="mt-1.5 leading-[1.55]">{r.translated ?? r.text}</p>
+    </li>
+  )
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
@@ -179,125 +220,113 @@ export default function HotelDetailContent({ hotel }) {
         </section>
       )}
 
-      {(userReviews.length > 0 || hotel.reviewList?.length > 0) && (
-        <section className="rounded-2xl border border-rd-border bg-white p-5">
-          <h2 className="text-[18px] font-extrabold">{t('detail.reviews')}</h2>
-          <div className="mt-3 mb-[14px] flex items-center gap-3">
-            <span className="text-[22px] font-extrabold text-rd">{hotel.rating}</span>
-            <span className="text-[13px] text-rd-muted">
-              {t('detail.reviewsMeta', {
-                total: hotel.reviews,
-                recent: hotel.reviewList.length + userReviews.length,
-              })}
-            </span>
-          </div>
-          <ul className="mb-5 flex list-none flex-col gap-[14px] p-0">
-            {allReviews.map((r, i) => (
-              <li className="rounded-[10px] bg-rd-soft px-[14px] py-3 text-[13.5px]" key={r.id || i}>
-                <div className="mb-0.5 flex items-center justify-between gap-2.5">
-                  <b className="inline-flex items-center gap-2 text-[13.5px]">
-                    {r.name}
-                    {userReviews.includes(r) && (
-                      <span className="rounded-full bg-[rgba(20,184,166,0.15)] px-2 py-[2px] text-[10.5px] font-extrabold tracking-[0.4px] uppercase text-rd-teal">
-                        {t('review.yours')}
-                      </span>
-                    )}
-                  </b>
-                  <span className="text-[12px] text-[#f5a623] tracking-[1px]">{'★'.repeat(r.rating)}</span>
-                </div>
-                <span className="text-[11.5px] text-rd-muted">{fmtDate(r.date, lang)}</span>
-                <p className="mt-1.5 leading-[1.55]">{r.translated ?? r.text}</p>
-              </li>
-            ))}
-          </ul>
-          {allReviews.length > 3 && (
-            <button
-              className="btn btn-outline btn-sm"
-              type="button"
-              onClick={() => {
-                setReviewPage(0)
-                setReviewsOpen(true)
-              }}
-            >
-              {t('review.viewAll', { count: allReviews.length })}
-            </button>
-          )}
-          {userReviews.length === 0 ? (
-            <form
-              className="mt-4 flex flex-col gap-3 rounded-xl border border-dashed border-rd-border p-4"
-              onSubmit={submitReview}
-              noValidate
-            >
-              <h3 className="text-[14px] font-extrabold">{t('review.writeTitle')}</h3>
-              <div
-                className="inline-flex gap-0.5"
-                role="radiogroup"
-                aria-label={t('review.ratingAria')}
-                onMouseLeave={() => setHoverRating(0)}
+      <section className="rounded-2xl border border-rd-border bg-white p-5">
+        <h2 className="text-[18px] font-extrabold">{t('detail.reviews')}</h2>
+        {allReviews.length > 0 ? (
+          <>
+            <div className="mt-3 mb-[14px] flex items-center gap-3">
+              <span className="text-[22px] font-extrabold text-rd">{hotel.rating}</span>
+              <span className="text-[13px] text-rd-muted">
+                {t('detail.reviewsMeta', {
+                  total: hotel.reviews,
+                  recent: allReviews.length,
+                })}
+              </span>
+            </div>
+            <ul className="mb-5 flex list-none flex-col gap-[14px] p-0">
+              {previewReviews.map((r, i) => renderReviewItem(r, r.id || i))}
+            </ul>
+            {allReviews.length > REVIEW_PREVIEW_SIZE && (
+              <button
+                className="btn btn-outline btn-sm"
+                type="button"
+                onClick={() => {
+                  setReviewPage(0)
+                  setReviewsOpen(true)
+                }}
               >
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`text-[26px] leading-none text-rd-border transition-[color,transform] duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:scale-[1.15]${n <= (hoverRating || reviewRating) ? ' text-[#f5a623]' : ''}`}
-                    onClick={() => {
-                      setReviewRating(n)
-                      setReviewError('')
-                    }}
-                    onMouseEnter={() => setHoverRating(n)}
-                    role="radio"
-                    aria-checked={reviewRating === n}
-                    aria-label={t('review.starAria', { n })}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
-              <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-                {t('review.name')}
-                <input
-                  className="rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
-                  type="text"
-                  value={reviewForm.name}
-                  onChange={setReviewField('name')}
-                  placeholder={t('review.namePlaceholder')}
-                  maxLength={50}
-                />
-              </label>
-              <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-                {t('review.city')} <span className="font-medium text-rd-muted">{t('review.optional')}</span>
-                <input
-                  className="rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
-                  type="text"
-                  value={reviewForm.city}
-                  onChange={setReviewField('city')}
-                  placeholder={t('review.cityPlaceholder')}
-                  maxLength={40}
-                />
-              </label>
-              <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-                {t('review.text')}
-                <textarea
-                  className="resize-y rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
-                  value={reviewForm.text}
-                  onChange={setReviewField('text')}
-                  placeholder={t('review.textPlaceholder')}
-                  rows={3}
-                  maxLength={500}
-                />
-              </label>
-              {reviewError && <p className="text-[12.5px] font-bold text-rd">{reviewError}</p>}
-              <button className="btn btn-primary btn-sm self-start" type="submit">
-                {t('review.submit')}
+                {t('review.viewAll', { count: allReviews.length })}
               </button>
-            </form>
-          ) : (
-            <p className="mt-4 rounded-[10px] bg-[rgba(20,184,166,0.1)] px-[14px] py-3 text-[13.5px] font-bold text-rd-teal">
-              {t('review.thanks')}
-            </p>
-          )}
-        </section>
-      )}
+            )}
+          </>
+        ) : (
+          <p className="mt-3 text-[13.5px] text-rd-muted">{t('review.empty')}</p>
+        )}
+        {!myReview ? (
+          <form
+            className="mt-4 flex flex-col gap-3 rounded-xl border border-dashed border-rd-border p-4"
+            onSubmit={submitReview}
+            noValidate
+          >
+            <h3 className="text-[14px] font-extrabold">{t('review.writeTitle')}</h3>
+            <div
+              className="inline-flex gap-0.5"
+              role="radiogroup"
+              aria-label={t('review.ratingAria')}
+              onMouseLeave={() => setHoverRating(0)}
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`text-[26px] leading-none text-rd-border transition-[color,transform] duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:scale-[1.15]${n <= (hoverRating || reviewRating) ? ' text-[#f5a623]' : ''}`}
+                  onClick={() => {
+                    setReviewRating(n)
+                    setReviewError('')
+                  }}
+                  onMouseEnter={() => setHoverRating(n)}
+                  role="radio"
+                  aria-checked={reviewRating === n}
+                  aria-label={t('review.starAria', { n })}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
+              {t('review.name')}
+              <input
+                className="rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
+                type="text"
+                value={reviewForm.name}
+                onChange={setReviewField('name')}
+                placeholder={t('review.namePlaceholder')}
+                maxLength={50}
+              />
+            </label>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
+              {t('review.city')} <span className="font-medium text-rd-muted">{t('review.optional')}</span>
+              <input
+                className="rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
+                type="text"
+                value={reviewForm.city}
+                onChange={setReviewField('city')}
+                placeholder={t('review.cityPlaceholder')}
+                maxLength={40}
+              />
+            </label>
+            <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
+              {t('review.text')}
+              <textarea
+                className="resize-y rounded-[9px] border border-rd-border bg-white px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
+                value={reviewForm.text}
+                onChange={setReviewField('text')}
+                placeholder={t('review.textPlaceholder')}
+                rows={3}
+                maxLength={500}
+              />
+            </label>
+            {reviewError && <p className="text-[12.5px] font-bold text-rd">{reviewError}</p>}
+            <button className="btn btn-primary btn-sm self-start" type="submit">
+              {t('review.submit')}
+            </button>
+          </form>
+        ) : (
+          <p className="mt-4 rounded-[10px] bg-[rgba(20,184,166,0.1)] px-[14px] py-3 text-[13.5px] font-bold text-rd-teal">
+            {t('review.thanks')}
+          </p>
+        )}
+      </section>
 
       {hotel.policy && (
         <section className="rounded-2xl border border-rd-border bg-white p-5">
@@ -329,28 +358,7 @@ export default function HotelDetailContent({ hotel }) {
             <ul className="flex list-none flex-col gap-3 p-0">
               {allReviews
                 .slice(reviewPage * REVIEW_PAGE_SIZE, (reviewPage + 1) * REVIEW_PAGE_SIZE)
-                .map((r, i) => (
-                  <li
-                    className="rounded-[10px] bg-rd-soft px-[14px] py-3 text-[13.5px]"
-                    key={r.id ?? `r-${reviewPage}-${i}`}
-                  >
-                    <div className="mb-0.5 flex items-center justify-between gap-2.5">
-                      <b className="inline-flex items-center gap-2 text-[13.5px]">
-                        {r.name}
-                        {userReviews.includes(r) && (
-                          <span className="rounded-full bg-[rgba(20,184,166,0.15)] px-2 py-[2px] text-[10.5px] font-extrabold tracking-[0.4px] uppercase text-rd-teal">
-                            {t('review.yours')}
-                          </span>
-                        )}
-                      </b>
-                      <span className="text-[12px] text-[#f5a623] tracking-[1px]">
-                        {'★'.repeat(r.rating)}
-                      </span>
-                    </div>
-                    <span className="text-[11.5px] text-rd-muted">{fmtDate(r.date, lang)}</span>
-                    <p className="mt-1.5 leading-[1.55]">{r.translated ?? r.text}</p>
-                  </li>
-                ))}
+                .map((r, i) => renderReviewItem(r, r.id ?? `r-${reviewPage}-${i}`))}
             </ul>
             {reviewTotalPages > 1 && (
               <div className="mt-3 flex items-center justify-between">

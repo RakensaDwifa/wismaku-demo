@@ -42,6 +42,7 @@ Semua tabel di schema `public` mengaktifkan RLS, diperkuat dengan migrasi `0002_
   milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`); penghapusan baris `bookings` (`0004_bookings_delete_cancelled.sql`) dibatasi hanya untuk pesanan milik sendiri yang sudah berstatus `cancelled`.
 - Trigger `profiles_protect_immutable` mengunci kolom `id`, `email`, `provider`, dan `joined_at` dari modifikasi klien.
 - Trigger `bookings_enforce_integrity` menghitung ulang `total_price` di server, mencegah perubahan status pesanan yang sudah dibatalkan (`cancelled`), dan melalui migrasi `0003_midtrans_payment.sql` **mengunci status `confirmed` serta kolom pembayaran (`paid_at`, `payment_method`, `snap_token`, `midtrans_order_id`) agar hanya dapat diubah oleh `service_role` di server**.
+- Migrasi `0006_booking_expiry.sql` menambah `expires_at` (di-set server, tidak bisa diubah klien), membatalkan otomatis pesanan `pending` yang lewat batas waktu lewat `pg_cron` tiap 5 menit (toleransi 10 menit untuk webhook yang terlambat), dan menyelaraskan `expiry` transaksi Snap dengan `expires_at`.
 
 Akibatnya, meskipun anon key diekspos di bundle frontend, pengguna tidak bisa
 membaca atau mengubah data pengguna lain maupun menandai pesanannya lunas secara sepihak dari DevTools.
@@ -51,13 +52,20 @@ membaca atau mengubah data pengguna lain maupun menandai pesanannya lunas secara
 - Pembuatan transaksi Snap (`midtrans-token`) memverifikasi JWT pemilik pesanan dan memanggil API Midtrans menggunakan `MIDTRANS_SERVER_KEY` yang tersimpan eksklusif di Supabase Edge Function Secrets.
 - Konfirmasi pelunasan diverifikasi dua jalur di sisi server: sinkron melalui `GET /v2/{order_id}/status` setelah pop-up selesai, serta asinkron melalui webhook `midtrans-webhook` dengan validasi `SHA-512(order_id + status_code + gross_amount + server_key)` secara _constant-time_.
 
-### 3. Auto-create profil
+### 3. Akun: reset password dan hapus akun
+
+- `requestPasswordReset` tidak pernah membocorkan apakah email terdaftar: UI selalu menampilkan pesan sukses netral, dan kegagalan dari Supabase juga ditelan.
+- Ubah password memakai sesi Supabase aktif (`auth.updateUser`), dengan validasi panjang/komposisi password di `ChangePasswordSchema`.
+- Hapus akun lewat Edge Function `delete-account` (verifikasi JWT, `verify_jwt: true`):
+  email yang diketik pengguna harus sama dengan email akun, dan permintaan ditolak (409) bila masih ada pesanan `confirmed` dengan `check_out >= hari ini` agar data pembayaran tidak hilang.
+
+### 4. Auto-create profil
 
 Trigger `on_auth_user_created` membuat baris di `profiles` setiap kali user baru
 terdaftar (email/password maupun OAuth), memakai `raw_user_meta_data` (name/full_name/
 given_name) atau bagian sebelum `@` dari email. Avatar URL disimpan dari provider.
 
-### 4. Validasi kredensial di klien
+### 5. Validasi kredensial di klien
 
 - Email dinormalisasi (`trim` + lowercase) di `UserPayloadSchema`/`LoginPayloadSchema`.
 - Password baru: minimal 8 karakter + huruf & angka (validasi klien, bukan keamanan).
@@ -73,7 +81,9 @@ given_name) atau bagian sebelum `@` dari email. Avatar URL disimpan dari provide
 2. **XSS tetap menang.** Hashing tidak relevan lagi, tapi XSS tetap bisa mencuri
    sesi. Ini batas yang tidak bisa ditutup dari sisi klien.
 3. **Pembayaran berjalan di mode Sandbox.** Transaksi diproses melalui Midtrans Snap Sandbox (uang uji coba, bukan rekening produksi).
-4. **Tidak ada admin role.** `getPartners()` hanya mengembalikan milik sendiri;
+4. **Reset password butuh konfigurasi dashboard.** Redirect tautan reset harus
+   diizinkan di Supabase Auth (Site URL + Additional Redirect URLs) menuju `/akun`.
+5. **Tidak ada admin role.** `getPartners()` hanya mengembalikan milik sendiri;
    belum ada dashboard admin.
 
 ## Kalau ingin naik ke produksi

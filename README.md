@@ -22,6 +22,10 @@ Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketa
 - Filter & sortir hasil: amenities, rentang harga, rating, harga/rating
 - Halaman detail hotel: galeri foto + lightbox, tipe kamar, ulasan tamu, kebijakan
 - Pemesanan dengan kalkulasi harga: kupon diskon, diskon member 10%
+- Pembayaran Midtrans Snap (Sandbox) dengan hitung mundur; pesanan pending otomatis dibatalkan setelah 1 jam (`pg_cron`)
+- Akun: lupa password, ubah password, hapus akun (Edge Function `delete-account`)
+- Ulasan: 1 ulasan per akun per hotel, badge Tamu Terverifikasi, sortir & filter per bintang
+- Halaman statis Syarat & Ketentuan, Kebijakan Privasi, dan Pusat Bantuan/FAQ
 - Kupon validasi (misl. `WISMA20`), diskon member WismaClub
 - Halaman pemesanan (riwayat + pembatalan) dan halaman favorit
 - Pendaftaran member WismaClub & partner penginapan (modal + validasi)
@@ -29,14 +33,14 @@ Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketa
 
 ## Teknologi
 
-| Lapisan  | Pilihan                                   |
-| -------- | ----------------------------------------- |
-| UI       | React 18, React Router 7, Vite 7          |
-| Tanggal  | date-fns, react-day-picker                |
-| Validasi | Zod                                       |
-| Gaya     | Tailwind CSS v4 (design tokens, @utility) |
-| Kualitas | ESLint 10, Prettier 3                     |
-| Test     | Vitest 4, Testing Library, jsdom          |
+| Lapisan  | Pilihan                                                |
+| -------- | ------------------------------------------------------ |
+| UI       | React 18, React Router 7, Vite 7                       |
+| Tanggal  | date-fns, react-day-picker                             |
+| Validasi | Zod                                                    |
+| Gaya     | Tailwind CSS v4 (design tokens, @utility)              |
+| Kualitas | ESLint 10, Prettier 3                                  |
+| Test     | Vitest 4, Testing Library, jsdom, Playwright, axe-core |
 
 ## Menjalankan Lokal
 
@@ -89,28 +93,36 @@ menegakkan batas akses per pengguna. Tidak ada lagi cabang `if (USE_MOCK)`.
 
 ```
 src/
-  components/   # Komponen UI (Header, Hero, HotelCard, Modal, ...)
-  pages/        # HomePage, HotelDetailPage, BookingsPage, FavoritesPage
+  components/   # Komponen UI (Header, Hero, HotelCard, Modal, ReviewsSection, ...)
+  pages/        # HomePage, HotelDetailPage, BookingsPage, FavoritesPage, LegalPage
   hooks/        # useCatalog (data fetching), useFocusTrap, usePageMeta
   services/     # hotel, booking, favorite, member, coupon, review
   lib/          # Client Supabase singleton
   schemas/      # Validasi Zod kontrak payload
-  utils/        # searchParams, filtering, format, image
+  utils/        # searchParams, filtering, format, image, reviews (sortir/filter)
   styles/       # tailwind.css (tokens, @utility btn*, CSS datepicker & slider)
+tests/
+  integration/  # Tes yang butuh jaringan + Supabase (npm run test:integration)
+e2e/            # Skenario Playwright + audit axe
 ```
 
 ## Build & Deploy
 
 ```bash
-npm run build      # output di dist/
-npm run preview    # pratinjau build lokal
-npm run lint       # ESLint
-npm run test       # Vitest (unit test service/util + component test jsdom)
-npm run format     # Prettier
+npm run build            # output di dist/
+npm run preview          # pratinjau build lokal
+npm run lint             # ESLint
+npm run test             # Vitest (unit + component, tanpa jaringan)
+npm run test:integration # Vitest integrasi: butuh VITE_SUPABASE_* + jaringan
+npm run test:e2e         # Playwright: build + preview, tes alur & axe
+npm run format           # Prettier
 ```
 
-CI GitHub Actions (`.github/workflows/ci.yml`) berjalan otomatis pada setiap push/PR ke `main`,
-dengan urutan gerbang: `format:check` → `lint` → `test` → `build`.
+CI GitHub Actions (`.github/workflows/ci.yml`) berjalan otomatis pada setiap push/PR ke `main`:
+job `verify` menjalankan `format:check` → `lint` → `test` → `test:integration` → `build`
+(dengan Supabase lokal), dan job `e2e` menjalankan Playwright + audit axe terhadap Supabase
+lokal hasil seed. Tes E2E yang menulis data (daftar akun + tulis ulasan) hanya aktif bila
+`E2E_WRITE=1`.
 
 Deploy produksi ditangani [Vercel](https://vercel.com) lewat integrasi GitHub: push ke `main`
 lalu import repo (preset Vite otomatis: build `npm run build`, output `dist/`).

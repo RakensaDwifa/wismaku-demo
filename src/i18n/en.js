@@ -201,6 +201,8 @@ export const en = {
     processing: 'Opening Midtrans Snap...',
     verifying: 'Verifying Payment...',
     payNow: 'Pay Now - {{total}}',
+    expiresIn: 'Complete payment within {{time}}',
+    expired: 'Payment time expired. Please create a new booking.',
     continueSnap: 'Continue Payment - {{total}}',
     checkStatus: 'Check Payment Status',
     changeMethod: 'Change Payment Method',

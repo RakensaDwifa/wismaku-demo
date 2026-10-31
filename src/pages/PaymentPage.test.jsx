@@ -129,4 +129,24 @@ describe('PaymentPage (Midtrans Snap)', () => {
 
     expect(mockCreateSnapTransaction).toHaveBeenCalledWith('b-101', { reset: true })
   })
+
+  it('menampilkan hitung mundur saat belum kedaluwarsa', async () => {
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+    mockGetBookingById.mockResolvedValue({ ...sampleBooking, expiresAt })
+
+    renderPaymentPage()
+
+    expect(await screen.findByText(/Selesaikan pembayaran dalam \d{2}:\d{2}/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Bayar Sekarang/i })).toBeEnabled()
+  })
+
+  it('menonaktifkan tombol bayar saat waktu pembayaran habis', async () => {
+    const expiresAt = new Date(Date.now() - 60 * 1000).toISOString()
+    mockGetBookingById.mockResolvedValue({ ...sampleBooking, expiresAt })
+
+    renderPaymentPage()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Waktu pembayaran habis')
+    expect(screen.getByRole('button', { name: /Bayar Sekarang/i })).toBeDisabled()
+  })
 })

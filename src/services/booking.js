@@ -55,6 +55,7 @@ const fromDb = (row) => ({
   phone: row.phone,
   paymentMethod: row.payment_method,
   paidAt: row.paid_at,
+  expiresAt: row.expires_at,
   snapToken: row.snap_token ?? null,
   midtransOrderId: row.midtrans_order_id ?? null,
 })

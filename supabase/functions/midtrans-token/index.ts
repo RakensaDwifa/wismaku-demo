@@ -150,6 +150,11 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'Pesanan yang sudah dibatalkan tidak dapat dibayar.' }, 409)
   }
 
+  const expiresAtMs = booking.expires_at ? new Date(booking.expires_at).getTime() : null
+  if (expiresAtMs !== null && expiresAtMs <= Date.now()) {
+    return json({ error: 'Waktu pembayaran pesanan ini telah habis. Silakan buat pesanan baru.' }, 409)
+  }
+
   if (action === 'token' && booking.snap_token && booking.midtrans_order_id) {
     const tx = await checkMidtransStatus(booking.midtrans_order_id)
     const txStatus = String(tx?.transaction_status ?? '')
@@ -202,6 +207,11 @@ Deno.serve(async (req: Request) => {
       first_name: String(booking.guest_name || 'Tamu').slice(0, 50),
       email: booking.email,
       phone: booking.phone,
+    },
+    // Transaksi Midtrans kedaluwarsa bersamaan dengan batas waktu pesanan.
+    expiry: {
+      unit: 'minute',
+      duration: expiresAtMs ? Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 60000)) : 60,
     },
   }
 

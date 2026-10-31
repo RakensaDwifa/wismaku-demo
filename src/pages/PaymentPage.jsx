@@ -12,6 +12,13 @@ import { useLanguage } from '../i18n/useLanguage.js'
 
 const CHANNELS = ['va', 'qris', 'card']
 
+const fmtCountdown = (ms) => {
+  const total = Math.max(0, Math.floor(ms / 1000))
+  const m = String(Math.floor(total / 60)).padStart(2, '0')
+  const s = String(total % 60).padStart(2, '0')
+  return `${m}:${s}`
+}
+
 export default function PaymentPage() {
   const { t, lang } = useLanguage()
   usePageMeta(t('payment.metaTitle'), t('payment.metaDesc'))
@@ -23,6 +30,17 @@ export default function PaymentPage() {
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
+  const [now, setNow] = useState(() => Date.now())
+
+  const expiresAtMs = booking?.expiresAt ? new Date(booking.expiresAt).getTime() : null
+  const remainingMs = expiresAtMs === null ? null : expiresAtMs - now
+  const isExpired = remainingMs !== null && remainingMs <= 0 && booking?.status === 'pending'
+
+  useEffect(() => {
+    if (expiresAtMs === null || expiresAtMs <= Date.now()) return undefined
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [expiresAtMs])
 
   useEffect(() => {
     let live = true
@@ -346,11 +364,21 @@ export default function PaymentPage() {
 
                   {!isCancelled && (
                     <>
+                      {remainingMs !== null && (
+                        <p
+                          className={`mt-3 text-[12.5px] font-bold ${isExpired ? 'text-rd' : 'text-rd-muted'}`}
+                          role={isExpired ? 'alert' : undefined}
+                        >
+                          {isExpired
+                            ? t('payment.expired')
+                            : t('payment.expiresIn', { time: fmtCountdown(remainingMs) })}
+                        </p>
+                      )}
                       <button
                         className="btn btn-primary mt-4 w-full"
                         type="button"
                         onClick={() => openSnap(false)}
-                        disabled={busy || checking}
+                        disabled={busy || checking || isExpired}
                       >
                         {busy
                           ? t('payment.processing')

@@ -253,6 +253,8 @@ export const en = {
     processing: 'Processing...',
     confirmWithTotal: 'Confirm Booking - {{total}}',
     confirm: 'Confirm Booking',
+    fillGuestDataHint:
+      'Please complete Guest Details (Full Name, Email, and Phone) first before proceeding to payment.',
     priceSummary: 'Price Summary',
     calc: '{{price}} × {{nights}} nights × {{rooms}} rooms',
     couponLine: 'Coupon {{code}}',

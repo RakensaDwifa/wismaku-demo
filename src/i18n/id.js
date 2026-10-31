@@ -254,6 +254,8 @@ export const id = {
     processing: 'Memproses...',
     confirmWithTotal: 'Konfirmasi Pesanan - {{total}}',
     confirm: 'Konfirmasi Pesanan',
+    fillGuestDataHint:
+      'Silakan lengkapi Data Pemesan (Nama Lengkap, Email, dan No. HP) terlebih dahulu sebelum lanjut ke pembayaran.',
     priceSummary: 'Ringkasan Harga',
     calc: '{{price}} × {{nights}} malam × {{rooms}} kamar',
     couponLine: 'Kupon {{code}}',

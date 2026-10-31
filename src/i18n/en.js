@@ -502,6 +502,12 @@ export const en = {
     noAccount: "Don't have an account?",
     goRegister: 'Sign Up Now',
     demoNote: 'Simulation demo — account is stored in Supabase (password hashed on server).',
+    forgotLink: 'Forgot password?',
+    forgotTitle: 'Reset Password',
+    forgotDesc: 'Enter your account email. We will send a link to create a new password.',
+    sendReset: 'Send Reset Link',
+    resetSent: 'If the email is registered, a password reset link has been sent. Check your inbox.',
+    backToLogin: 'Back to sign in',
   },
   provider: {
     google: {
@@ -552,6 +558,20 @@ export const en = {
     guestDesc: 'Sign in to view your profile, bookings, and favorites.',
     login: 'Sign In',
     register: 'Sign Up',
+    securityTitle: 'Account Security',
+    changePassword: 'Change Password',
+    newPassword: 'New Password',
+    newPasswordHint: 'Minimum 8 characters, combining letters and numbers.',
+    savePassword: 'Save Password',
+    passwordUpdated: 'Password updated successfully.',
+    deleteTitle: 'Delete Account',
+    deleteDesc:
+      'Deleting your account permanently removes your profile, favorites, bookings, and membership. This cannot be undone.',
+    deleteBtn: 'Delete My Account',
+    deleteConfirmLabel: 'Type your email ({{email}}) to confirm',
+    deleteConfirmBtn: 'Yes, Delete Permanently',
+    deleteFailed: 'Failed to delete account.',
+    cancel: 'Cancel',
   },
   help: {
     title: 'Help Center',

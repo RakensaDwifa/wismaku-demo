@@ -1,7 +1,9 @@
 import { supabase } from '../lib/supabase.js'
 import {
+  ChangePasswordSchema,
   LoginPayloadSchema,
   MemberPayloadSchema,
+  ResetRequestSchema,
   PartnerPayloadSchema,
   UserPayloadSchema,
   parsePayload,
@@ -161,6 +163,46 @@ export async function loginFacebook() {
     options: { redirectTo: redirectTo() },
   })
   if (error) throw new Error(error.message)
+}
+
+/* ---------------------------------------------------------------------------
+ *  Pemulihan, ubah password, dan hapus akun
+ * ------------------------------------------------------------------------- */
+
+// ponytail: tautan reset mendarat di /akun dengan sesi pemulihan; form ubah password di sana
+// langsung dipakai. Tambahkan event PASSWORD_RECOVERY bila butuh sorotan khusus.
+export async function requestPasswordReset(email) {
+  if (!supabase) throw notConfigured()
+  const data = parsePayload(ResetRequestSchema, { email })
+  const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+    redirectTo: `${redirectTo() ?? ''}/akun`,
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function updatePassword(password) {
+  if (!supabase) throw notConfigured()
+  const data = parsePayload(ChangePasswordSchema, { password })
+  const { error } = await supabase.auth.updateUser({ password: data.password })
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteAccount(confirmEmail) {
+  if (!supabase) throw notConfigured()
+  const { data, error } = await supabase.functions.invoke('delete-account', {
+    body: { confirmEmail },
+  })
+  if (error) {
+    let msg = error.message
+    if (typeof error.context?.json === 'function') {
+      const payload = await error.context.json().catch(() => null)
+      if (payload?.error) msg = payload.error
+    }
+    throw new Error(msg || 'Gagal menghapus akun.')
+  }
+  if (data?.error) throw new Error(data.error)
+  await supabase.auth.signOut({ scope: 'local' }).catch(() => null)
+  notify()
 }
 
 // Sinkronkan state UI saat sesi berubah (mis. setelah redirect OAuth).

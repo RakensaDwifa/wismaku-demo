@@ -27,3 +27,5 @@ supabase/.temp/
 # Playwright
 test-results/
 playwright-report/
+dbg.*
+

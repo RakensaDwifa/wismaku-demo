@@ -122,6 +122,14 @@ describe('HotelDetailContent (fitur ulasan penginapan)', () => {
       expect(screen.getByLabelText('Nama')).toHaveValue('Budi Santoso')
     })
 
+    await user.click(screen.getByRole('radio', { name: '3 bintang' }))
+    expect(screen.getByRole('radio', { name: '1 bintang' })).toHaveClass('text-[#f5a623]')
+    expect(screen.getByRole('radio', { name: '1 bintang' })).not.toHaveClass('text-rd-border')
+    expect(screen.getByRole('radio', { name: '3 bintang' })).toHaveClass('text-[#f5a623]')
+    expect(screen.getByRole('radio', { name: '3 bintang' })).not.toHaveClass('text-rd-border')
+    expect(screen.getByRole('radio', { name: '4 bintang' })).toHaveClass('text-rd-border')
+    expect(screen.getByRole('radio', { name: '4 bintang' })).not.toHaveClass('text-[#f5a623]')
+
     await user.click(screen.getByRole('radio', { name: '5 bintang' }))
     await user.type(screen.getByLabelText(/Kota/), 'Surabaya')
     await user.type(screen.getByLabelText('Ulasan'), 'Pelayanan sangat ramah dan kamar bersih.')

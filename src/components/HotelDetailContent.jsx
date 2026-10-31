@@ -324,7 +324,7 @@ export default function HotelDetailContent({ hotel }) {
                 <button
                   key={n}
                   type="button"
-                  className={`text-[26px] leading-none text-rd-border transition-[color,transform] duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:scale-[1.15]${n <= (hoverRating || reviewRating) ? ' text-[#f5a623]' : ''}`}
+                  className={`text-[26px] leading-none transition-[color,transform] duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:scale-[1.15] ${n <= (hoverRating || reviewRating) ? 'text-[#f5a623]' : 'text-rd-border'}`}
                   onClick={() => {
                     setReviewRating(n)
                     setReviewError('')

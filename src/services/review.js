@@ -67,3 +67,40 @@ export async function addReview(payload) {
   notify()
   return fromDb(review)
 }
+
+export async function updateReview(id, payload) {
+  const data = parsePayload(ReviewPayloadSchema, payload)
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const user = await getActiveUser()
+  if (!user?.id) throw new Error('Silakan masuk terlebih dahulu untuk mengubah ulasan.')
+  const { data: review, error } = await supabase
+    .from('reviews')
+    .update({
+      name: data.name,
+      city: data.city ?? null,
+      rating: data.rating,
+      text: data.text,
+    })
+    .eq('id', String(id))
+    .eq('user_id', user.id)
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  notify()
+  return fromDb(review)
+}
+
+export async function deleteReview(id) {
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const user = await getActiveUser()
+  if (!user?.id) throw new Error('Silakan masuk terlebih dahulu untuk menghapus ulasan.')
+  const { data, error } = await supabase
+    .from('reviews')
+    .delete()
+    .eq('id', String(id))
+    .eq('user_id', user.id)
+    .select('id')
+  if (error) throw new Error(error.message)
+  if (!data?.length) throw new Error('Ulasan tidak ditemukan atau bukan milik Anda.')
+  notify()
+}

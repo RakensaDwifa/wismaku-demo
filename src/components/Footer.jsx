@@ -1,5 +1,10 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLanguage } from '../i18n/useLanguage.js'
+
+// Rute per indeks footer.helpLinks: FAQ, Hubungi Kami, Cara Booking, Privasi, Syarat.
+// ponytail: ikon sosial dihapus sampai ada akun resmi; tambahkan lagi dengan URL asli.
+const HELP_ROUTES = ['/bantuan', null, '/bantuan', '/privasi', '/syarat']
 
 export default function Footer({ onOpenPartner }) {
   const { t } = useLanguage()
@@ -7,7 +12,7 @@ export default function Footer({ onOpenPartner }) {
   const seo = t('footer.seo')
   const columns = [
     { title: t('footer.about'), links: t('footer.aboutLinks') },
-    { title: t('footer.help'), links: t('footer.helpLinks') },
+    { title: t('footer.help'), links: t('footer.helpLinks'), routes: HELP_ROUTES },
     { title: t('footer.popular'), links: t('footer.popularLinks') },
   ]
 
@@ -55,45 +60,35 @@ export default function Footer({ onOpenPartner }) {
             <div key={col.title}>
               <h4 className="mb-4 text-[15px] font-extrabold text-white">{col.title}</h4>
               <ul className="list-none">
-                {col.links.map((l) => (
-                  <li className="mb-2.5" key={l}>
-                    <a
-                      href="#partner"
-                      className="cursor-not-allowed text-[13px] text-[#b9b9b9] opacity-65"
-                      aria-disabled={l !== t('nav.partner')}
-                      onClick={(e) => {
-                        if (l === t('nav.partner')) {
-                          e.preventDefault()
-                          onOpenPartner?.()
-                        } else {
-                          e.preventDefault()
-                        }
-                      }}
-                    >
-                      {l}
-                    </a>
-                  </li>
-                ))}
+                {col.links.map((l, i) => {
+                  const to = col.routes?.[i]
+                  return (
+                    <li className="mb-2.5" key={l}>
+                      {to ? (
+                        <Link className="text-[13px] text-[#b9b9b9] hover:text-white hover:underline" to={to}>
+                          {l}
+                        </Link>
+                      ) : (
+                        <a
+                          href="#partner"
+                          className="cursor-not-allowed text-[13px] text-[#b9b9b9] opacity-65"
+                          aria-disabled={l !== t('nav.partner')}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            if (l === t('nav.partner')) onOpenPartner?.()
+                          }}
+                        >
+                          {l}
+                        </a>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}
           <div>
-            <h4 className="mb-4 text-[15px] font-extrabold text-white">{t('footer.followUs')}</h4>
-            <div className="flex gap-2.5">
-              {['Facebook', 'Instagram', 'X', 'YouTube'].map((s) => (
-                <a
-                  key={s}
-                  href="#"
-                  className="grid size-9 cursor-not-allowed place-items-center rounded-full bg-[#555] text-sm font-extrabold text-white transition-colors hover:bg-[#555]"
-                  aria-label={s}
-                  title={s}
-                  onClick={(e) => e.preventDefault()}
-                >
-                  {s.charAt(0)}
-                </a>
-              ))}
-            </div>
-            <h4 className="mt-[22px] mb-4 text-[15px] font-extrabold text-white">{t('footer.payment')}</h4>
+            <h4 className="mb-4 text-[15px] font-extrabold text-white">{t('footer.payment')}</h4>
             <div className="flex flex-wrap gap-2">
               {t('footer.payments').map((m) => (
                 <span className="rounded-md border border-[#666] px-2 py-1 text-[11.5px] text-[#ccc]" key={m}>

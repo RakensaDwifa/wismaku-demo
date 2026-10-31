@@ -448,6 +448,91 @@ export const en = {
     navAria: 'Navigation menu',
   },
   skipLink: 'Skip to main content',
+  legal: {
+    contactPrefix: 'Questions? Contact us at',
+    terms: {
+      title: 'Terms & Conditions',
+      intro: 'Terms of use for WismaKu. WismaKu is a learning demo; payments use Midtrans Sandbox.',
+      sections: [
+        {
+          h: '1. Use of the service',
+          p: 'By creating an account or booking, you agree to provide accurate information and use the service reasonably. One account is for one person.',
+        },
+        {
+          h: '2. Booking and payment',
+          p: 'Bookings start as awaiting payment and are cancelled automatically if payment is not completed within 1 hour. A booking is confirmed once payment is received. Prices are shown in Rupiah and include any applicable discounts.',
+        },
+        {
+          h: '3. Cancellation',
+          p: 'Unpaid bookings can be cancelled at any time. Cancellation policies for paid bookings follow each property’s own terms.',
+        },
+        {
+          h: '4. Reviews',
+          p: 'Reviews must be honest and based on your experience. We may remove reviews containing hate speech, spam, or personal information.',
+        },
+        {
+          h: '5. Limitation of liability',
+          p: 'The service is provided as is for demonstration. Do not enter real card or account data; use the Midtrans Sandbox simulator.',
+        },
+      ],
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      intro: 'How WismaKu collects, uses, and protects your data.',
+      sections: [
+        {
+          h: '1. Data we collect',
+          p: 'Name, email, phone number, and booking details you enter. When signing in with Google or Facebook, we receive your name and email from that provider.',
+        },
+        {
+          h: '2. How we use data',
+          p: 'Data is used to process bookings and payments and to show your history. We do not sell your data to third parties.',
+        },
+        {
+          h: '3. Payments',
+          p: 'Payments are processed by Midtrans. WismaKu does not store your card numbers or payment credentials.',
+        },
+        {
+          h: '4. Security',
+          p: 'Passwords are stored hashed by Supabase Auth. Data access is limited per account through Row Level Security.',
+        },
+        {
+          h: '5. Your rights',
+          p: 'You can change your password or delete your account anytime from the Account page. Deleting your account permanently removes your profile, favorites, bookings, and membership.',
+        },
+      ],
+    },
+    faq: {
+      title: 'Help Center / FAQ',
+      intro: 'Answers to the most frequently asked questions.',
+      sections: [
+        {
+          h: 'How do I make a booking?',
+          p: 'Search for a stay, choose a room type and dates, fill in guest details, then pay via Midtrans. You need to sign in before booking.',
+        },
+        {
+          h: 'How long do I have to pay?',
+          p: 'One hour from when the booking is created. After that the booking is cancelled automatically and you need to create a new one.',
+        },
+        {
+          h: 'How do I pay in the Sandbox?',
+          p: 'Pick a payment method in the Midtrans pop-up, then complete it with the Midtrans Sandbox simulator. No real money is used.',
+        },
+        {
+          h: 'I forgot my password. What now?',
+          p: 'In the sign-in window, click "Forgot password?" and enter your email. We will send a link to create a new password.',
+        },
+        {
+          h: 'Who can write a review?',
+          p: 'Any account can write one review per property. Guests with a confirmed booking get a "Verified Guest" badge.',
+        },
+        {
+          h: 'How do I delete my account?',
+          p: 'Open the Account page, go to Account Security, and choose Delete Account. An account cannot be deleted while a confirmed booking is still upcoming.',
+        },
+      ],
+    },
+  },
   footer: {
     about: 'Company',
     help: 'Help',
@@ -460,7 +545,6 @@ export const en = {
     readMore: 'Read more',
     desc: 'An affordable lodging booking platform for business trips and holidays. Clean rooms, free WiFi, and transparent pricing.',
     email: 'cs-indonesia@wismaku.id',
-    followUs: 'Follow Us',
     payment: 'Payment Methods',
     payments: ['Bank Transfer', 'Credit Card', 'Alfamart', 'e-Wallet', 'Pay at Hotel'],
     rights: '© {{year}} WismaKu. All rights reserved. Demo for learning purposes.',

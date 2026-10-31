@@ -453,6 +453,92 @@ export const id = {
     navAria: 'Menu navigasi',
   },
   skipLink: 'Lewati ke konten utama',
+  legal: {
+    contactPrefix: 'Pertanyaan? Hubungi kami di',
+    terms: {
+      title: 'Syarat & Ketentuan',
+      intro:
+        'Ketentuan penggunaan WismaKu. WismaKu adalah demo pembelajaran; transaksi memakai Midtrans Sandbox.',
+      sections: [
+        {
+          h: '1. Penggunaan layanan',
+          p: 'Dengan membuat akun atau memesan, Anda setuju memberikan data yang benar dan menggunakan layanan secara wajar. Satu akun hanya untuk satu orang.',
+        },
+        {
+          h: '2. Pemesanan dan pembayaran',
+          p: 'Pesanan berstatus menunggu pembayaran dan otomatis dibatalkan jika pembayaran tidak selesai dalam 1 jam. Pesanan terkonfirmasi setelah pembayaran diterima. Harga ditampilkan dalam Rupiah dan sudah termasuk diskon yang berlaku.',
+        },
+        {
+          h: '3. Pembatalan',
+          p: 'Pesanan yang belum dibayar dapat dibatalkan kapan saja. Kebijakan pembatalan pesanan yang sudah dibayar mengikuti ketentuan masing-masing penginapan.',
+        },
+        {
+          h: '4. Ulasan',
+          p: 'Ulasan harus jujur dan berdasarkan pengalaman Anda. Kami berhak menghapus ulasan yang mengandung ujaran kebencian, spam, atau informasi pribadi.',
+        },
+        {
+          h: '5. Batasan tanggung jawab',
+          p: 'Layanan disediakan apa adanya untuk tujuan demonstrasi. Jangan memasukkan data kartu atau rekening sungguhan; gunakan simulator Midtrans Sandbox.',
+        },
+      ],
+    },
+    privacy: {
+      title: 'Kebijakan Privasi',
+      intro: 'Cara WismaKu mengumpulkan, memakai, dan melindungi data Anda.',
+      sections: [
+        {
+          h: '1. Data yang kami kumpulkan',
+          p: 'Nama, email, nomor telepon, dan detail pesanan yang Anda isi. Untuk masuk dengan Google atau Facebook, kami menerima nama dan email dari penyedia tersebut.',
+        },
+        {
+          h: '2. Penggunaan data',
+          p: 'Data dipakai untuk memproses pesanan, pembayaran, dan menampilkan riwayat Anda. Kami tidak menjual data Anda kepada pihak ketiga.',
+        },
+        {
+          h: '3. Pembayaran',
+          p: 'Pembayaran diproses oleh Midtrans. WismaKu tidak menyimpan nomor kartu atau kredensial pembayaran Anda.',
+        },
+        {
+          h: '4. Keamanan',
+          p: 'Password disimpan terenkripsi (hash) oleh Supabase Auth. Akses data dibatasi per akun melalui Row Level Security.',
+        },
+        {
+          h: '5. Hak Anda',
+          p: 'Anda dapat mengubah password atau menghapus akun kapan saja dari halaman Akun. Penghapusan akun menghapus profil, favorit, pesanan, dan keanggotaan Anda secara permanen.',
+        },
+      ],
+    },
+    faq: {
+      title: 'Pusat Bantuan / FAQ',
+      intro: 'Jawaban untuk pertanyaan yang paling sering diajukan.',
+      sections: [
+        {
+          h: 'Bagaimana cara memesan?',
+          p: 'Cari penginapan, pilih tipe kamar dan tanggal, isi data tamu, lalu bayar lewat Midtrans. Anda perlu masuk ke akun sebelum memesan.',
+        },
+        {
+          h: 'Berapa lama batas waktu pembayaran?',
+          p: 'Satu jam sejak pesanan dibuat. Setelah itu pesanan otomatis dibatalkan dan Anda perlu membuat pesanan baru.',
+        },
+        {
+          h: 'Bagaimana cara membayar di Sandbox?',
+          p: 'Pilih metode pembayaran di pop-up Midtrans, lalu selesaikan lewat simulator Midtrans Sandbox. Tidak ada uang sungguhan yang dipakai.',
+        },
+        {
+          h: 'Saya lupa password. Apa yang harus dilakukan?',
+          p: 'Pada jendela masuk, klik "Lupa password?" lalu masukkan email Anda. Kami kirim tautan untuk membuat password baru.',
+        },
+        {
+          h: 'Siapa yang bisa menulis ulasan?',
+          p: 'Setiap akun dapat menulis satu ulasan per penginapan. Tamu dengan pesanan terkonfirmasi mendapat lencana "Tamu Terverifikasi".',
+        },
+        {
+          h: 'Bagaimana menghapus akun saya?',
+          p: 'Buka halaman Akun, bagian Keamanan Akun, lalu pilih Hapus Akun. Akun tidak dapat dihapus selama ada pesanan terkonfirmasi yang belum selesai.',
+        },
+      ],
+    },
+  },
   footer: {
     about: 'Perusahaan',
     help: 'Bantuan',
@@ -471,7 +557,6 @@ export const id = {
     readMore: 'Baca selengkapnya',
     desc: 'Platform pemesanan penginapan terjangkau untuk perjalanan bisnis maupun liburan. Kamar bersih, free WiFi, dan harga transparan.',
     email: 'cs-indonesia@wismaku.id',
-    followUs: 'Ikuti Kami',
     payment: 'Metode Pembayaran',
     payments: ['Bank Transfer', 'Kartu Kredit', 'Alfamart', 'e-Wallet', 'Pay at Hotel'],
     rights: '© {{year}} WismaKu. Semua hak dilindungi. Demo tiruan untuk pembelajaran.',

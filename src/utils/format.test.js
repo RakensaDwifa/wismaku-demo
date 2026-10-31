@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { fmtRupiah, fmtDate, toYMD, parseYMD } from './format.js'
+import { addDays } from 'date-fns'
+import { fmtRupiah, fmtDate, toYMD, parseYMD, resolveStayDates } from './format.js'
 
 describe('fmtRupiah', () => {
   it('memformat angka ke format Rupiah id-ID', () => {
@@ -48,5 +49,34 @@ describe('parseYMD', () => {
   it('mengembalikan null untuk input tidak valid', () => {
     expect(parseYMD('')).toBeNull()
     expect(parseYMD('abc')).toBeNull()
+  })
+})
+
+describe('resolveStayDates', () => {
+  it('memakai rentang checkIn dan checkOut bila valid', () => {
+    expect(resolveStayDates({ checkIn: '2026-11-05', checkOut: '2026-11-08' })).toEqual({
+      checkIn: '2026-11-05',
+      checkOut: '2026-11-08',
+      nights: 3,
+    })
+  })
+
+  it('menyesuaikan tanggal dari createdAt + nights saat checkIn kosong pada pesanan lama', () => {
+    expect(
+      resolveStayDates({ checkIn: null, checkOut: null, createdAt: '2026-10-10T08:00:00', nights: 2 }),
+    ).toEqual({
+      checkIn: '2026-10-10',
+      checkOut: '2026-10-12',
+      nights: 2,
+    })
+  })
+
+  it('default ke hari ini -> besok (1 malam) saat memesan tanpa tanggal pencarian', () => {
+    const today = new Date()
+    expect(resolveStayDates({})).toEqual({
+      checkIn: toYMD(today),
+      checkOut: toYMD(addDays(today, 1)),
+      nights: 1,
+    })
   })
 })

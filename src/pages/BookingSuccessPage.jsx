@@ -5,7 +5,7 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import { getBookingById } from '../services/booking.js'
 import { Skeleton } from '../components/Skeletons.jsx'
-import { fmtRupiah, fmtDate } from '../utils/format.js'
+import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -40,6 +40,7 @@ export default function BookingSuccessPage() {
   }, [id])
 
   const subtotal = booking ? booking.roomPrice * booking.nights * booking.rooms : 0
+  const stay = booking ? resolveStayDates(booking) : null
 
   return (
     <>
@@ -102,7 +103,7 @@ export default function BookingSuccessPage() {
                       {booking.hotelName}
                     </Link>
                     <span className="text-rd-muted">
-                      {fmtDate(booking.checkIn, lang)} &rarr; {fmtDate(booking.checkOut, lang)}
+                      {fmtDate(stay.checkIn, lang)} &rarr; {fmtDate(stay.checkOut, lang)}
                     </span>
                     <span className="text-rd-muted">
                       {t('pages.successStayInfo', {

@@ -1,3 +1,5 @@
+import { addDays, differenceInCalendarDays } from 'date-fns'
+
 export const fmtRupiah = (n) => 'Rp ' + n.toLocaleString('id-ID')
 
 export const fmtDate = (iso, lang = 'id') => {
@@ -18,4 +20,20 @@ export const parseYMD = (ymd) => {
   const [y, m, d] = (ymd || '').split('-').map(Number)
   if (!y || !m || !d) return null
   return new Date(y, m - 1, d)
+}
+
+export const resolveStayDates = ({ checkIn, checkOut, createdAt, nights = 1 } = {}) => {
+  const inDate = parseYMD(checkIn)
+  const outDate = parseYMD(checkOut)
+  if (inDate && outDate && outDate > inDate) {
+    return { checkIn, checkOut, nights: differenceInCalendarDays(outDate, inDate) }
+  }
+  const created = createdAt ? new Date(createdAt) : null
+  const base = created && !Number.isNaN(created.getTime()) ? created : new Date()
+  const safeNights = Math.max(1, Number(nights) || 1)
+  return {
+    checkIn: toYMD(base),
+    checkOut: toYMD(addDays(base, safeNights)),
+    nights: safeNights,
+  }
 }

@@ -6,7 +6,7 @@ import Footer from '../components/Footer.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { createSnapTransaction, getBookingById, verifyBookingPayment } from '../services/booking.js'
 import { loadMidtransSnap } from '../lib/midtrans.js'
-import { fmtRupiah, fmtDate } from '../utils/format.js'
+import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -201,13 +201,8 @@ export default function PaymentPage() {
                           })}
                         </p>
                         <p className="mt-0.5 text-[12.5px] text-rd-muted">
-                          {booking.checkIn ? (
-                            <>
-                              {fmtDate(booking.checkIn, lang)} &rarr; {fmtDate(booking.checkOut, lang)}
-                            </>
-                          ) : (
-                            t('bookingBox.noDates')
-                          )}
+                          {fmtDate(resolveStayDates(booking).checkIn, lang)} &rarr;{' '}
+                          {fmtDate(resolveStayDates(booking).checkOut, lang)}
                         </p>
                         <p className="mt-0.5 text-[12.5px] text-rd-muted">
                           {t('payment.underName', { name: booking.guestName })}

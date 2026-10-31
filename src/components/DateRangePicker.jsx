@@ -5,7 +5,12 @@ import { enUS, id as idFns } from 'date-fns/locale'
 import 'react-day-picker/style.css'
 import { useLanguage } from '../i18n/useLanguage.js'
 
-export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
+export default function DateRangePicker({
+  checkIn,
+  checkOut,
+  onSelect,
+  className = 'max-[992px]:col-span-2 max-[992px]:border-b max-[992px]:border-b-[#eee]',
+}) {
   const { lang, t } = useLanguage()
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('checkin')
@@ -49,6 +54,7 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
   }, [open])
 
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
   const nights = checkIn && checkOut ? Math.round((checkOut - checkIn) / 86400000) : 0
   const range = checkIn && checkOut && checkOut > checkIn ? { from: checkIn, to: checkOut } : undefined
 
@@ -76,10 +82,7 @@ export default function DateRangePicker({ checkIn, checkOut, onSelect }) {
   }
 
   return (
-    <div
-      className="relative grid grid-cols-2 items-stretch max-[992px]:col-span-2 max-[992px]:border-b max-[992px]:border-b-[#eee]"
-      ref={wrapRef}
-    >
+    <div className={`relative grid grid-cols-2 items-stretch ${className}`} ref={wrapRef}>
       <div className="relative flex flex-col justify-center border-r border-r-[#eee] px-4 py-[14px] last:border-r-0">
         <button
           className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"

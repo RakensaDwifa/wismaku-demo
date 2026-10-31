@@ -1,24 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AuthModal from './AuthModal.jsx'
+import DateRangePicker from './DateRangePicker.jsx'
 import { getMember, getActiveUser } from '../services/member.js'
-import { fmtRupiah, fmtDate } from '../utils/format.js'
+import { fmtRupiah, fmtDate, parseYMD, toYMD, resolveStayDates } from '../utils/format.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function BookingBox({ hotel, search, rooms = 1, adults = 2, children = 0 }) {
   const { t, lang } = useLanguage()
   const navigate = useNavigate()
   const [roomTypeId, setRoomTypeId] = useState(hotel.roomTypes?.[0]?.id ?? 'standard')
+  const [dateRange, setDateRange] = useState(() =>
+    resolveStayDates({ checkIn: search?.checkIn, checkOut: search?.checkOut }),
+  )
   const [isMember, setIsMember] = useState(false)
   const [user, setUser] = useState(null)
   const [authOpen, setAuthOpen] = useState(false)
 
-  const nights = search?.nights ?? 0
-  const hasDates = Boolean(search?.checkIn && search?.checkOut)
+  const nights = dateRange.nights
   const roomType = hotel.roomTypes?.find((t) => t.id === roomTypeId) ??
     hotel.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel.price }
 
-  const subtotal = roomType.price * (nights || 1) * rooms
+  const subtotal = roomType.price * nights * rooms
   const cancelDays = hotel.policy?.cancelRule.match(/(\d+) hari/)?.[1] ?? '1'
 
   useEffect(() => {
@@ -51,11 +54,9 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
       rooms: String(rooms),
       adults: String(adults),
       children: String(children),
+      checkIn: dateRange.checkIn,
+      checkOut: dateRange.checkOut,
     })
-    if (hasDates) {
-      params.set('checkIn', search.checkIn)
-      params.set('checkOut', search.checkOut)
-    }
     navigate(`/pesan/${hotel.id}?${params.toString()}`)
   }
 
@@ -98,22 +99,26 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
         </div>
       )}
 
-      <div className="mt-4 rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
-        {hasDates ? (
+      <div className="mt-4 rounded-[10px] border border-rd-border bg-white">
+        <DateRangePicker
+          checkIn={parseYMD(dateRange.checkIn)}
+          checkOut={parseYMD(dateRange.checkOut)}
+          onSelect={(from, to) =>
+            setDateRange(resolveStayDates({ checkIn: toYMD(from), checkOut: toYMD(to) }))
+          }
+          className="border-b border-b-[#eee]"
+        />
+        <div className="rounded-b-[10px] bg-rd-soft px-[14px] py-2.5 text-[13px] text-rd-text">
           <p>
-            {fmtDate(search.checkIn, lang)} &rarr; {fmtDate(search.checkOut, lang)}{' '}
+            {fmtDate(dateRange.checkIn, lang)} &rarr; {fmtDate(dateRange.checkOut, lang)}{' '}
             {t('bookingBox.nightsShort', { nights })}
           </p>
-        ) : (
-          <p className="text-rd-muted">{t('bookingBox.noDates')}</p>
-        )}
-        <p className="mt-1">{t('bookingBox.roomsGuests', { rooms, guests: adults + children })}</p>
+          <p className="mt-1">{t('bookingBox.roomsGuests', { rooms, guests: adults + children })}</p>
+        </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between text-[14px] text-rd-text">
-        <span>
-          {t('bookingBox.subtotalCalc', { price: fmtRupiah(roomType.price), nights: nights || 1, rooms })}
-        </span>
+        <span>{t('bookingBox.subtotalCalc', { price: fmtRupiah(roomType.price), nights, rooms })}</span>
         <b>{fmtRupiah(subtotal)}</b>
       </div>
 

@@ -146,7 +146,14 @@ export default function HotelDetailPage() {
 
           <div className="mt-6 grid items-start gap-6 min-[993px]:grid-cols-[1fr_360px]">
             <HotelDetailContent hotel={hotel} />
-            <BookingBox hotel={hotel} search={search} rooms={rooms} adults={adults} children={children} />
+            <BookingBox
+              key={`${hotel.id}-${search.checkIn ?? ''}-${search.checkOut ?? ''}`}
+              hotel={hotel}
+              search={search}
+              rooms={rooms}
+              adults={adults}
+              children={children}
+            />
           </div>
         </div>
       </main>

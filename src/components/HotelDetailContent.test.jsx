@@ -171,4 +171,42 @@ describe('HotelDetailContent (fitur ulasan penginapan)', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Write a Review' })).toBeInTheDocument()
   })
+
+  it('modal semua ulasan: sortir dan filter per bintang', async () => {
+    const user = userEvent.setup()
+    const mk = (id, name, rating, date) => ({
+      id,
+      hotelId: '1',
+      userId: null,
+      name,
+      city: 'Jakarta',
+      rating,
+      text: `Teks ulasan ${name}`,
+      verifiedGuest: false,
+      date,
+    })
+    mockGetReviews.mockResolvedValue([
+      mk('r1', 'Ani', 3, '2026-01-01'),
+      mk('r2', 'Bima', 5, '2026-03-01'),
+      mk('r3', 'Cici', 1, '2026-02-01'),
+      mk('r4', 'Dedi', 5, '2026-02-15'),
+    ])
+    renderDetail()
+
+    await user.click(await screen.findByRole('button', { name: /Lihat Semua Ulasan/ }))
+    const dialog = screen.getByRole('dialog')
+    const names = () =>
+      [...dialog.querySelectorAll('li b')].map((el) => el.textContent.replace(/[✓\s].*$/, '').trim())
+
+    expect(names()).toEqual(['Bima', 'Dedi', 'Cici', 'Ani'])
+
+    await user.selectOptions(screen.getByLabelText('Urutkan'), 'lowest')
+    expect(names()).toEqual(['Cici', 'Ani', 'Bima', 'Dedi'])
+
+    await user.selectOptions(screen.getByLabelText('Bintang'), '5')
+    expect(names()).toEqual(['Bima', 'Dedi'])
+
+    await user.selectOptions(screen.getByLabelText('Bintang'), '2')
+    expect(screen.getByText('Tidak ada ulasan dengan filter ini.')).toBeInTheDocument()
+  })
 })

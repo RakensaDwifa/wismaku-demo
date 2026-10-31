@@ -202,6 +202,8 @@ export const id = {
     processing: 'Membuka Midtrans Snap...',
     verifying: 'Memverifikasi Pembayaran...',
     payNow: 'Bayar Sekarang - {{total}}',
+    expiresIn: 'Selesaikan pembayaran dalam {{time}}',
+    expired: 'Waktu pembayaran habis. Buat pesanan baru.',
     continueSnap: 'Lanjutkan Pembayaran - {{total}}',
     checkStatus: 'Cek Status Pembayaran',
     changeMethod: 'Ganti Metode Pembayaran',

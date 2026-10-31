@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
@@ -14,6 +14,8 @@ import { getMember, getActiveUser, openAuthModal } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 const MEMBER_DISCOUNT_PCT = 0.1
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PHONE_RE = /^[0-9+\-\s]{8,15}$/
 
 export default function BookingPage() {
   const { t, lang } = useLanguage()
@@ -44,6 +46,15 @@ export default function BookingPage() {
   const [couponError, setCouponError] = useState('')
   const [isMember, setIsMember] = useState(false)
   const [user, setUser] = useState(null)
+  const nameRef = useRef(null)
+  const emailRef = useRef(null)
+  const phoneRef = useRef(null)
+
+  const trimmedName = form.name.trim()
+  const trimmedEmail = form.email.trim()
+  const trimmedPhone = form.phone.trim()
+  const isGuestDataComplete =
+    trimmedName.length >= 3 && EMAIL_RE.test(trimmedEmail) && PHONE_RE.test(trimmedPhone)
 
   const roomType = hotel?.roomTypes?.find((t) => t.id === roomTypeId) ??
     hotel?.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel?.price ?? 0 }
@@ -104,20 +115,23 @@ export default function BookingPage() {
     }
   }
 
+  const focusField = (ref, msg) => {
+    setError(msg)
+    ref.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    ref.current?.focus()
+  }
+
   const submit = async (e) => {
     e.preventDefault()
+    if (trimmedName.length < 3) return focusField(nameRef, t('booking.nameTooShort'))
+    if (!EMAIL_RE.test(trimmedEmail)) return focusField(emailRef, t('booking.emailInvalid'))
+    if (!PHONE_RE.test(trimmedPhone)) return focusField(phoneRef, t('booking.phoneInvalid'))
     const currentUser = user ?? (await getActiveUser())
     if (!currentUser) {
       setError(t('booking.loginRequired'))
       openAuthModal('login')
       return
     }
-    const name = form.name.trim()
-    const email = form.email.trim()
-    const phone = form.phone.trim()
-    if (name.length < 3) return setError(t('booking.nameTooShort'))
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError(t('booking.emailInvalid'))
-    if (!/^[0-9+\-\s]{8,15}$/.test(phone)) return setError(t('booking.phoneInvalid'))
     setBusy(true)
     try {
       const booking = await createBooking({
@@ -136,9 +150,9 @@ export default function BookingPage() {
         couponDiscount: couponAmount,
         memberDiscount,
         totalPrice: total,
-        guestName: name,
-        email,
-        phone,
+        guestName: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone,
       })
       navigate(`/bayar/${booking.id}`)
     } catch (err) {
@@ -287,6 +301,7 @@ export default function BookingPage() {
                   <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
                     {t('booking.fullName')}
                     <input
+                      ref={nameRef}
                       className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                       type="text"
                       value={form.name}
@@ -297,6 +312,7 @@ export default function BookingPage() {
                   <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
                     {t('booking.email')}
                     <input
+                      ref={emailRef}
                       className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                       type="email"
                       value={form.email}
@@ -307,6 +323,7 @@ export default function BookingPage() {
                   <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
                     {t('booking.phone')}
                     <input
+                      ref={phoneRef}
                       className="rounded-[9px] border border-rd-border px-3 py-2.5 text-[14px] transition-[border-color] duration-150 focus:border-rd focus:outline-none"
                       type="tel"
                       value={form.phone}
@@ -314,12 +331,17 @@ export default function BookingPage() {
                       placeholder={t('booking.phonePlaceholder')}
                     />
                   </label>
-                  {error && <p className="text-[12.5px] font-bold text-rd">{error}</p>}
+                  {error && <p className="text-[12.5px] font-bold text-rd min-[993px]:hidden">{error}</p>}
                   <button className="btn btn-primary min-[993px]:hidden" type="submit" disabled={busy}>
                     {busy
                       ? t('booking.processing')
                       : t('booking.confirmWithTotal', { total: fmtRupiah(total) })}
                   </button>
+                  {!error && !isGuestDataComplete && (
+                    <p className="rounded-[9px] border border-[#fde68a] bg-[#fffbeb] px-3 py-2 text-center text-[12px] font-semibold leading-[1.45] text-[#92400e] min-[993px]:hidden">
+                      {t('booking.fillGuestDataHint')}
+                    </p>
+                  )}
                 </form>
               </section>
             </div>
@@ -362,6 +384,18 @@ export default function BookingPage() {
               >
                 {busy ? t('booking.processing') : t('booking.confirm')}
               </button>
+              {error ? (
+                <p
+                  role="alert"
+                  className="mt-2.5 rounded-[9px] border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-center text-[12px] font-bold leading-[1.45] text-[#dc2626]"
+                >
+                  {error}
+                </p>
+              ) : !isGuestDataComplete ? (
+                <p className="mt-2.5 rounded-[9px] border border-[#fde68a] bg-[#fffbeb] px-3 py-2 text-center text-[12px] font-semibold leading-[1.45] text-[#92400e]">
+                  {t('booking.fillGuestDataHint')}
+                </p>
+              ) : null}
               <p className="mt-3 text-center text-[11.5px] leading-[1.5] text-rd-muted">
                 {t('booking.demoNote')}
               </p>

@@ -7,7 +7,7 @@ import BookingCard from '../components/BookingCard.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import AuthModal from '../components/AuthModal.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
-import { getBookings, cancelBooking } from '../services/booking.js'
+import { getBookings, cancelBooking, deleteBooking } from '../services/booking.js'
 import { getActiveUser } from '../services/member.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
@@ -18,6 +18,7 @@ export default function BookingsPage() {
   const [orders, setOrders] = useState(null)
   const [user, setUser] = useState(null)
   const [error, setError] = useState(null)
+  const [actionError, setActionError] = useState('')
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
 
@@ -53,13 +54,25 @@ export default function BookingsPage() {
     }
   }, [])
 
-  const remove = async (id) => {
+  const handleCancel = async (id) => {
+    setActionError('')
     try {
       await cancelBooking(id)
-    } catch {
-      /* abaikan */
+    } catch (err) {
+      setActionError(err.message || t('bookings.cancelFailed'))
     }
     load()
+  }
+
+  const handleDelete = async (id) => {
+    setActionError('')
+    try {
+      await deleteBooking(id)
+      setOrders((prev) => (prev ? prev.filter((o) => o.id !== id) : prev))
+    } catch (err) {
+      setActionError(err.message || t('bookings.deleteFailed'))
+      load()
+    }
   }
 
   const load = async () => {
@@ -150,11 +163,21 @@ export default function BookingsPage() {
               </Link>
             </div>
           ) : (
-            <ul className="grid list-none gap-[14px] p-0">
-              {orders.map((o) => (
-                <BookingCard key={o.id} booking={o} onCancel={remove} />
-              ))}
-            </ul>
+            <div className="mt-6">
+              {actionError && (
+                <p
+                  role="alert"
+                  className="mb-3 rounded-[10px] border border-[#fecaca] bg-[#fef2f2] px-3.5 py-2.5 text-[13px] font-bold text-[#dc2626]"
+                >
+                  {actionError}
+                </p>
+              )}
+              <ul className="grid list-none gap-[14px] p-0">
+                {orders.map((o) => (
+                  <BookingCard key={o.id} booking={o} onCancel={handleCancel} onDelete={handleDelete} />
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </main>

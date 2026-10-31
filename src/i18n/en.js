@@ -345,6 +345,12 @@ export const en = {
     cancelDesc: 'Booking {{id}} — {{name}} will be cancelled and its status will change to "Cancelled".',
     keep: 'Keep Booking',
     confirmCancel: 'Yes, Cancel',
+    cancelFailed: 'Failed to cancel booking.',
+    delete: 'Delete',
+    deleteTitle: 'Delete Booking History?',
+    deleteDesc: 'Booking {{id}} — {{name}} will be permanently removed from My Bookings.',
+    confirmDelete: 'Yes, Delete',
+    deleteFailed: 'Failed to delete booking.',
   },
   member: {
     title: 'Join WismaClub, Free!',

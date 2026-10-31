@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { addReview, getReviews } from './review.js'
+import { addReview, deleteReview, getReviews, updateReview } from './review.js'
 
 const { mockFrom, mockGetActiveUser, qb } = vi.hoisted(() => {
   const mockGetActiveUser = vi.fn().mockResolvedValue(null)
@@ -11,9 +11,13 @@ const { mockFrom, mockGetActiveUser, qb } = vi.hoisted(() => {
       maybeSingle: vi.fn(() => Promise.resolve(resolved)),
       single: vi.fn(() => Promise.resolve(resolved)),
       insert: vi.fn(() => b),
+      update: vi.fn(() => b),
+      delete: vi.fn(() => b),
       order: vi.fn(() => b),
     }
     b.insert.mockReturnValue(b)
+    b.update.mockReturnValue(b)
+    b.delete.mockReturnValue(b)
     b.select.mockReturnValue(b)
     b.then = (resolve, reject) => Promise.resolve(resolved).then(resolve, reject)
     return b
@@ -95,5 +99,47 @@ describe('addReview / getReviews', () => {
   it('tidak menampilkan ulasan hotel lain', async () => {
     mockFrom.mockImplementation(() => qb({ data: [], error: null }))
     expect(await getReviews('999')).toEqual([])
+  })
+
+  it('memetakan userId dan verifiedGuest serta mendukung updateReview & deleteReview milik sendiri', async () => {
+    mockGetActiveUser.mockResolvedValue({ id: 'u-1', name: 'Dewi Lestari' })
+    mockFrom.mockImplementation(() =>
+      qb({
+        data: {
+          id: 'r-9',
+          hotel_id: '1',
+          user_id: 'u-1',
+          name: 'Dewi Lestari',
+          city: 'Bandung',
+          rating: 4,
+          text: 'Kamar rapi dan sarapan enak sekali.',
+          verified_guest: true,
+          created_at: '2026-10-31T00:00:00Z',
+        },
+        error: null,
+      }),
+    )
+
+    const updated = await updateReview('r-9', {
+      ...payload,
+      city: 'Bandung',
+      rating: 4,
+      text: 'Kamar rapi dan sarapan enak sekali.',
+    })
+    expect(updated.userId).toBe('u-1')
+    expect(updated.verifiedGuest).toBe(true)
+    expect(updated.city).toBe('Bandung')
+
+    mockFrom.mockImplementation(() => qb({ data: [{ id: 'r-9' }], error: null }))
+    await expect(deleteReview('r-9')).resolves.toBeUndefined()
+
+    mockFrom.mockImplementation(() => qb({ data: [], error: null }))
+    await expect(deleteReview('r-other')).rejects.toThrow(/bukan milik Anda/i)
+  })
+
+  it('menolak updateReview dan deleteReview bila belum login', async () => {
+    mockGetActiveUser.mockResolvedValue(null)
+    await expect(updateReview('r-1', payload)).rejects.toThrow(/masuk terlebih dahulu/i)
+    await expect(deleteReview('r-1')).rejects.toThrow(/masuk terlebih dahulu/i)
   })
 })

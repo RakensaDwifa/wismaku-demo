@@ -80,4 +80,21 @@ describe('AccountSecurity', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('masih ada pesanan')
     expect(onDeleted).not.toHaveBeenCalled()
   })
+
+  it('dapat menampilkan dan menyembunyikan password baru saat toggle diklik', async () => {
+    const user = userEvent.setup()
+    renderSecurity()
+
+    const pwInput = screen.getByLabelText('Password Baru')
+    expect(pwInput).toHaveAttribute('type', 'password')
+
+    const toggleBtn = screen.getByRole('button', { name: 'Lihat password' })
+    await user.click(toggleBtn)
+
+    expect(pwInput).toHaveAttribute('type', 'text')
+    expect(screen.getByRole('button', { name: 'Sembunyikan password' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Sembunyikan password' }))
+    expect(pwInput).toHaveAttribute('type', 'password')
+  })
 })

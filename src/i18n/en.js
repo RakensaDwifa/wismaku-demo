@@ -576,6 +576,8 @@ export const en = {
     email: 'Email',
     emailPlaceholder: 'e.g. budi@email.com',
     password: 'Password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     passwordPlaceholder: 'At least 8 characters, letters + numbers',
     passwordLoginPlaceholder: 'Enter your account password',
     passwordTooShort: 'Password must be at least 8 characters.',

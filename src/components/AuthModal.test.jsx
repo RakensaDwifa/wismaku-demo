@@ -142,4 +142,21 @@ describe('AuthModal', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('Jika email terdaftar')
   })
+
+  it('dapat menampilkan dan menyembunyikan password saat toggle diklik', async () => {
+    const user = userEvent.setup()
+    renderModal()
+
+    const pwInput = screen.getByLabelText('Password')
+    expect(pwInput).toHaveAttribute('type', 'password')
+
+    const toggleBtn = screen.getByRole('button', { name: 'Lihat password' })
+    await user.click(toggleBtn)
+
+    expect(pwInput).toHaveAttribute('type', 'text')
+    expect(screen.getByRole('button', { name: 'Sembunyikan password' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Sembunyikan password' }))
+    expect(pwInput).toHaveAttribute('type', 'password')
+  })
 })

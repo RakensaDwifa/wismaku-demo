@@ -588,6 +588,8 @@ export const id = {
     email: 'Email',
     emailPlaceholder: 'cth: budi@email.com',
     password: 'Password',
+    showPassword: 'Lihat password',
+    hidePassword: 'Sembunyikan password',
     passwordPlaceholder: 'Minimal 8 karakter, huruf + angka',
     passwordLoginPlaceholder: 'Masukkan password akunmu',
     passwordTooShort: 'Password minimal 8 karakter.',

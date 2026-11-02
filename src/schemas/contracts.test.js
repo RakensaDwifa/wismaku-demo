@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BookingPayloadSchema, parsePayload } from './contracts.js'
+import { BookingPayloadSchema, ResetVerifyOtpSchema, parsePayload } from './contracts.js'
 
 const validBooking = {
   hotelId: 'H-1',
@@ -68,5 +68,34 @@ describe('parsePayload', () => {
       expect(err.message).toContain(';')
       expect(err.message.length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('ResetVerifyOtpSchema', () => {
+  it('menerima email, OTP 6-8 digit, dan password valid', () => {
+    const res = ResetVerifyOtpSchema.safeParse({
+      email: 'budi@example.com',
+      token: '12345678',
+      password: 'PassBaru123',
+    })
+    expect(res.success).toBe(true)
+  })
+
+  it('menolak token non-angka atau panjang tidak sesuai', () => {
+    expect(
+      ResetVerifyOtpSchema.safeParse({
+        email: 'budi@example.com',
+        token: '1234',
+        password: 'PassBaru123',
+      }).success,
+    ).toBe(false)
+
+    expect(
+      ResetVerifyOtpSchema.safeParse({
+        email: 'budi@example.com',
+        token: 'abcdefgh',
+        password: 'PassBaru123',
+      }).success,
+    ).toBe(false)
   })
 })

@@ -56,6 +56,15 @@ export const LoginPayloadSchema = z.object({
 
 export const ResetRequestSchema = z.object({ email: EmailField })
 
+export const ResetVerifyOtpSchema = z.object({
+  email: EmailField,
+  token: z
+    .string()
+    .trim()
+    .regex(/^\d{6,8}$/, 'Kode verifikasi harus berupa 6-8 digit angka.'),
+  password: NewPasswordField,
+})
+
 export const ChangePasswordSchema = z.object({ password: NewPasswordField })
 
 export const PartnerPayloadSchema = z.object({

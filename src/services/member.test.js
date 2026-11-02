@@ -13,6 +13,7 @@ import {
   registerUser,
   requestPasswordReset,
   updatePassword,
+  verifyPasswordResetOtp,
 } from './member.js'
 
 // ---------------------------------------------------------------------------
@@ -28,6 +29,7 @@ const { mockAuth, mockFrom, mockInvoke, qb } = vi.hoisted(() => {
     signInWithOAuth: vi.fn(),
     resetPasswordForEmail: vi.fn(),
     updateUser: vi.fn(),
+    verifyOtp: vi.fn(),
     onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
   }
   const mockInvoke = vi.fn()
@@ -237,6 +239,39 @@ describe('requestPasswordReset / updatePassword', () => {
     await expect(updatePassword('abc')).rejects.toThrow()
     await expect(updatePassword('hurufsaja')).rejects.toThrow(/huruf dan angka/i)
     expect(mockAuth.updateUser).not.toHaveBeenCalled()
+  })
+
+  it('memverifikasi OTP recovery lalu memperbarui password pengguna', async () => {
+    mockAuth.verifyOtp.mockResolvedValue({ data: { user: { id: 'u-1' } }, error: null })
+    mockAuth.updateUser.mockResolvedValue({ data: {}, error: null })
+
+    await verifyPasswordResetOtp({
+      email: 'budi@email.com',
+      token: '12345678',
+      password: 'PassBaru123',
+    })
+
+    expect(mockAuth.verifyOtp).toHaveBeenCalledWith({
+      email: 'budi@email.com',
+      token: '12345678',
+      type: 'recovery',
+    })
+    expect(mockAuth.updateUser).toHaveBeenCalledWith({ password: 'PassBaru123' })
+  })
+
+  it('gagal verifikasi jika token OTP ditolak Supabase', async () => {
+    mockAuth.verifyOtp.mockResolvedValue({
+      data: null,
+      error: new Error('Token has expired or is invalid'),
+    })
+
+    await expect(
+      verifyPasswordResetOtp({
+        email: 'budi@email.com',
+        token: '000000',
+        password: 'PassBaru123',
+      }),
+    ).rejects.toThrow('Token has expired or is invalid')
   })
 })
 

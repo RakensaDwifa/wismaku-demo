@@ -4,6 +4,7 @@ import {
   LoginPayloadSchema,
   MemberPayloadSchema,
   ResetRequestSchema,
+  ResetVerifyOtpSchema,
   PartnerPayloadSchema,
   UserPayloadSchema,
   parsePayload,
@@ -178,6 +179,22 @@ export async function requestPasswordReset(email) {
     redirectTo: `${redirectTo() ?? ''}/akun`,
   })
   if (error) throw new Error(error.message)
+}
+
+export async function verifyPasswordResetOtp({ email, token, password }) {
+  if (!supabase) throw notConfigured()
+  const data = parsePayload(ResetVerifyOtpSchema, { email, token, password })
+  const { error: otpError } = await supabase.auth.verifyOtp({
+    email: data.email,
+    token: data.token,
+    type: 'recovery',
+  })
+  if (otpError) throw new Error(otpError.message)
+
+  const { error: updateError } = await supabase.auth.updateUser({ password: data.password })
+  if (updateError) throw new Error(updateError.message)
+
+  notify()
 }
 
 export async function updatePassword(password) {

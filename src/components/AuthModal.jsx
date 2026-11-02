@@ -5,6 +5,7 @@ import {
   loginGoogle,
   loginFacebook,
   requestPasswordReset,
+  verifyPasswordResetOtp,
 } from '../services/member.js'
 import Modal from './ui/Modal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
@@ -17,6 +18,9 @@ const errorMessage = (error, t) => {
   if (error?.code === 'OAUTH_NOT_CONFIGURED') return t('auth.oauthNotConfigured')
   if (error?.code === 'SUPABASE_NOT_CONFIGURED') return t('auth.cryptoUnavailable')
   if (error?.code === 'INVALID_CREDENTIALS') return t('auth.invalidCredentials')
+  if (msg.includes('token') || msg.includes('otp') || msg.includes('expired')) {
+    return t('auth.invalidOtp')
+  }
   if (msg.includes('already') && msg.includes('registered')) return t('auth.emailTaken')
   if (msg.includes('invalid') && (msg.includes('credential') || msg.includes('login'))) {
     return t('auth.invalidCredentials')
@@ -35,6 +39,8 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
   const [busy, setBusy] = useState(false)
   const [resetSent, setResetSent] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [forgotStep, setForgotStep] = useState('email')
+  const [otp, setOtp] = useState('')
 
   const fail = (message, field) => {
     setError(message)
@@ -53,6 +59,8 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     setErrorField('')
     setResetSent(false)
     setShowPassword(false)
+    setForgotStep('email')
+    setOtp('')
   }
 
   const submit = async (e) => {
@@ -62,14 +70,38 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     const password = form.password
 
     if (tab === 'forgot') {
-      if (!EMAIL_RE.test(email)) return fail(t('member.emailInvalid'), 'email')
+      if (forgotStep === 'email') {
+        if (!EMAIL_RE.test(email)) return fail(t('member.emailInvalid'), 'email')
+        setBusy(true)
+        try {
+          await requestPasswordReset(email)
+          setResetSent(true)
+          setForgotStep('verify')
+        } catch {
+          // Jangan bocorkan apakah email terdaftar: tetap lanjutkan ke step verifikasi.
+          setResetSent(true)
+          setForgotStep('verify')
+        } finally {
+          setBusy(false)
+        }
+        return
+      }
+
+      // Step verifikasi OTP
+      const cleanOtp = otp.trim()
+      if (!/^\d{6,8}$/.test(cleanOtp)) return fail(t('auth.invalidOtp'), 'otp')
+      if (password.length < 8) return fail(t('auth.passwordTooShort'), 'password')
+      if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+        return fail(t('auth.weakPassword'), 'password')
+      }
+
       setBusy(true)
       try {
-        await requestPasswordReset(email)
-        setResetSent(true)
-      } catch {
-        // Jangan bocorkan apakah email terdaftar: tampilkan pesan sukses yang sama.
-        setResetSent(true)
+        await verifyPasswordResetOtp({ email, token: cleanOtp, password })
+        onClose()
+      } catch (err) {
+        setError(errorMessage(err, t))
+        setErrorField('otp')
       } finally {
         setBusy(false)
       }
@@ -136,7 +168,11 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               ? t('auth.forgotTitle')
               : t('auth.tabRegister')}
         </h3>
-        {tab === 'forgot' && <p className="mt-1 text-[13px] text-rd-muted">{t('auth.forgotDesc')}</p>}
+        {tab === 'forgot' && (
+          <p className="mt-1 text-[13px] text-rd-muted">
+            {forgotStep === 'email' ? t('auth.forgotDesc') : t('auth.resetOtpHint', { email: form.email })}
+          </p>
+        )}
         <form className="mt-3 flex flex-col gap-3" onSubmit={submit} noValidate>
           {tab === 'register' && (
             <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
@@ -153,88 +189,197 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               />
             </label>
           )}
-          <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
-            {t('auth.email')}
-            <input
-              className={inputCls}
-              type="email"
-              value={form.email}
-              onChange={set('email')}
-              placeholder={t('auth.emailPlaceholder')}
-              autoComplete="email"
-              aria-invalid={errorField === 'email'}
-              aria-describedby={errorField === 'email' ? 'auth-modal-error' : undefined}
-            />
-          </label>
-          {tab !== 'forgot' && (
-            <div className="flex flex-col gap-[5px]">
-              <label htmlFor="auth-password" className="text-[12.5px] font-bold text-rd-text">
-                {t('auth.password')}
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  id="auth-password"
-                  className={`${inputCls} w-full pr-10`}
-                  type={showPassword ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={set('password')}
-                  placeholder={
-                    tab === 'register' ? t('auth.passwordPlaceholder') : t('auth.passwordLoginPlaceholder')
-                  }
-                  autoComplete={tab === 'register' ? 'new-password' : 'current-password'}
-                  aria-invalid={errorField === 'password'}
-                  aria-describedby={
-                    errorField === 'password'
-                      ? tab === 'register'
-                        ? 'auth-modal-error auth-password-hint'
-                        : 'auth-modal-error'
-                      : tab === 'register'
-                        ? 'auth-password-hint'
-                        : undefined
-                  }
-                />
+
+          {tab === 'forgot' && forgotStep === 'verify' ? (
+            <>
+              <div className="flex items-center justify-between rounded-[9px] bg-rd-soft px-3 py-2 text-[12.5px]">
+                <span className="truncate text-rd-text">
+                  <strong>{form.email}</strong>
+                </span>
                 <button
                   type="button"
-                  className="absolute right-2.5 grid size-7 place-items-center rounded text-rd-muted transition-colors hover:text-rd-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
-                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                  aria-pressed={showPassword}
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="ml-2 shrink-0 font-extrabold text-rd hover:underline"
+                  onClick={() => {
+                    setForgotStep('email')
+                    setError('')
+                    setErrorField('')
+                    setResetSent(false)
+                  }}
                 >
-                  {showPassword ? (
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="18"
-                      height="18"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  ) : (
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="18"
-                      height="18"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
+                  {t('auth.resetChangeEmail')}
                 </button>
               </div>
-            </div>
+
+              <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
+                {t('auth.resetOtpLabel')}
+                <input
+                  id="auth-otp"
+                  className={inputCls}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={otp}
+                  onChange={(e) => {
+                    setOtp(e.target.value.replace(/\D/g, '').slice(0, 8))
+                    setError('')
+                    setErrorField('')
+                  }}
+                  placeholder={t('auth.resetOtpPlaceholder')}
+                  aria-invalid={errorField === 'otp'}
+                  aria-describedby={errorField === 'otp' ? 'auth-modal-error' : undefined}
+                />
+              </label>
+
+              <div className="flex flex-col gap-[5px]">
+                <label htmlFor="auth-password" className="text-[12.5px] font-bold text-rd-text">
+                  {t('auth.resetNewPassword')}
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    id="auth-password"
+                    className={`${inputCls} w-full pr-10`}
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={set('password')}
+                    placeholder={t('auth.passwordPlaceholder')}
+                    autoComplete="new-password"
+                    aria-invalid={errorField === 'password'}
+                    aria-describedby={
+                      errorField === 'password' ? 'auth-modal-error auth-password-hint' : 'auth-password-hint'
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-2.5 grid size-7 place-items-center rounded text-rd-muted transition-colors hover:text-rd-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+                    aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <label className="flex flex-col gap-[5px] text-[12.5px] font-bold text-rd-text">
+                {t('auth.email')}
+                <input
+                  className={inputCls}
+                  type="email"
+                  value={form.email}
+                  onChange={set('email')}
+                  placeholder={t('auth.emailPlaceholder')}
+                  autoComplete="email"
+                  aria-invalid={errorField === 'email'}
+                  aria-describedby={errorField === 'email' ? 'auth-modal-error' : undefined}
+                />
+              </label>
+
+              {tab !== 'forgot' && (
+                <div className="flex flex-col gap-[5px]">
+                  <label htmlFor="auth-password" className="text-[12.5px] font-bold text-rd-text">
+                    {t('auth.password')}
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      id="auth-password"
+                      className={`${inputCls} w-full pr-10`}
+                      type={showPassword ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={set('password')}
+                      placeholder={
+                        tab === 'register'
+                          ? t('auth.passwordPlaceholder')
+                          : t('auth.passwordLoginPlaceholder')
+                      }
+                      autoComplete={tab === 'register' ? 'new-password' : 'current-password'}
+                      aria-invalid={errorField === 'password'}
+                      aria-describedby={
+                        errorField === 'password'
+                          ? tab === 'register'
+                            ? 'auth-modal-error auth-password-hint'
+                            : 'auth-modal-error'
+                          : tab === 'register'
+                            ? 'auth-password-hint'
+                            : undefined
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-2.5 grid size-7 place-items-center rounded text-rd-muted transition-colors hover:text-rd-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+                      aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? (
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="18"
+                          height="18"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="18"
+                          height="18"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
+
           {tab === 'login' && (
             <button
               className="self-end text-[12.5px] font-extrabold text-rd hover:underline"
@@ -249,7 +394,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               {t('auth.resetSent')}
             </p>
           )}
-          {tab === 'register' && (
+          {(tab === 'register' || (tab === 'forgot' && forgotStep === 'verify')) && (
             <p id="auth-password-hint" className="text-[11.5px] text-rd-muted">
               {t('auth.passwordHint')}
             </p>
@@ -270,12 +415,14 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               : tab === 'login'
                 ? t('auth.login')
                 : tab === 'forgot'
-                  ? t('auth.sendReset')
+                  ? forgotStep === 'email'
+                    ? t('auth.sendReset')
+                    : t('auth.resetVerifyBtn')
                   : t('auth.register')}
           </button>
         </form>
         {tab === 'forgot' && (
-          <p className="mt-3 text-[12.5px]">
+          <div className="mt-3 flex items-center justify-between text-[12.5px]">
             <button
               className="font-extrabold text-rd hover:underline"
               type="button"
@@ -283,7 +430,28 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
             >
               {t('auth.backToLogin')}
             </button>
-          </p>
+            {forgotStep === 'verify' && (
+              <button
+                className="font-bold text-rd-muted hover:text-rd hover:underline"
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true)
+                  setError('')
+                  try {
+                    await requestPasswordReset(form.email.trim())
+                    setResetSent(true)
+                  } catch {
+                    setResetSent(true)
+                  } finally {
+                    setBusy(false)
+                  }
+                }}
+              >
+                {t('auth.resetResendBtn')}
+              </button>
+            )}
+          </div>
         )}
         {tab === 'login' && (
           <p className="mt-3 text-[12.5px] text-rd-muted">

@@ -7,11 +7,13 @@ import { LanguageProvider } from '../i18n/index.jsx'
 const mockLoginUser = vi.fn()
 const mockRegisterUser = vi.fn()
 const mockRequestReset = vi.fn()
+const mockVerifyOtp = vi.fn()
 
 vi.mock('../services/member.js', () => ({
   loginUser: (...args) => mockLoginUser(...args),
   registerUser: (...args) => mockRegisterUser(...args),
   requestPasswordReset: (...args) => mockRequestReset(...args),
+  verifyPasswordResetOtp: (...args) => mockVerifyOtp(...args),
 }))
 
 const renderModal = (props = {}) => {
@@ -31,6 +33,8 @@ describe('AuthModal', () => {
     localStorage.clear()
     mockLoginUser.mockReset()
     mockRegisterUser.mockReset()
+    mockRequestReset.mockReset()
+    mockVerifyOtp.mockReset()
   })
 
   it('menolak password kurang dari 8 karakter saat mendaftar', async () => {
@@ -115,32 +119,70 @@ describe('AuthModal', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled())
   })
 
-  it('alur lupa password: kirim tautan dan tampilkan pesan netral', async () => {
+  it('alur lupa password: kirim kode verifikasi lalu selesaikan dengan OTP dan password baru', async () => {
     const user = userEvent.setup()
     mockRequestReset.mockResolvedValue(undefined)
-    renderModal()
+    mockVerifyOtp.mockResolvedValue(undefined)
+    const { onClose } = renderModal()
 
     await user.click(screen.getByRole('button', { name: 'Lupa password?' }))
     expect(screen.getByRole('heading', { name: 'Reset Password' })).toBeInTheDocument()
-    expect(screen.queryByLabelText('Password')).not.toBeInTheDocument()
 
     await user.type(screen.getByLabelText('Email'), 'siti@email.com')
-    await user.click(screen.getByRole('button', { name: 'Kirim Tautan Reset' }))
+    await user.click(screen.getByRole('button', { name: 'Kirim Kode Verifikasi' }))
 
     expect(await screen.findByRole('status')).toHaveTextContent('Jika email terdaftar')
     expect(mockRequestReset).toHaveBeenCalledWith('siti@email.com')
+
+    // Langkah 2: verifikasi OTP + password baru
+    const otpInput = await screen.findByLabelText('Kode Verifikasi (OTP)')
+    expect(otpInput).toBeInTheDocument()
+    const newPwInput = screen.getByLabelText('Password Baru')
+    expect(newPwInput).toBeInTheDocument()
+
+    await user.type(otpInput, '12345678')
+    await user.type(newPwInput, 'BaruPass123')
+    await user.click(screen.getByRole('button', { name: 'Verifikasi & Simpan Password' }))
+
+    await waitFor(() => {
+      expect(mockVerifyOtp).toHaveBeenCalledWith({
+        email: 'siti@email.com',
+        token: '12345678',
+        password: 'BaruPass123',
+      })
+      expect(onClose).toHaveBeenCalled()
+    })
   })
 
-  it('lupa password menampilkan pesan netral walau service gagal (tidak bocorkan email)', async () => {
+  it('lupa password menampilkan step verifikasi walau service gagal (tidak bocorkan email)', async () => {
     const user = userEvent.setup()
     mockRequestReset.mockRejectedValue(new Error('User not found'))
     renderModal()
 
     await user.click(screen.getByRole('button', { name: 'Lupa password?' }))
     await user.type(screen.getByLabelText('Email'), 'tidak-ada@email.com')
-    await user.click(screen.getByRole('button', { name: 'Kirim Tautan Reset' }))
+    await user.click(screen.getByRole('button', { name: 'Kirim Kode Verifikasi' }))
 
     expect(await screen.findByRole('status')).toHaveTextContent('Jika email terdaftar')
+    expect(await screen.findByLabelText('Kode Verifikasi (OTP)')).toBeInTheDocument()
+  })
+
+  it('menolak format OTP yang salah saat verifikasi', async () => {
+    const user = userEvent.setup()
+    mockRequestReset.mockResolvedValue(undefined)
+    renderModal()
+
+    await user.click(screen.getByRole('button', { name: 'Lupa password?' }))
+    await user.type(screen.getByLabelText('Email'), 'siti@email.com')
+    await user.click(screen.getByRole('button', { name: 'Kirim Kode Verifikasi' }))
+
+    const otpInput = await screen.findByLabelText('Kode Verifikasi (OTP)')
+    await user.type(otpInput, '123')
+    await user.type(screen.getByLabelText('Password Baru'), 'BaruPass123')
+    await user.click(screen.getByRole('button', { name: 'Verifikasi & Simpan Password' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Kode verifikasi salah/i)
+    expect(mockVerifyOtp).not.toHaveBeenCalled()
   })
 
   it('dapat menampilkan dan menyembunyikan password saat toggle diklik', async () => {

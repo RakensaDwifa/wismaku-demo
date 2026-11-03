@@ -36,8 +36,12 @@ vi.mock('../services/member.js', () => ({
   openAuthModal: vi.fn(),
 }))
 
+const mockApplyCoupon = vi.fn()
+const mockFetchCoupons = vi.fn()
+
 vi.mock('../services/coupon.js', () => ({
-  applyCoupon: vi.fn(),
+  applyCoupon: (...args) => mockApplyCoupon(...args),
+  fetchCoupons: (...args) => mockFetchCoupons(...args),
 }))
 
 vi.mock('../services/booking.js', () => ({
@@ -59,6 +63,33 @@ const renderBookingPage = () =>
 describe('BookingPage (panduan Data Pemesan)', () => {
   beforeEach(() => {
     mockCreateBooking.mockReset()
+    mockApplyCoupon.mockReset()
+    mockFetchCoupons
+      .mockReset()
+      .mockResolvedValue([{ code: 'WISMA20', label: 'Diskon 20%', pct: 20, maxDiscount: 200000 }])
+  })
+
+  it('menampilkan chip kupon cepat dan dapat dipilih langsung', async () => {
+    const user = userEvent.setup()
+    mockApplyCoupon.mockResolvedValue({
+      code: 'WISMA20',
+      label: 'Diskon 20%',
+      pct: 20,
+      maxDiscount: 200000,
+      amount: 80000,
+    })
+
+    renderBookingPage()
+
+    const couponChip = await screen.findByRole('button', { name: /WISMA20/i })
+    expect(couponChip).toBeInTheDocument()
+
+    await user.click(couponChip)
+
+    await waitFor(() => {
+      expect(mockApplyCoupon).toHaveBeenCalledWith('WISMA20', expect.any(Number))
+    })
+    expect(await screen.findByText(/Kupon WISMA20 berlaku/i)).toBeInTheDocument()
   })
 
   it('menampilkan info pengarah di bawah tombol Konfirmasi Pesanan, memfokuskan kolom kosong saat diklik, lalu lanjut ke pembayaran setelah lengkap', async () => {

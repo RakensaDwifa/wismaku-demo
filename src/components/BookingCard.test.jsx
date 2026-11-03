@@ -60,6 +60,6 @@ describe('BookingCard (hapus pesanan dibatalkan)', () => {
     renderCard({ ...sampleBooking, status: 'confirmed' })
     const ticketLink = screen.getByRole('link', { name: 'Lihat E-Tiket' })
     expect(ticketLink).toBeInTheDocument()
-    expect(ticketLink).toHaveAttribute('href', '/booking/success/b-201')
+    expect(ticketLink).toHaveAttribute('href', '/pesanan/sukses/b-201')
   })
 })

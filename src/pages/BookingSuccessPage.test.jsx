@@ -42,9 +42,9 @@ const sampleBooking = {
 const renderPage = (id = 'b-999') =>
   render(
     <LanguageProvider>
-      <MemoryRouter initialEntries={[`/booking/success/${id}`]}>
+      <MemoryRouter initialEntries={[`/pesanan/sukses/${id}`]}>
         <Routes>
-          <Route path="/booking/success/:id" element={<BookingSuccessPage />} />
+          <Route path="/pesanan/sukses/:id" element={<BookingSuccessPage />} />
         </Routes>
       </MemoryRouter>
     </LanguageProvider>,

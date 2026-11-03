@@ -67,7 +67,7 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
           </Link>
         )}
         {!pending && !cancelled && (
-          <Link className="btn btn-outline btn-sm" to={`/booking/success/${booking.id}`}>
+          <Link className="btn btn-outline btn-sm" to={`/pesanan/sukses/${booking.id}`}>
             {t('bookings.viewTicket')}
           </Link>
         )}

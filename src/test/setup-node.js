@@ -11,19 +11,24 @@ import { afterEach } from 'vitest'
  */
 
 const store = new Map()
+const sessionStore = new Map()
 
-globalThis.localStorage = {
-  getItem: (key) => (store.has(key) ? store.get(key) : null),
-  setItem: (key, value) => store.set(key, String(value)),
-  removeItem: (key) => store.delete(key),
-  clear: () => store.clear(),
-  key: (index) => [...store.keys()][index] ?? null,
+const makeStorage = (map) => ({
+  getItem: (key) => (map.has(key) ? map.get(key) : null),
+  setItem: (key, value) => map.set(key, String(value)),
+  removeItem: (key) => map.delete(key),
+  clear: () => map.clear(),
+  key: (index) => [...map.keys()][index] ?? null,
   get length() {
-    return store.size
+    return map.size
   },
-}
+})
+
+globalThis.localStorage = makeStorage(store)
+globalThis.sessionStorage = makeStorage(sessionStore)
 
 globalThis.window = {
+  sessionStorage: globalThis.sessionStorage,
   dispatchEvent: () => {},
   addEventListener: () => {},
   removeEventListener: () => {},
@@ -31,4 +36,5 @@ globalThis.window = {
 
 afterEach(() => {
   store.clear()
+  sessionStore.clear()
 })

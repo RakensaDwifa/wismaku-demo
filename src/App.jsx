@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import PageLoader from './components/PageLoader.jsx'
 import SkipLink from './components/SkipLink.jsx'
 import HomePage from './pages/HomePage.jsx'
+import { consumeAuthReturnPath, getActiveUser, peekAuthReturnPath } from './services/member.js'
 
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage.jsx'))
 const HotelDetailPage = lazy(() => import('./pages/HotelDetailPage.jsx'))
@@ -17,6 +18,31 @@ const LegalPage = lazy(() => import('./pages/LegalPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'))
 
 export default function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // ponytail: fallback sessionStorage bila Redirect URLs Supabase menjatuhkan OAuth ke '/'; hapus bila wildcard redirect sudah aktif penuh di server Auth.
+    let live = true
+    const restoreReturnPath = async () => {
+      if (location.pathname !== '/') {
+        consumeAuthReturnPath()
+        return
+      }
+      if (!peekAuthReturnPath()) return
+      const user = await getActiveUser().catch(() => null)
+      if (!live || !user) return
+      const target = consumeAuthReturnPath()
+      if (target) navigate(target, { replace: true })
+    }
+    restoreReturnPath()
+    window.addEventListener('wismaku:session-changed', restoreReturnPath)
+    return () => {
+      live = false
+      window.removeEventListener('wismaku:session-changed', restoreReturnPath)
+    }
+  }, [location.pathname, navigate])
+
   return (
     <>
       <SkipLink />

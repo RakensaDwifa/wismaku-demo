@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthModal from './AuthModal.jsx'
 import DateRangePicker from './DateRangePicker.jsx'
 import { getMember, getActiveUser } from '../services/member.js'
@@ -9,7 +9,13 @@ import { useLanguage } from '../i18n/useLanguage.js'
 export default function BookingBox({ hotel, search, rooms = 1, adults = 2, children = 0 }) {
   const { t, lang } = useLanguage()
   const navigate = useNavigate()
-  const [roomTypeId, setRoomTypeId] = useState(hotel.roomTypes?.[0]?.id ?? 'standard')
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const [roomTypeId, setRoomTypeId] = useState(() => {
+    const fromUrl = searchParams.get('roomTypeId')
+    if (fromUrl && hotel.roomTypes?.some((rt) => rt.id === fromUrl)) return fromUrl
+    return hotel.roomTypes?.[0]?.id ?? 'standard'
+  })
   const [dateRange, setDateRange] = useState(() =>
     resolveStayDates({ checkIn: search?.checkIn, checkOut: search?.checkOut }),
   )
@@ -48,7 +54,7 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
     }
   }, [])
 
-  const goBooking = () => {
+  const goBooking = async () => {
     const params = new URLSearchParams({
       roomTypeId: roomType.id,
       rooms: String(rooms),
@@ -57,6 +63,25 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
       checkIn: dateRange.checkIn,
       checkOut: dateRange.checkOut,
     })
+
+    const activeUser = user ?? (await getActiveUser().catch(() => null))
+    if (!activeUser) {
+      // ponytail: sinkronkan query lewat history.replaceState agar key BookingBox di HotelDetailPage tidak remount saat modal dibuka; ubah ke state URL terpusat bila BookingBox tak lagi diberi key berbasis tanggal.
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        const merged = new URLSearchParams(location.search)
+        for (const [k, v] of params.entries()) merged.set(k, v)
+        const base = import.meta.env.BASE_URL?.replace(/\/$/, '') || ''
+        window.history.replaceState(
+          window.history.state,
+          '',
+          `${base}${location.pathname}?${merged.toString()}`,
+        )
+      }
+      setAuthOpen(true)
+      return
+    }
+
+    if (!user) setUser(activeUser)
     navigate(`/pesan/${hotel.id}?${params.toString()}`)
   }
 

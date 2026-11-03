@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendBookingConfirmationEmail } from '../_shared/email.ts'
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -79,7 +80,9 @@ Deno.serve(async (req: Request) => {
   const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
   const { data: booking, error: fetchErr } = await supabaseAdmin
     .from('bookings')
-    .select('id, status, paid_at, payment_method')
+    .select(
+      'id, status, paid_at, payment_method, guest_name, email, hotel_name, check_in, check_out, nights, rooms, total_price',
+    )
     .eq('midtrans_order_id', orderId)
     .maybeSingle()
 
@@ -102,6 +105,10 @@ Deno.serve(async (req: Request) => {
       })
       .eq('id', booking.id)
     if (updErr) return json({ error: 'Failed to confirm booking' }, 500)
+
+    // Kirim email konfirmasi via Gmail SMTP
+    await sendBookingConfirmationEmail({ ...booking, payment_method: method })
+
     return json({ ok: true, status: 'confirmed' })
   }
 

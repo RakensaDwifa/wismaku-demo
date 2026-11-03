@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  consumeAuthReturnPath,
   deleteAccount,
   getActiveUser,
   getMember,
@@ -8,10 +9,12 @@ import {
   loginGoogle,
   loginUser,
   logout,
+  peekAuthReturnPath,
   registerMember,
   registerPartner,
   registerUser,
   requestPasswordReset,
+  sanitizeReturnPath,
   updatePassword,
   updateProfile,
   verifyPasswordResetOtp,
@@ -332,31 +335,55 @@ describe('deleteAccount', () => {
 // ---------------------------------------------------------------------------
 
 describe('loginGoogle / loginFacebook', () => {
-  it('memanggil signInWithOAuth dengan provider yang benar', async () => {
-    if (!globalThis.window.location) globalThis.window.location = { origin: 'http://localhost:5173' }
+  it('memanggil signInWithOAuth dengan URL halaman saat ini (bukan hanya origin) dan menyimpan return path', async () => {
+    globalThis.window.location = {
+      origin: 'http://localhost:5173',
+      pathname: '/hotel/42',
+      search: '?roomTypeId=deluxe&checkIn=2026-11-10&checkOut=2026-11-12',
+    }
     mockAuth.signInWithOAuth.mockResolvedValue({ data: { url: 'https://provider.example' }, error: null })
     await loginGoogle()
-    expect(mockAuth.signInWithOAuth).toHaveBeenCalledWith(
-      expect.objectContaining({
-        provider: 'google',
-        options: expect.objectContaining({ redirectTo: expect.any(String) }),
-      }),
-    )
+    expect(mockAuth.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: {
+        redirectTo: 'http://localhost:5173/hotel/42?roomTypeId=deluxe&checkIn=2026-11-10&checkOut=2026-11-12',
+      },
+    })
+    expect(peekAuthReturnPath()).toBe('/hotel/42?roomTypeId=deluxe&checkIn=2026-11-10&checkOut=2026-11-12')
+    expect(consumeAuthReturnPath()).toBe('/hotel/42?roomTypeId=deluxe&checkIn=2026-11-10&checkOut=2026-11-12')
+    expect(peekAuthReturnPath()).toBeNull()
 
     mockAuth.signInWithOAuth.mockClear()
     mockAuth.signInWithOAuth.mockResolvedValue({ data: { url: 'https://provider.example' }, error: null })
     await loginFacebook()
-    expect(mockAuth.signInWithOAuth).toHaveBeenCalledWith(
-      expect.objectContaining({
-        provider: 'facebook',
-        options: expect.objectContaining({ redirectTo: expect.any(String) }),
-      }),
-    )
+    expect(mockAuth.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'facebook',
+      options: {
+        redirectTo: 'http://localhost:5173/hotel/42?roomTypeId=deluxe&checkIn=2026-11-10&checkOut=2026-11-12',
+      },
+    })
   })
 
-  it('melempar error bila Supabase gagal', async () => {
+  it('membersihkan return path bila signInWithOAuth gagal', async () => {
+    globalThis.window.location = {
+      origin: 'http://localhost:5173',
+      pathname: '/hotel/42',
+      search: '',
+    }
     mockAuth.signInWithOAuth.mockResolvedValue({ data: null, error: { message: 'OAuth error' } })
     await expect(loginGoogle()).rejects.toThrow()
+    expect(peekAuthReturnPath()).toBeNull()
+  })
+
+  it('menolak open-redirect eksternal pada sanitizeReturnPath dan consumeAuthReturnPath', () => {
+    expect(sanitizeReturnPath('/hotel/7?rooms=2')).toBe('/hotel/7?rooms=2')
+    expect(sanitizeReturnPath('//evil.example/phish')).toBeNull()
+    expect(sanitizeReturnPath('https://evil.example/phish')).toBeNull()
+    expect(sanitizeReturnPath('/\\evil.example')).toBeNull()
+    expect(sanitizeReturnPath('/hotel/1\r\nLocation: https://evil.example')).toBeNull()
+
+    globalThis.window.sessionStorage.setItem('wismaku.authReturnTo', '//evil.example')
+    expect(consumeAuthReturnPath()).toBeNull()
   })
 })
 

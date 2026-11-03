@@ -13,6 +13,7 @@ import {
 
 const CHANGE_EVENT = 'wismaku:session-changed'
 export const OPEN_AUTH_EVENT = 'wismaku:open-auth'
+const AUTH_RETURN_KEY = 'wismaku.authReturnTo'
 const SESSION_TTL_MS = 5000
 
 let inflightUser = null
@@ -103,6 +104,54 @@ export async function getActiveUser() {
   return inflightUser
 }
 
+export const sanitizeReturnPath = (value) => {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (
+    !trimmed.startsWith('/') ||
+    trimmed.startsWith('//') ||
+    trimmed.includes('\\') ||
+    /[\r\n]/.test(trimmed)
+  ) {
+    return null
+  }
+  return trimmed
+}
+
+const stripBasename = (path) => {
+  const base = import.meta.env?.BASE_URL?.replace(/\/$/, '') || ''
+  if (base && (path === base || path.startsWith(`${base}/`) || path.startsWith(`${base}?`))) {
+    const stripped = path.slice(base.length)
+    return stripped.startsWith('/') ? stripped : `/${stripped}`
+  }
+  return path
+}
+
+const clearAuthReturnPath = () => {
+  if (typeof window === 'undefined' || !window.sessionStorage) return
+  try {
+    window.sessionStorage.removeItem(AUTH_RETURN_KEY)
+  } catch {
+    /* abaikan */
+  }
+}
+
+export const peekAuthReturnPath = () => {
+  if (typeof window === 'undefined' || !window.sessionStorage) return null
+  try {
+    const safe = sanitizeReturnPath(window.sessionStorage.getItem(AUTH_RETURN_KEY))
+    return safe && safe !== '/' ? safe : null
+  } catch {
+    return null
+  }
+}
+
+export const consumeAuthReturnPath = () => {
+  const safe = peekAuthReturnPath()
+  clearAuthReturnPath()
+  return safe
+}
+
 export async function registerUser(payload) {
   if (!supabase) throw notConfigured()
   const data = parsePayload(UserPayloadSchema, payload)
@@ -113,6 +162,7 @@ export async function registerUser(payload) {
   })
   if (error) throw new Error(error.message)
   if (!authData?.user) throw new Error('Pendaftaran gagal.')
+  clearAuthReturnPath()
   notify()
   return publicUser({
     id: authData.user.id,
@@ -132,6 +182,7 @@ export async function loginUser(email, password) {
   if (error || !authData?.user) throw authError('INVALID_CREDENTIALS', 'Kredensial tidak cocok.')
   const profile = await fetchProfile(authData.user.id)
   const user = toAppUser(authData.user, profile)
+  clearAuthReturnPath()
   notify()
   return publicUser(user)
 }
@@ -139,6 +190,7 @@ export async function loginUser(email, password) {
 export async function logout() {
   if (!supabase) return null
   await supabase.auth.signOut()
+  clearAuthReturnPath()
   notify()
   return null
 }
@@ -147,25 +199,43 @@ export async function logout() {
  *  Provider (OAuth via Supabase Auth)
  * ------------------------------------------------------------------------- */
 
-const redirectTo = () =>
-  typeof window !== 'undefined' && window.location ? window.location.origin : undefined
+const originUrl = () =>
+  typeof window !== 'undefined' && window.location?.origin ? window.location.origin : undefined
+
+const prepareOAuthRedirect = () => {
+  if (typeof window === 'undefined' || !window.location) return undefined
+  const origin = originUrl()
+  const rawPath = `${window.location.pathname || '/'}${window.location.search || ''}`
+  const safeFull = sanitizeReturnPath(rawPath) ?? '/'
+  const routerPath = sanitizeReturnPath(stripBasename(safeFull)) ?? '/'
+  try {
+    if (routerPath !== '/') window.sessionStorage?.setItem(AUTH_RETURN_KEY, routerPath)
+    else window.sessionStorage?.removeItem(AUTH_RETURN_KEY)
+  } catch {
+    /* abaikan */
+  }
+  return origin ? `${origin}${safeFull}` : undefined
+}
+
+const loginOAuth = async (provider) => {
+  if (!supabase) throw notConfigured()
+  const targetUrl = prepareOAuthRedirect()
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: targetUrl },
+  })
+  if (error) {
+    clearAuthReturnPath()
+    throw new Error(error.message)
+  }
+}
 
 export async function loginGoogle() {
-  if (!supabase) throw notConfigured()
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: redirectTo() },
-  })
-  if (error) throw new Error(error.message)
+  return loginOAuth('google')
 }
 
 export async function loginFacebook() {
-  if (!supabase) throw notConfigured()
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'facebook',
-    options: { redirectTo: redirectTo() },
-  })
-  if (error) throw new Error(error.message)
+  return loginOAuth('facebook')
 }
 
 /* ---------------------------------------------------------------------------
@@ -177,8 +247,9 @@ export async function loginFacebook() {
 export async function requestPasswordReset(email) {
   if (!supabase) throw notConfigured()
   const data = parsePayload(ResetRequestSchema, { email })
+  const base = import.meta.env?.BASE_URL?.replace(/\/$/, '') || ''
   const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-    redirectTo: `${redirectTo() ?? ''}/akun`,
+    redirectTo: `${originUrl() ?? ''}${base}/akun`,
   })
   if (error) throw new Error(error.message)
 }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
@@ -20,6 +20,31 @@ export default function HotelDetailPage() {
   const navigate = useNavigate()
   const { hotels, loading } = useHotels()
   const hotel = hotels.find((h) => String(h.id) === String(id))
+  const [copied, setCopied] = useState(false)
+
+  const handleShare = async () => {
+    if (!hotel) return
+    const shareData = {
+      title: hotel.name,
+      text: `${hotel.name} - ${hotel.area}, ${hotel.city}`,
+      url: window.location.href,
+    }
+    if (navigator.share && typeof navigator.canShare === 'function' && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData)
+        return
+      } catch (err) {
+        if (err.name === 'AbortError') return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* abaikan */
+    }
+  }
 
   const hotelId = hotel?.id
   useEffect(() => {
@@ -140,6 +165,41 @@ export default function HotelDetailPage() {
                 </svg>
                 {hotel.rating} ({t('hotelDetailPage.reviewCount', { count: hotel.reviews })})
               </span>
+              <div className="relative">
+                <button
+                  type="button"
+                  className="grid size-9 place-items-center rounded-full border border-rd-border bg-white text-rd-muted transition-colors hover:border-rd hover:text-rd focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd"
+                  onClick={handleShare}
+                  aria-label={t('hotelDetailPage.share')}
+                  title={t('hotelDetailPage.share')}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="15"
+                    height="15"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                </button>
+                {copied && (
+                  <span
+                    role="status"
+                    className="absolute right-0 -bottom-8 z-10 whitespace-nowrap rounded-md bg-rd-text px-2 py-1 text-[11px] font-bold text-white shadow-sm"
+                  >
+                    {t('hotelDetailPage.shareSuccess')}
+                  </span>
+                )}
+              </div>
               <FavButton hotelId={hotel.id} />
             </div>
           </div>

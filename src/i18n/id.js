@@ -254,6 +254,7 @@ export const id = {
     noDates: 'Tanpa tanggal terpilih — estimasi {{nights}} malam.',
     summary: '{{rooms}} kamar · {{guests}} tamu · Tipe {{type}}',
     couponLabel: 'Kode Kupon',
+    quickCoupons: 'Kupon tersedia:',
     couponPlaceholder: 'cth: WISMA20',
     couponAria: 'Kode kupon',
     couponApply: 'Pakai',
@@ -319,6 +320,8 @@ export const id = {
     crumbStays: 'Penginapan',
     back: '← Kembali',
     reviewCount: '{{count}} ulasan',
+    share: 'Bagikan',
+    shareSuccess: 'Tautan disalin!',
   },
   pages: {
     bookingsTitle: 'Pemesanan Saya',

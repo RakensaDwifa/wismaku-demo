@@ -253,6 +253,7 @@ export const en = {
     noDates: 'No dates selected — estimated {{nights}} nights.',
     summary: '{{rooms}} rooms · {{guests}} guests · Type {{type}}',
     couponLabel: 'Coupon Code',
+    quickCoupons: 'Available coupons:',
     couponPlaceholder: 'e.g. WISMA20',
     couponAria: 'Coupon code',
     couponApply: 'Apply',
@@ -318,6 +319,8 @@ export const en = {
     crumbStays: 'Stays',
     back: '← Back',
     reviewCount: '{{count}} reviews',
+    share: 'Share',
+    shareSuccess: 'Link copied!',
   },
   pages: {
     bookingsTitle: 'My Bookings',

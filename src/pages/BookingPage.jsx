@@ -9,7 +9,7 @@ import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { createBooking } from '../services/booking.js'
-import { applyCoupon } from '../services/coupon.js'
+import { applyCoupon, fetchCoupons } from '../services/coupon.js'
 import { getMember, getActiveUser, openAuthModal } from '../services/member.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -44,6 +44,7 @@ export default function BookingPage() {
   const [couponInput, setCouponInput] = useState('')
   const [coupon, setCoupon] = useState(null)
   const [couponError, setCouponError] = useState('')
+  const [availableCoupons, setAvailableCoupons] = useState([])
   const [isMember, setIsMember] = useState(false)
   const [user, setUser] = useState(null)
   const nameRef = useRef(null)
@@ -74,6 +75,12 @@ export default function BookingPage() {
 
   useEffect(() => {
     let live = true
+    fetchCoupons()
+      .then((cps) => {
+        if (live && Array.isArray(cps)) setAvailableCoupons(cps)
+      })
+      .catch(() => {})
+
     const sync = async () => {
       try {
         const [m, u] = await Promise.all([getMember(), getActiveUser()])
@@ -109,6 +116,23 @@ export default function BookingPage() {
     try {
       setCoupon(await applyCoupon(couponInput, subtotal))
       setCouponInput('')
+    } catch (err) {
+      setCoupon(null)
+      setCouponError(err.message || t('booking.couponInvalid'))
+    }
+  }
+
+  const handleSelectCoupon = async (code) => {
+    if (coupon?.code === code) {
+      setCoupon(null)
+      setCouponInput('')
+      setCouponError('')
+      return
+    }
+    setCouponInput(code)
+    setCouponError('')
+    try {
+      setCoupon(await applyCoupon(code, subtotal))
     } catch (err) {
       setCoupon(null)
       setCouponError(err.message || t('booking.couponInvalid'))
@@ -267,6 +291,32 @@ export default function BookingPage() {
                   <p className="mb-1.5 text-[12.5px] font-extrabold text-rd-text">
                     {t('booking.couponLabel')}
                   </p>
+                  {availableCoupons.length > 0 && (
+                    <div className="mb-2">
+                      <span className="block text-[11.5px] font-bold text-rd-muted">
+                        {t('booking.quickCoupons')}
+                      </span>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {availableCoupons.map((c) => {
+                          const isSelected = coupon?.code === c.code
+                          return (
+                            <button
+                              key={c.code}
+                              type="button"
+                              onClick={() => handleSelectCoupon(c.code)}
+                              className={`rounded-full px-2.5 py-1 text-[11.5px] font-extrabold transition-colors ${
+                                isSelected
+                                  ? 'bg-rd text-white shadow-xs'
+                                  : 'border border-dashed border-rd-border bg-white text-rd hover:border-rd hover:bg-rd-soft'
+                              }`}
+                            >
+                              🏷️ {c.code} {c.pct ? `(-${c.pct}%)` : ''}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <input
                       className="flex-1 rounded-[9px] border border-rd-border px-3 py-[9px] text-[13.5px] focus:border-rd focus:outline-none"

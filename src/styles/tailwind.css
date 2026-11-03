@@ -229,6 +229,19 @@
   pointer-events: auto;
 }
 
+/* ============ PRINT STYLES ============ */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:block {
+    display: block !important;
+  }
+}
+
 .filter-range input.range-max {
   z-index: 2;
 }

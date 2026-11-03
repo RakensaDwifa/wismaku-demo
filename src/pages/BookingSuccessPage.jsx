@@ -44,11 +44,13 @@ export default function BookingSuccessPage() {
 
   return (
     <>
-      <TopBar />
-      <Header />
-      <main id="main" className="min-h-[60vh] py-12 max-[768px]:py-8">
-        <div className="mx-auto w-full max-w-[1200px] px-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="print:hidden">
+        <TopBar />
+        <Header />
+      </div>
+      <main id="main" className="min-h-[60vh] py-12 max-[768px]:py-8 print:min-h-0 print:py-4">
+        <div className="mx-auto w-full max-w-[1200px] px-5 print:p-0">
+          <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
             <h2 className="text-[26px] font-extrabold text-black max-[768px]:text-xl">
               {t('pages.successH2')}
             </h2>
@@ -63,10 +65,26 @@ export default function BookingSuccessPage() {
               <Skeleton className="mb-4 h-56 w-full rounded-[14px]" />
             </div>
           ) : booking ? (
-            <div className="mt-6 max-w-[720px]">
-              <div className="mb-4 flex items-center gap-[14px] rounded-[14px] border border-rd-border bg-white p-[14px]">
+            <div className="mt-6 max-w-[720px] print:mt-0 print:max-w-none">
+              <div className="hidden border-b-2 border-rd pb-4 print:mb-6 print:block">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-[22px] font-black tracking-tight text-rd">WISMAKU</h1>
+                    <p className="text-[14px] font-extrabold text-rd-text">{t('pages.voucherTitle')}</p>
+                  </div>
+                  <div className="text-right text-[12px] text-rd-muted">
+                    <p className="font-bold text-rd-text">
+                      {t('pages.successCode')} <span className="font-mono text-rd">{booking.id}</span>
+                    </p>
+                    <p>{fmtDate(booking.createdAt, lang)}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-[12px] text-rd-muted italic">{t('pages.voucherSubtitle')}</p>
+              </div>
+
+              <div className="mb-4 flex items-center gap-[14px] rounded-[14px] border border-rd-border bg-white p-[14px] print:border-none print:p-0">
                 <div
-                  className="grid size-[54px] shrink-0 place-items-center rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] text-[26px] font-extrabold text-white"
+                  className="grid size-[54px] shrink-0 place-items-center rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] text-[26px] font-extrabold text-white print:hidden"
                   aria-hidden="true"
                 >
                   &#10003;
@@ -165,7 +183,29 @@ export default function BookingSuccessPage() {
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-wrap gap-2.5">
+              <div className="mt-5 flex flex-wrap gap-2.5 print:hidden">
+                <button
+                  className="btn btn-outline inline-flex items-center gap-2"
+                  type="button"
+                  onClick={() => window.print()}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                  {t('pages.printTicket')}
+                </button>
                 {booking.status === 'pending' && (
                   <Link className="btn btn-primary" to={`/bayar/${booking.id}`}>
                     {t('pages.continuePayment')}
@@ -189,7 +229,9 @@ export default function BookingSuccessPage() {
           )}
         </div>
       </main>
-      <Footer />
+      <div className="print:hidden">
+        <Footer />
+      </div>
     </>
   )
 }

@@ -55,4 +55,11 @@ describe('BookingCard (hapus pesanan dibatalkan)', () => {
     expect(screen.getByRole('button', { name: 'Batal' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Hapus' })).not.toBeInTheDocument()
   })
+
+  it('menampilkan link Lihat E-Tiket pada pesanan confirmed', () => {
+    renderCard({ ...sampleBooking, status: 'confirmed' })
+    const ticketLink = screen.getByRole('link', { name: 'Lihat E-Tiket' })
+    expect(ticketLink).toBeInTheDocument()
+    expect(ticketLink).toHaveAttribute('href', '/booking/success/b-201')
+  })
 })

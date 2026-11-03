@@ -66,6 +66,11 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
             {t('bookings.payNow')}
           </Link>
         )}
+        {!pending && !cancelled && (
+          <Link className="btn btn-outline btn-sm" to={`/booking/success/${booking.id}`}>
+            {t('bookings.viewTicket')}
+          </Link>
+        )}
         {!cancelled && (
           <button
             className="rounded-[7px] border border-rd bg-white px-2.5 py-[5px] text-[12px] font-bold text-rd transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd hover:bg-rd hover:text-white"

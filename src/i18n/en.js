@@ -281,7 +281,7 @@ export const en = {
     couponLine: 'Coupon {{code}}',
     memberLine: '10% Member Discount',
     total: 'Total',
-    demoNote: 'Simulation demo — booking is saved on this device (localStorage).',
+    demoNote: 'Simulation demo — booking is saved in cloud database (Supabase).',
   },
   favoritesPage: {
     title: 'Favorite Hotels',
@@ -343,6 +343,9 @@ export const en = {
     paymentMethod: 'Payment method: {{method}}',
     createdAt: 'Created: {{date}}',
     continuePayment: 'Continue Payment',
+    printTicket: 'Print E-Ticket',
+    voucherTitle: 'WISMAKU HOTEL VOUCHER',
+    voucherSubtitle: 'Please present this voucher at the reception desk during check-in.',
     backHomePlain: 'Back to Home',
     viewBookings: 'View My Bookings',
     notFound: 'Booking not found.',
@@ -362,6 +365,7 @@ export const en = {
     roomType: 'Room type: {{type}}',
     code: 'Code: {{id}} · under {{name}}',
     viewHotel: 'View Hotel',
+    viewTicket: 'View E-Ticket',
     payNow: 'Pay Now',
     cancel: 'Cancel',
     cancelTitle: 'Cancel Booking?',
@@ -624,7 +628,7 @@ export const en = {
       emailPlaceholder: 'e.g. budi@gmail.com',
       continue: 'Continue with Google',
       failed: 'Failed to sign in with Google. Try again.',
-      demoNote: 'Simulation demo — a Google account is created automatically on this device (localStorage).',
+      demoNote: 'Google account is connected directly via Supabase Auth.',
     },
     facebook: {
       title: 'Sign in with Facebook',
@@ -635,8 +639,7 @@ export const en = {
       emailPlaceholder: 'e.g. budi@facebook.com',
       continue: 'Continue with Facebook',
       failed: 'Failed to sign in with Facebook. Try again.',
-      demoNote:
-        'Simulation demo — a Facebook account is created automatically on this device (localStorage).',
+      demoNote: 'Facebook account is connected directly via Supabase Auth.',
     },
   },
   account: {

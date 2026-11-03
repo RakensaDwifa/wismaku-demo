@@ -67,6 +67,16 @@ export const ResetVerifyOtpSchema = z.object({
 
 export const ChangePasswordSchema = z.object({ password: NewPasswordField })
 
+export const UpdateProfileSchema = z.object({
+  name: z.string().trim().min(3, 'Nama minimal 3 karakter.'),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[0-9+\-\s]{8,15}$/, 'Nomor telepon tidak valid (8-15 digit).')
+    .or(z.literal(''))
+    .optional(),
+})
+
 export const PartnerPayloadSchema = z.object({
   ownerName: z.string().min(3),
   propertyName: z.string().min(3),

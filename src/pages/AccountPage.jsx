@@ -6,7 +6,7 @@ import Footer from '../components/Footer.jsx'
 import AuthModal from '../components/AuthModal.jsx'
 import MemberModal from '../components/MemberModal.jsx'
 import AccountSecurity from '../components/AccountSecurity.jsx'
-import { getActiveUser, getMember, logout } from '../services/member.js'
+import { getActiveUser, getMember, logout, updateProfile } from '../services/member.js'
 import { getBookings } from '../services/booking.js'
 import { getFavorites } from '../services/favorite.js'
 import { fmtDate } from '../utils/format.js'
@@ -24,6 +24,11 @@ export default function AccountPage() {
   const [authTab, setAuthTab] = useState('login')
   const [memberOpen, setMemberOpen] = useState(false)
   const [avatarFailed, setAvatarFailed] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [profileMsg, setProfileMsg] = useState(null)
 
   useEffect(() => {
     let live = true
@@ -67,6 +72,22 @@ export default function AccountPage() {
       /* abaikan */
     }
     navigate('/')
+  }
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setProfileMsg(null)
+    try {
+      const updated = await updateProfile({ name: editName, phone: editPhone })
+      if (updated) setUser(updated)
+      setProfileMsg({ type: 'success', text: t('account.profileUpdated') })
+      setIsEditing(false)
+    } catch (err) {
+      setProfileMsg({ type: 'error', text: err.message || t('account.profileUpdateFailed') })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -113,38 +134,124 @@ export default function AccountPage() {
           ) : (
             <div className="mt-6 grid gap-5 lg:grid-cols-2">
               <section className="rounded-2xl border border-rd-border bg-white p-5 shadow-rd">
-                <h3 className="mb-4 text-[14px] font-extrabold tracking-[0.4px] uppercase text-rd-muted">
-                  {t('account.profile')}
-                </h3>
-                <div className="flex items-center gap-4">
-                  {user.avatarUrl && !avatarFailed ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name}
-                      className="size-14 shrink-0 rounded-full border border-rd-border object-cover"
-                      referrerPolicy="no-referrer"
-                      onError={() => setAvatarFailed(true)}
-                    />
-                  ) : (
-                    <div
-                      className="grid size-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(95deg,#14b8a6,#0d9488)] text-[22px] font-extrabold text-white"
-                      aria-hidden="true"
-                    >
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="truncate text-[17px] font-extrabold text-rd-text">{user.name}</p>
-                    <p className="truncate text-[13px] text-rd-muted">{user.email}</p>
-                    <span className="mt-1 inline-block rounded-full bg-rd-soft px-2.5 py-0.5 text-[11.5px] font-bold text-rd">
-                      {t('account.provider', { provider: user.provider })}
-                    </span>
-                  </div>
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-[14px] font-extrabold tracking-[0.4px] uppercase text-rd-muted">
+                    {t('account.profile')}
+                  </h3>
+                  <button
+                    type="button"
+                    className="text-[13px] font-bold text-rd hover:underline"
+                    onClick={() => {
+                      if (!isEditing) {
+                        setEditName(user.name || '')
+                        setEditPhone(user.phone || '')
+                        setProfileMsg(null)
+                      }
+                      setIsEditing(!isEditing)
+                    }}
+                  >
+                    {isEditing ? t('account.cancel') : t('account.editProfile')}
+                  </button>
                 </div>
-                {user.loggedInAt && (
-                  <p className="mt-4 border-t border-[#f4f4f4] pt-3 text-[12.5px] text-rd-muted">
-                    {t('account.lastLogin', { date: fmtDate(user.loggedInAt, lang) })}
-                  </p>
+
+                {profileMsg && (
+                  <div
+                    role="alert"
+                    className={`mb-4 rounded-lg p-3 text-[13px] font-medium ${
+                      profileMsg.type === 'success' ? 'bg-teal-50 text-teal-800' : 'bg-red-50 text-red-700'
+                    }`}
+                  >
+                    {profileMsg.text}
+                  </div>
+                )}
+
+                {isEditing ? (
+                  <form onSubmit={handleSaveProfile} className="space-y-3.5">
+                    <div>
+                      <label
+                        className="mb-1 block text-[12px] font-bold text-rd-muted"
+                        htmlFor="profile-name"
+                      >
+                        {t('account.fullName')}
+                      </label>
+                      <input
+                        id="profile-name"
+                        type="text"
+                        required
+                        minLength={3}
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full rounded-lg border border-rd-border px-3 py-2 text-[14px] text-rd-text transition-colors focus:border-rd focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className="mb-1 block text-[12px] font-bold text-rd-muted"
+                        htmlFor="profile-phone"
+                      >
+                        {t('account.phone')}
+                      </label>
+                      <input
+                        id="profile-phone"
+                        type="tel"
+                        value={editPhone}
+                        placeholder={t('account.phonePlaceholder')}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        className="w-full rounded-lg border border-rd-border px-3 py-2 text-[14px] text-rd-text transition-colors focus:border-rd focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <button type="submit" disabled={saving} className="btn btn-primary btn-sm">
+                        {saving ? t('account.savingProfile') : t('account.saveProfile')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="btn btn-outline btn-sm"
+                      >
+                        {t('account.cancel')}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4">
+                      {user.avatarUrl && !avatarFailed ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.name}
+                          className="size-14 shrink-0 rounded-full border border-rd-border object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={() => setAvatarFailed(true)}
+                        />
+                      ) : (
+                        <div
+                          className="grid size-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(95deg,#14b8a6,#0d9488)] text-[22px] font-extrabold text-white"
+                          aria-hidden="true"
+                        >
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-[17px] font-extrabold text-rd-text">{user.name}</p>
+                        <p className="truncate text-[13px] text-rd-muted">{user.email}</p>
+                        {user.phone && (
+                          <p className="truncate text-[13px] text-rd-muted">
+                            {t('account.phone')}:{' '}
+                            <span className="font-semibold text-rd-text">{user.phone}</span>
+                          </p>
+                        )}
+                        <span className="mt-1 inline-block rounded-full bg-rd-soft px-2.5 py-0.5 text-[11.5px] font-bold text-rd">
+                          {t('account.provider', { provider: user.provider })}
+                        </span>
+                      </div>
+                    </div>
+                    {user.loggedInAt && (
+                      <p className="mt-4 border-t border-[#f4f4f4] pt-3 text-[12.5px] text-rd-muted">
+                        {t('account.lastLogin', { date: fmtDate(user.loggedInAt, lang) })}
+                      </p>
+                    )}
+                  </>
                 )}
               </section>
 

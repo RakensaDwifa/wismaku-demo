@@ -13,6 +13,7 @@ import {
   registerUser,
   requestPasswordReset,
   updatePassword,
+  updateProfile,
   verifyPasswordResetOtp,
 } from './member.js'
 
@@ -272,6 +273,35 @@ describe('requestPasswordReset / updatePassword', () => {
         password: 'PassBaru123',
       }),
     ).rejects.toThrow('Token has expired or is invalid')
+  })
+})
+
+describe('updateProfile', () => {
+  it('updateProfile memperbarui metadata auth dan baris profiles', async () => {
+    mockAuth.updateUser.mockResolvedValue({
+      data: { user: { id: 'u-1', email: 'budi@email.com' } },
+      error: null,
+    })
+    const updateSpy = vi.fn().mockReturnValue(qb({ data: null, error: null }))
+    mockFrom.mockImplementation(() => ({
+      update: updateSpy,
+      select: vi.fn(() =>
+        qb({ data: profileRow({ name: 'Budi Santoso Baru', phone: '081234567890' }), error: null }),
+      ),
+      eq: vi.fn(() =>
+        qb({ data: profileRow({ name: 'Budi Santoso Baru', phone: '081234567890' }), error: null }),
+      ),
+    }))
+
+    await updateProfile({ name: 'Budi Santoso Baru', phone: '081234567890' })
+
+    expect(mockAuth.updateUser).toHaveBeenCalledWith({
+      data: { name: 'Budi Santoso Baru', phone: '081234567890' },
+    })
+  })
+
+  it('updateProfile menolak nama kurang dari 3 karakter', async () => {
+    await expect(updateProfile({ name: 'Bu', phone: '081234567890' })).rejects.toThrow()
   })
 })
 

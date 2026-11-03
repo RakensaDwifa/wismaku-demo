@@ -6,6 +6,7 @@ import {
   ResetRequestSchema,
   ResetVerifyOtpSchema,
   PartnerPayloadSchema,
+  UpdateProfileSchema,
   UserPayloadSchema,
   parsePayload,
 } from '../schemas/contracts.js'
@@ -61,7 +62,8 @@ const toAppUser = (authUser, profile) => {
   if (!authUser) return null
   return {
     id: authUser.id,
-    name: profile?.name ?? authUser.email?.split('@')[0] ?? '',
+    name: profile?.name ?? authUser.user_metadata?.name ?? authUser.email?.split('@')[0] ?? '',
+    phone: profile?.phone ?? authUser.user_metadata?.phone ?? authUser.phone ?? '',
     email: authUser.email ?? profile?.email ?? '',
     provider: profile?.provider ?? 'email',
     avatarUrl:
@@ -202,6 +204,34 @@ export async function updatePassword(password) {
   const data = parsePayload(ChangePasswordSchema, { password })
   const { error } = await supabase.auth.updateUser({ password: data.password })
   if (error) throw new Error(error.message)
+}
+
+export async function updateProfile(payload) {
+  if (!supabase) throw notConfigured()
+  const data = parsePayload(UpdateProfileSchema, payload)
+  const { data: authData, error: authErr } = await supabase.auth.updateUser({
+    data: { name: data.name, phone: data.phone ?? '' },
+  })
+  if (authErr) throw new Error(authErr.message)
+
+  if (authData?.user) {
+    const updateBody = { name: data.name }
+    if (data.phone !== undefined) {
+      updateBody.phone = data.phone || null
+    }
+    const { error: profileErr } = await supabase
+      .from('profiles')
+      .update(updateBody)
+      .eq('id', authData.user.id)
+
+    if (profileErr) {
+      // Fallback bila kolom phone belum terpasang di schema cache
+      await supabase.from('profiles').update({ name: data.name }).eq('id', authData.user.id)
+    }
+  }
+
+  notify()
+  return getActiveUser()
 }
 
 export async function deleteAccount(confirmEmail) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BookingPayloadSchema, ResetVerifyOtpSchema, parsePayload } from './contracts.js'
+import { BookingPayloadSchema, ResetVerifyOtpSchema, UpdateProfileSchema, parsePayload } from './contracts.js'
 
 const validBooking = {
   hotelId: 'H-1',
@@ -97,5 +97,19 @@ describe('ResetVerifyOtpSchema', () => {
         password: 'PassBaru123',
       }).success,
     ).toBe(false)
+  })
+})
+
+describe('UpdateProfileSchema', () => {
+  it('menerima nama valid dan phone opsional', () => {
+    expect(UpdateProfileSchema.safeParse({ name: 'Budi Santoso', phone: '08123456789' }).success).toBe(true)
+    expect(UpdateProfileSchema.safeParse({ name: 'Budi Santoso', phone: '' }).success).toBe(true)
+    expect(UpdateProfileSchema.safeParse({ name: 'Budi Santoso' }).success).toBe(true)
+  })
+
+  it('menolak nama kurang dari 3 karakter atau format phone tidak valid', () => {
+    expect(UpdateProfileSchema.safeParse({ name: 'Bu', phone: '08123456789' }).success).toBe(false)
+    expect(UpdateProfileSchema.safeParse({ name: 'Budi Santoso', phone: '123' }).success).toBe(false)
+    expect(UpdateProfileSchema.safeParse({ name: 'Budi Santoso', phone: 'abc123456' }).success).toBe(false)
   })
 })

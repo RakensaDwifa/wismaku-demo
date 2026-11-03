@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendBookingConfirmationEmail } from '../_shared/email.ts'
 
 const MIDTRANS_SNAP_URL = 'https://app.sandbox.midtrans.com/snap/v1/transactions'
 const MIDTRANS_API_BASE = 'https://api.sandbox.midtrans.com/v2'
@@ -128,6 +129,10 @@ Deno.serve(async (req: Request) => {
         .update({ status: 'confirmed', payment_method: method, paid_at: paidAt })
         .eq('id', booking.id)
       if (updErr) return json({ error: 'Gagal memperbarui status pembayaran.' }, 500)
+
+      // Kirim email konfirmasi via Gmail SMTP
+      await sendBookingConfirmationEmail({ ...booking, payment_method: method })
+
       return json({ status: 'confirmed', paymentMethod: method, paidAt, midtransStatus: txStatus })
     }
 

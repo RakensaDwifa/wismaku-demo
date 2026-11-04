@@ -30,9 +30,12 @@ vi.mock('../hooks/useCatalog.js', () => ({
   }),
 }))
 
+const mockGetActiveUser = vi.fn()
+const mockGetMember = vi.fn()
+
 vi.mock('../services/member.js', () => ({
-  getMember: vi.fn().mockResolvedValue(null),
-  getActiveUser: vi.fn().mockResolvedValue({ id: 'u-1', name: 'Budi Santoso', email: 'budi@email.com' }),
+  getMember: (...args) => mockGetMember(...args),
+  getActiveUser: (...args) => mockGetActiveUser(...args),
   openAuthModal: vi.fn(),
 }))
 
@@ -64,9 +67,29 @@ describe('BookingPage (panduan Data Pemesan)', () => {
   beforeEach(() => {
     mockCreateBooking.mockReset()
     mockApplyCoupon.mockReset()
+    mockGetMember.mockReset().mockResolvedValue(null)
+    mockGetActiveUser
+      .mockReset()
+      .mockResolvedValue({ id: 'u-1', name: 'Budi Santoso', email: 'budi@email.com' })
     mockFetchCoupons
       .mockReset()
       .mockResolvedValue([{ code: 'WISMA20', label: 'Diskon 20%', pct: 20, maxDiscount: 200000 }])
+  })
+
+  it('mengisi otomatis nama, email, dan nomor HP dari profil pengguna aktif', async () => {
+    mockGetActiveUser.mockResolvedValue({
+      id: 'u-1',
+      name: 'Budi Santoso',
+      email: 'budi@email.com',
+      phone: '081299998888',
+    })
+    renderBookingPage()
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('No. HP')).toHaveValue('081299998888')
+    })
+    expect(screen.getByLabelText('Nama Lengkap')).toHaveValue('Budi Santoso')
+    expect(screen.getByLabelText('Email')).toHaveValue('budi@email.com')
   })
 
   it('menampilkan chip kupon cepat dan dapat dipilih langsung', async () => {

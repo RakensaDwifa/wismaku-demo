@@ -42,6 +42,8 @@ export const id = {
     clubSubtitle:
       'Diskon member hingga 20%, check-in lebih awal, dan fleksibilitas check-out di ribuan properti.',
     joinClub: 'Daftar WismaClub',
+    clubActiveBadge: 'Member Aktif ({{id}}) — Diskon tambahan 10% otomatis diterapkan saat checkout.',
+    viewClubAccount: 'Lihat Kartu Member',
     cityTitle: 'Cari Penginapan di Kota Favoritmu',
     popularTitle: 'Hotel Populer',
     loadMore: 'Muat Lebih Banyak ({{count}})',

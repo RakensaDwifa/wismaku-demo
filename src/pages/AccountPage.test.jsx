@@ -126,4 +126,19 @@ describe('AccountPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Gagal menyimpan ke server')
   })
+
+  it('menampilkan tanggal bergabung member WismaClub dari kolom joined_at Supabase', async () => {
+    mockGetActiveUser.mockResolvedValue(sampleUser)
+    mockGetMember.mockResolvedValue({
+      id: 'm-1',
+      member_no: 'MC-2026',
+      name: 'Budi Santoso',
+      joined_at: '2026-10-15T08:00:00Z',
+    })
+
+    renderAccountPage()
+
+    expect(await screen.findByText(/MC-2026/)).toBeInTheDocument()
+    expect(screen.getByText(/15 Okt 2026/i)).toBeInTheDocument()
+  })
 })

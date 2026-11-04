@@ -100,9 +100,9 @@ export default function PartnerModal({ onClose }) {
           </p>
           <div className="my-3 mb-4 flex flex-col gap-[3px] rounded-[10px] border border-rd-border bg-rd-soft px-[14px] py-3 text-[13px] text-rd-text">
             <p>
-              {partner.propertyName}, {partner.city}
+              {partner.propertyName ?? partner.property_name}, {partner.city}
             </p>
-            <p>{t('partner.onBehalfOf', { name: partner.ownerName })}</p>
+            <p>{t('partner.onBehalfOf', { name: partner.ownerName ?? partner.owner_name })}</p>
           </div>
           <p className="mt-2 text-[12px] text-rd-muted">{t('partner.demoNote')}</p>
           <button className="btn btn-primary mt-[18px]" type="button" onClick={onClose}>

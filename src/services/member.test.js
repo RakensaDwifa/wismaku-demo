@@ -474,24 +474,15 @@ describe('getPartners', () => {
 })
 
 describe('registerPartner', () => {
-  it('menyisipkan baris ke tabel partners', async () => {
+  it('menyisipkan baris ke tabel partners tanpa .select() dan mengembalikan field camelCase', async () => {
     mockAuth.getUser.mockResolvedValue({
       data: { user: { id: 'u-1', email: 'budi@email.com' } },
       error: null,
     })
+    const partnersBuilder = qb({ data: null, error: null })
     mockFrom.mockImplementation((table) => {
       if (table === 'profiles') return qb({ data: profileRow(), error: null })
-      if (table === 'partners')
-        return qb({
-          data: {
-            id: 'p-1',
-            owner_name: 'Budi',
-            property_name: 'Wisma Budi',
-            city: 'Jakarta',
-            email: 'budi@example.com',
-          },
-          error: null,
-        })
+      if (table === 'partners') return partnersBuilder
       return qb({ data: null, error: null })
     })
     const partner = await registerPartner({
@@ -500,23 +491,24 @@ describe('registerPartner', () => {
       city: 'Jakarta',
       email: 'budi@example.com',
     })
-    expect(partner).toEqual(expect.objectContaining({ id: 'p-1' }))
+    expect(partnersBuilder.select).not.toHaveBeenCalled()
+    expect(partner).toEqual(
+      expect.objectContaining({
+        id: expect.stringMatching(/^[0-9a-f-]{36}$/i),
+        userId: 'u-1',
+        ownerName: 'Budi',
+        propertyName: 'Wisma Budi',
+        city: 'Jakarta',
+        email: 'budi@example.com',
+      }),
+    )
   })
 
-  it('tetap bisa mendaftar partner tanpa sesi (user_id null)', async () => {
+  it('tetap bisa mendaftar partner tanpa sesi (user_id null) tanpa melanggar RLS SELECT', async () => {
     mockAuth.getUser.mockResolvedValue({ data: { user: null }, error: null })
+    const partnersBuilder = qb({ data: null, error: null })
     mockFrom.mockImplementation((table) => {
-      if (table === 'partners')
-        return qb({
-          data: {
-            id: 'p-2',
-            owner_name: 'Anon',
-            property_name: 'Wisma Anon',
-            city: 'Bandung',
-            email: 'anon@example.com',
-          },
-          error: null,
-        })
+      if (table === 'partners') return partnersBuilder
       return qb({ data: null, error: null })
     })
     const partner = await registerPartner({
@@ -525,7 +517,17 @@ describe('registerPartner', () => {
       city: 'Bandung',
       email: 'anon@example.com',
     })
-    expect(partner).toEqual(expect.objectContaining({ id: 'p-2' }))
+    expect(partnersBuilder.select).not.toHaveBeenCalled()
+    expect(partner).toEqual(
+      expect.objectContaining({
+        id: expect.stringMatching(/^[0-9a-f-]{36}$/i),
+        userId: null,
+        ownerName: 'Anon',
+        propertyName: 'Wisma Anon',
+        city: 'Bandung',
+        email: 'anon@example.com',
+      }),
+    )
   })
 
   it('melempar error bila insert gagal', async () => {

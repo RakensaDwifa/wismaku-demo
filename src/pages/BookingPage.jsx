@@ -88,7 +88,12 @@ export default function BookingPage() {
           setUser(u)
           setIsMember(Boolean(m))
           if (u) {
-            setForm((f) => ({ ...f, name: f.name || u.name, email: f.email || u.email }))
+            setForm((f) => ({
+              ...f,
+              name: f.name || u.name,
+              email: f.email || u.email,
+              phone: f.phone || u.phone || '',
+            }))
           }
         }
       } catch {

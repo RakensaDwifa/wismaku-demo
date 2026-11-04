@@ -356,7 +356,13 @@ export async function registerMember(payload) {
     .insert({ user_id: user.id, member_no: memberNo, name: data.name, email: data.email })
     .select()
     .single()
-  if (error) throw new Error(error.message)
+  if (error) {
+    if (error.code === '23505' || /duplicate|unique/i.test(error.message ?? '')) {
+      const existing = await getMember()
+      if (existing) return existing
+    }
+    throw new Error(error.message)
+  }
   notify()
   return member
 }
@@ -372,21 +378,28 @@ export async function getPartners() {
   return data ?? []
 }
 
+// ponytail: ID dibuat di klien dengan crypto.randomUUID() agar insert tidak perlu .select()
+// (menjaga RLS SELECT tabel partners tetap tertutup bagi anonim).
 export async function registerPartner(payload) {
   if (!supabase) throw notConfigured()
   const data = parsePayload(PartnerPayloadSchema, payload)
   const user = await getActiveUser()
-  const { data: partner, error } = await supabase
-    .from('partners')
-    .insert({
-      user_id: user?.id ?? null,
-      owner_name: data.ownerName,
-      property_name: data.propertyName,
-      city: data.city,
-      email: data.email,
-    })
-    .select()
-    .single()
+  const id = crypto.randomUUID()
+  const { error } = await supabase.from('partners').insert({
+    id,
+    user_id: user?.id ?? null,
+    owner_name: data.ownerName,
+    property_name: data.propertyName,
+    city: data.city,
+    email: data.email,
+  })
   if (error) throw new Error(error.message)
-  return partner
+  return {
+    id,
+    userId: user?.id ?? null,
+    ownerName: data.ownerName,
+    propertyName: data.propertyName,
+    city: data.city,
+    email: data.email,
+  }
 }

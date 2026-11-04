@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
 import Hero from '../components/Hero.jsx'
@@ -19,6 +19,7 @@ import { buildSearchParams } from '../utils/searchParams.js'
 import { srcSet } from '../utils/image.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { getRecentViews } from '../services/history.js'
+import { getMember } from '../services/member.js'
 import { scrollToCenter } from '../utils/scroll.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -39,11 +40,31 @@ export default function HomePage() {
 
   const [clubOpen, setClubOpen] = useState(false)
   const [partnerOpen, setPartnerOpen] = useState(false)
+  const [member, setMember] = useState(null)
   const [recentIds] = useState(() => getRecentViews())
   const hotelsRef = useRef(null)
   const heroRef = useRef(null)
 
   usePageMeta(null, t('home.metaDesc'))
+
+  useEffect(() => {
+    let live = true
+    const syncMember = () => {
+      getMember()
+        .then((m) => {
+          if (live) setMember(m)
+        })
+        .catch(() => {
+          if (live) setMember(null)
+        })
+    }
+    syncMember()
+    window.addEventListener('wismaku:session-changed', syncMember)
+    return () => {
+      live = false
+      window.removeEventListener('wismaku:session-changed', syncMember)
+    }
+  }, [])
 
   const legacyQuery = searchParams.get('q')
   useEffect(() => {
@@ -109,16 +130,24 @@ export default function HomePage() {
             <div>
               <h2 className="text-2xl font-extrabold">{t('member.title')}</h2>
               <p className="mt-2 max-w-[560px] text-sm leading-[1.6] text-rd-muted max-[768px]:mx-auto">
-                {t('home.clubSubtitle')}
+                {member
+                  ? t('home.clubActiveBadge', { id: member.member_no ?? member.id })
+                  : t('home.clubSubtitle')}
               </p>
             </div>
-            <button
-              className="btn btn-primary max-[768px]:mx-auto"
-              type="button"
-              onClick={() => setClubOpen(true)}
-            >
-              {t('home.joinClub')}
-            </button>
+            {member ? (
+              <Link className="btn btn-primary max-[768px]:mx-auto" to="/akun">
+                {t('home.viewClubAccount')}
+              </Link>
+            ) : (
+              <button
+                className="btn btn-primary max-[768px]:mx-auto"
+                type="button"
+                onClick={() => setClubOpen(true)}
+              >
+                {t('home.joinClub')}
+              </button>
+            )}
           </div>
         </section>
         <section className="bg-white py-12" id="partner">

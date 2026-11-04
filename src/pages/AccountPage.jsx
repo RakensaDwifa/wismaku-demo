@@ -273,9 +273,11 @@ export default function AccountPage() {
                         <p className="truncate text-[13px] text-rd-muted">
                           {t('account.memberId', { id: member.member_no ?? member.id })}
                         </p>
-                        {member.joinedAt && (
+                        {(member.joined_at ?? member.joinedAt) && (
                           <p className="text-[12.5px] font-bold text-rd">
-                            {t('account.memberActive', { date: fmtDate(member.joinedAt, lang) })}
+                            {t('account.memberActive', {
+                              date: fmtDate(member.joined_at ?? member.joinedAt, lang),
+                            })}
                           </p>
                         )}
                       </div>

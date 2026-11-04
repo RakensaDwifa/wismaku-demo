@@ -41,6 +41,8 @@ export const en = {
     clubSubtitle:
       'Up to 20% member discount, early check-in, and flexible check-out at thousands of properties.',
     joinClub: 'Join WismaClub',
+    clubActiveBadge: 'Active Member ({{id}}) — Extra 10% discount is automatically applied at checkout.',
+    viewClubAccount: 'View Member Card',
     cityTitle: 'Find Stays in Your Favorite Cities',
     popularTitle: 'Popular Hotels',
     loadMore: 'Load More ({{count}})',

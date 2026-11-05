@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
@@ -16,6 +16,7 @@ import { useLanguage } from '../i18n/useLanguage.js'
 export default function HotelDetailPage() {
   const { t } = useLanguage()
   const { id } = useParams()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { hotels, loading } = useHotels()
@@ -50,6 +51,11 @@ export default function HotelDetailPage() {
   useEffect(() => {
     if (hotelId != null) addRecentView(hotelId)
   }, [hotelId])
+
+  useEffect(() => {
+    if (loading || !hotelId || location.hash !== '#ulasan') return
+    document.getElementById('ulasan')?.scrollIntoView({ behavior: 'smooth' })
+  }, [loading, hotelId, location.hash])
 
   usePageMeta(
     hotel ? `${hotel.name} - ${hotel.city}` : t('hotelDetailPage.metaTitleFallback'),

@@ -213,33 +213,38 @@ export default function Header() {
           >
             {orders.length > 0 ? t('header.bookingsCount', { count: orders.length }) : t('header.bookings')}
           </Link>
-          {member ? (
-            <Link
-              to="/akun"
-              className="hidden whitespace-nowrap rounded-full bg-gradient-to-br from-rd-grad-1 to-rd-grad-2 px-3 py-1.5 text-xs font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:inline-block"
-              title={`Member WismaClub: ${member.name}`}
-            >
-              &#9733; Member
-            </Link>
-          ) : user ? (
-            <Link
-              to="/akun"
-              className="hidden size-9 overflow-hidden place-items-center rounded-full bg-rd text-sm font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:grid"
-              title={`${user.name} (${user.email})`}
-              aria-label={t('account.title')}
-            >
-              {user.avatarUrl && !avatarFailed ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.name}
-                  className="size-full object-cover"
-                  referrerPolicy="no-referrer"
-                  onError={() => setAvatarFailed(true)}
-                />
-              ) : (
-                user.name.charAt(0).toUpperCase()
+          {user || member ? (
+            <>
+              {member && (
+                <Link
+                  to="/akun"
+                  className="hidden whitespace-nowrap rounded-full bg-gradient-to-br from-rd-grad-1 to-rd-grad-2 px-3 py-1.5 text-xs font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:inline-block"
+                  title={`Member WismaClub: ${member.name}`}
+                >
+                  &#9733; Member
+                </Link>
               )}
-            </Link>
+              {user && (
+                <Link
+                  to="/akun"
+                  className="hidden size-9 overflow-hidden place-items-center rounded-full bg-rd text-sm font-extrabold text-white transition-opacity hover:opacity-90 min-[993px]:grid"
+                  title={`${user.name} (${user.email})`}
+                  aria-label={t('account.title')}
+                >
+                  {user.avatarUrl && !avatarFailed ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="size-full object-cover"
+                      referrerPolicy="no-referrer"
+                      onError={() => setAvatarFailed(true)}
+                    />
+                  ) : (
+                    user.name.charAt(0).toUpperCase()
+                  )}
+                </Link>
+              )}
+            </>
           ) : (
             <>
               <button
@@ -352,6 +357,15 @@ export default function Header() {
               >
                 {favCount > 0 ? t('header.favoritesCount', { count: favCount }) : t('header.favorites')}
               </Link>
+              {(user || member) && (
+                <Link
+                  className="border-b border-[#f4f4f4] px-5 py-3.5 text-[15px] font-semibold text-rd-text transition-colors hover:bg-[#f0fdfa] hover:text-rd"
+                  to="/akun"
+                  onClick={closeMenu}
+                >
+                  {t('account.title')}
+                </Link>
+              )}
             </nav>
             <div className="mt-auto border-t border-gray-100 px-5 py-[18px]">
               {user || member ? (

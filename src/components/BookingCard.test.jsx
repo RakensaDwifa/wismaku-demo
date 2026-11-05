@@ -56,10 +56,25 @@ describe('BookingCard (hapus pesanan dibatalkan)', () => {
     expect(screen.queryByRole('button', { name: 'Hapus' })).not.toBeInTheDocument()
   })
 
-  it('menampilkan link Lihat E-Tiket pada pesanan confirmed', () => {
+  it('menampilkan link Lihat E-Tiket dan Tulis Ulasan pada pesanan confirmed', () => {
     renderCard({ ...sampleBooking, status: 'confirmed' })
     const ticketLink = screen.getByRole('link', { name: 'Lihat E-Tiket' })
     expect(ticketLink).toBeInTheDocument()
     expect(ticketLink).toHaveAttribute('href', '/pesanan/sukses/b-201')
+
+    const reviewLink = screen.getByRole('link', { name: 'Tulis Ulasan' })
+    expect(reviewLink).toHaveAttribute('href', '/hotel/2#ulasan')
+  })
+
+  it('menampilkan badge Kedaluwarsa dan menyembunyikan tombol Bayar Sekarang jika pending sudah lewat expiresAt', () => {
+    renderCard({
+      ...sampleBooking,
+      status: 'pending',
+      expiresAt: '2020-01-01T00:00:00Z',
+    })
+
+    expect(screen.getByText('Kedaluwarsa')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Bayar Sekarang' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Batal' })).toBeInTheDocument()
   })
 })

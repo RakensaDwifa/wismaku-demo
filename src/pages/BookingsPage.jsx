@@ -12,10 +12,18 @@ import { getActiveUser } from '../services/member.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
+const FILTER_TABS = [
+  { id: 'all', labelKey: 'bookings.filterAll' },
+  { id: 'pending', labelKey: 'bookings.filterPending' },
+  { id: 'confirmed', labelKey: 'bookings.filterConfirmed' },
+  { id: 'cancelled', labelKey: 'bookings.filterCancelled' },
+]
+
 export default function BookingsPage() {
   const { t } = useLanguage()
   usePageMeta(t('pages.bookingsTitle'), t('pages.bookingsDesc'))
   const [orders, setOrders] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('all')
   const [user, setUser] = useState(null)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState('')
@@ -172,11 +180,41 @@ export default function BookingsPage() {
                   {actionError}
                 </p>
               )}
-              <ul className="grid list-none gap-[14px] p-0">
-                {orders.map((o) => (
-                  <BookingCard key={o.id} booking={o} onCancel={handleCancel} onDelete={handleDelete} />
-                ))}
-              </ul>
+              <div className="mb-4 flex flex-wrap gap-2">
+                {FILTER_TABS.map((tab) => {
+                  const count =
+                    tab.id === 'all' ? orders.length : orders.filter((o) => o.status === tab.id).length
+                  const active = statusFilter === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setStatusFilter(tab.id)}
+                      className={`rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rd ${
+                        active
+                          ? 'border-rd bg-rd text-white'
+                          : 'border-rd-border bg-white text-rd-text hover:border-rd hover:text-rd'
+                      }`}
+                    >
+                      {t(tab.labelKey)} ({count})
+                    </button>
+                  )
+                })}
+              </div>
+              {statusFilter !== 'all' && orders.every((o) => o.status !== statusFilter) ? (
+                <div className="rounded-[14px] border border-dashed border-rd-border bg-white px-5 py-12 text-center text-[14px] text-rd-muted">
+                  {t('bookings.filterEmpty')}
+                </div>
+              ) : (
+                <ul className="grid list-none gap-[14px] p-0">
+                  {(statusFilter === 'all' ? orders : orders.filter((o) => o.status === statusFilter)).map(
+                    (o) => (
+                      <BookingCard key={o.id} booking={o} onCancel={handleCancel} onDelete={handleDelete} />
+                    ),
+                  )}
+                </ul>
+              )}
             </div>
           )}
         </div>

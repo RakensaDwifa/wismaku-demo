@@ -1,19 +1,39 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { scrollToCenter } from '../utils/scroll.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
-// Rute per indeks footer.helpLinks: FAQ, Hubungi Kami, Cara Booking, Privasi, Syarat.
-// ponytail: ikon sosial dihapus sampai ada akun resmi; tambahkan lagi dengan URL asli.
-const HELP_ROUTES = ['/bantuan', null, '/bantuan', '/privasi', '/syarat']
+// ponytail: ikon sosial serta halaman Karier/Blog dihapus sampai kanal resmi tersedia.
+const ABOUT_SECTIONS = ['about', 'partner', 'redclub']
+const HELP_ROUTES = ['/bantuan', '/bantuan', '/bantuan', '/privasi', '/syarat']
+const POPULAR_ROUTES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Bali', 'Surabaya'].map(
+  (city) => `/hasil?q=${encodeURIComponent(city)}`,
+)
 
 export default function Footer({ onOpenPartner }) {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const [expanded, setExpanded] = useState(false)
   const seo = t('footer.seo')
+  const email = t('footer.email')
+
+  const goHomeSection = (e, id) => {
+    e.preventDefault()
+    if (id === 'partner' && onOpenPartner) {
+      onOpenPartner()
+      return
+    }
+    if (document.getElementById(id)) {
+      scrollToCenter(id)
+      return
+    }
+    navigate('/', { state: { scrollTo: id } })
+  }
+
   const columns = [
-    { title: t('footer.about'), links: t('footer.aboutLinks') },
+    { title: t('footer.about'), links: t('footer.aboutLinks'), sections: ABOUT_SECTIONS },
     { title: t('footer.help'), links: t('footer.helpLinks'), routes: HELP_ROUTES },
-    { title: t('footer.popular'), links: t('footer.popularLinks') },
+    { title: t('footer.popular'), links: t('footer.popularLinks'), routes: POPULAR_ROUTES },
   ]
 
   return (
@@ -53,7 +73,9 @@ export default function Footer({ onOpenPartner }) {
             <p className="text-[13px] leading-[1.75] text-[#c9c9c9]">
               {t('topbar.supportPhone')}
               <br />
-              {t('footer.email')}
+              <a className="hover:text-white hover:underline" href={`mailto:${email}`}>
+                {email}
+              </a>
             </p>
           </div>
           {columns.map((col) => (
@@ -62,6 +84,7 @@ export default function Footer({ onOpenPartner }) {
               <ul className="list-none">
                 {col.links.map((l, i) => {
                   const to = col.routes?.[i]
+                  const section = col.sections?.[i]
                   return (
                     <li className="mb-2.5" key={l}>
                       {to ? (
@@ -70,13 +93,9 @@ export default function Footer({ onOpenPartner }) {
                         </Link>
                       ) : (
                         <a
-                          href="#partner"
-                          className="cursor-not-allowed text-[13px] text-[#b9b9b9]"
-                          aria-disabled={l !== t('nav.partner')}
-                          onClick={(e) => {
-                            e.preventDefault()
-                            if (l === t('nav.partner')) onOpenPartner?.()
-                          }}
+                          href={`#${section}`}
+                          className="text-[13px] text-[#b9b9b9] hover:text-white hover:underline"
+                          onClick={(e) => goHomeSection(e, section)}
                         >
                           {l}
                         </a>

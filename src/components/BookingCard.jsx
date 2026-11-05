@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import Modal from './ui/Modal.jsx'
@@ -8,21 +8,36 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
   const { t, lang } = useLanguage()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
   const cancelled = booking.status === 'cancelled'
   const pending = booking.status === 'pending'
+  const expiresAtMs = booking.expiresAt ? new Date(booking.expiresAt).getTime() : null
+  // ponytail: deteksi kedaluwarsa di sisi klien sebelum pg_cron menyapu ke 'cancelled'.
+  const expired = pending && expiresAtMs !== null && Number.isFinite(expiresAtMs) && expiresAtMs <= now
   const stay = resolveStayDates(booking)
 
-  const badgeClass = cancelled
-    ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
-    : pending
-      ? 'bg-[rgba(245,158,11,0.12)] text-[#b45309]'
-      : 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
+  useEffect(() => {
+    if (!pending || expiresAtMs === null || !Number.isFinite(expiresAtMs) || expiresAtMs <= now) {
+      return undefined
+    }
+    const timer = setTimeout(() => setNow(Date.now()), Math.min(2_147_483_647, expiresAtMs - now + 50))
+    return () => clearTimeout(timer)
+  }, [pending, expiresAtMs, now])
+
+  const badgeClass =
+    cancelled || expired
+      ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
+      : pending
+        ? 'bg-[rgba(245,158,11,0.12)] text-[#b45309]'
+        : 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
 
   const badgeLabel = cancelled
     ? t('bookings.cancelled')
-    : pending
-      ? t('bookings.pending')
-      : t('bookings.confirmed')
+    : expired
+      ? t('bookings.expired')
+      : pending
+        ? t('bookings.pending')
+        : t('bookings.confirmed')
 
   return (
     <li className="flex items-center gap-[14px] rounded-[14px] border border-rd-border bg-white p-[14px] max-[768px]:flex-wrap">
@@ -57,19 +72,24 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
           {t('bookings.code', { id: booking.id, name: booking.guestName })}
         </small>
       </div>
-      <div className="ml-auto flex flex-col gap-2 max-[768px]:w-full max-[768px]:flex-row">
+      <div className="ml-auto flex flex-col gap-2 max-[768px]:w-full max-[768px]:flex-row max-[768px]:flex-wrap">
         <Link className="btn btn-outline btn-sm" to={`/hotel/${booking.hotelId}`}>
           {t('bookings.viewHotel')}
         </Link>
-        {pending && (
+        {pending && !expired && (
           <Link className="btn btn-primary btn-sm" to={`/bayar/${booking.id}`}>
             {t('bookings.payNow')}
           </Link>
         )}
         {!pending && !cancelled && (
-          <Link className="btn btn-outline btn-sm" to={`/pesanan/sukses/${booking.id}`}>
-            {t('bookings.viewTicket')}
-          </Link>
+          <>
+            <Link className="btn btn-outline btn-sm" to={`/pesanan/sukses/${booking.id}`}>
+              {t('bookings.viewTicket')}
+            </Link>
+            <Link className="btn btn-outline btn-sm" to={`/hotel/${booking.hotelId}#ulasan`}>
+              {t('bookings.writeReview')}
+            </Link>
+          </>
         )}
         {!cancelled && (
           <button

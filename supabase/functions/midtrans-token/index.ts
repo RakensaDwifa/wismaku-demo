@@ -1,6 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { sendBookingConfirmationEmail } from '../_shared/email.ts'
+import { confirmBookingOnce } from '../_shared/confirmBooking.ts'
 
 const MIDTRANS_SNAP_URL = 'https://app.sandbox.midtrans.com/snap/v1/transactions'
 const MIDTRANS_API_BASE = 'https://api.sandbox.midtrans.com/v2'
@@ -123,17 +123,18 @@ Deno.serve(async (req: Request) => {
     const method = normalizeMethod(tx?.payment_type) ?? booking.payment_method
 
     if (isPaidStatus(txStatus, tx?.fraud_status)) {
-      const paidAt = booking.paid_at ?? new Date().toISOString()
-      const { error: updErr } = await supabaseAdmin
-        .from('bookings')
-        .update({ status: 'confirmed', payment_method: method, paid_at: paidAt })
-        .eq('id', booking.id)
-      if (updErr) return json({ error: 'Gagal memperbarui status pembayaran.' }, 500)
+      const confirmed = await confirmBookingOnce(supabaseAdmin, {
+        booking,
+        paymentMethod: method,
+      })
+      if (confirmed.error) return json({ error: 'Gagal memperbarui status pembayaran.' }, 500)
 
-      // Kirim email konfirmasi via Gmail SMTP
-      await sendBookingConfirmationEmail({ ...booking, payment_method: method })
-
-      return json({ status: 'confirmed', paymentMethod: method, paidAt, midtransStatus: txStatus })
+      return json({
+        status: 'confirmed',
+        paymentMethod: confirmed.method,
+        paidAt: confirmed.paidAt,
+        midtransStatus: txStatus,
+      })
     }
 
     if (txStatus === 'pending' && method && method !== booking.payment_method) {
@@ -165,13 +166,13 @@ Deno.serve(async (req: Request) => {
     const txStatus = String(tx?.transaction_status ?? '')
 
     if (isPaidStatus(txStatus, tx?.fraud_status)) {
-      const paidAt = booking.paid_at ?? new Date().toISOString()
       const method = normalizeMethod(tx?.payment_type) ?? booking.payment_method
-      await supabaseAdmin
-        .from('bookings')
-        .update({ status: 'confirmed', payment_method: method, paid_at: paidAt })
-        .eq('id', booking.id)
-      return json({ status: 'confirmed', token: null, clientKey, paymentMethod: method })
+      const confirmed = await confirmBookingOnce(supabaseAdmin, {
+        booking,
+        paymentMethod: method,
+      })
+      if (confirmed.error) return json({ error: 'Gagal memperbarui status pembayaran.' }, 500)
+      return json({ status: 'confirmed', token: null, clientKey, paymentMethod: confirmed.method })
     }
 
     if (String(tx?.status_code) === '404' || txStatus === 'pending') {

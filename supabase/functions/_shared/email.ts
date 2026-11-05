@@ -13,6 +13,14 @@ export interface BookingEmailData {
   payment_method?: string | null
 }
 
+const escHtml = (value: unknown): string =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
 export async function sendBookingConfirmationEmail(booking: BookingEmailData): Promise<boolean> {
   const smtpUser = Deno.env.get('SMTP_USER') || Deno.env.get('GMAIL_USER') || 'rakensadwifa@gmail.com'
   const smtpPass = Deno.env.get('SMTP_PASS') || Deno.env.get('GMAIL_APP_PASSWORD')
@@ -58,7 +66,7 @@ export async function sendBookingConfirmationEmail(booking: BookingEmailData): P
     </div>
     <div style="padding: 24px;">
       <p style="font-size: 15px; line-height: 1.5; margin: 0 0 16px;">
-        Halo <strong>${booking.guest_name}</strong>,
+        Halo <strong>${escHtml(booking.guest_name)}</strong>,
       </p>
       <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 20px;">
         Terima kasih atas pemesanan Anda di WismaKu. Pembayaran Anda telah kami terima dan pesanan Anda telah <strong>dikonfirmasi</strong>.
@@ -68,19 +76,19 @@ export async function sendBookingConfirmationEmail(booking: BookingEmailData): P
         <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
           <tr>
             <td style="padding: 6px 0; color: #64748b;">Kode Booking</td>
-            <td style="padding: 6px 0; text-align: right; font-weight: 700; font-family: monospace; color: #0f766e; font-size: 14px;">${booking.id}</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 700; font-family: monospace; color: #0f766e; font-size: 14px;">${escHtml(booking.id)}</td>
           </tr>
           <tr>
             <td style="padding: 6px 0; color: #64748b;">Penginapan</td>
-            <td style="padding: 6px 0; text-align: right; font-weight: 700; color: #1e293b;">${booking.hotel_name}</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: 700; color: #1e293b;">${escHtml(booking.hotel_name)}</td>
           </tr>
           <tr>
             <td style="padding: 6px 0; color: #64748b;">Jadwal Menginap</td>
-            <td style="padding: 6px 0; text-align: right; color: #1e293b;">${booking.check_in ?? '-'} s.d. ${booking.check_out ?? '-'} (${booking.nights} malam)</td>
+            <td style="padding: 6px 0; text-align: right; color: #1e293b;">${escHtml(booking.check_in ?? '-')} s.d. ${escHtml(booking.check_out ?? '-')} (${Number(booking.nights) || 1} malam)</td>
           </tr>
           <tr>
             <td style="padding: 6px 0; color: #64748b;">Jumlah Kamar</td>
-            <td style="padding: 6px 0; text-align: right; color: #1e293b;">${booking.rooms} kamar</td>
+            <td style="padding: 6px 0; text-align: right; color: #1e293b;">${Number(booking.rooms) || 1} kamar</td>
           </tr>
           <tr style="border-top: 1px dashed #cbd5e1;">
             <td style="padding: 10px 0 4px; font-weight: 700; color: #1e293b;">Total Bayar</td>

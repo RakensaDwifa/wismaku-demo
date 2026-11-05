@@ -23,6 +23,22 @@ test('halaman legal tersedia dari footer', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Syarat & Ketentuan' })).toBeVisible()
 })
 
+test('klik Pesan Sekarang saat belum masuk membuka modal login dan tetap di halaman detail', async ({
+  page,
+}) => {
+  await page.goto('/hasil')
+  await page.locator('article h3').first().click()
+  await expect(page).toHaveURL(/\/hotel\//)
+
+  await page.getByRole('button', { name: 'Pesan Sekarang' }).click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByLabel('Email')).toBeVisible()
+  await expect(dialog.getByLabel('Password', { exact: true })).toBeVisible()
+  await expect(page).toHaveURL(/\/hotel\/.+\?.*roomTypeId=/)
+})
+
 test('daftar akun baru lalu menulis ulasan', async ({ page }) => {
   // Menulis data nyata: aktifkan hanya di stack lokal (CI) lewat E2E_WRITE=1.
   test.skip(!process.env.E2E_WRITE, 'set E2E_WRITE=1 untuk menjalankan tes tulis')
@@ -32,7 +48,7 @@ test('daftar akun baru lalu menulis ulasan', async ({ page }) => {
   const dialog = page.getByRole('dialog')
   await dialog.getByLabel('Nama Lengkap').fill('Penguji E2E')
   await dialog.getByLabel('Email').fill(email)
-  await dialog.getByLabel('Password').fill('rahasia123')
+  await dialog.getByLabel('Password', { exact: true }).fill('rahasia123')
   await dialog.getByRole('button', { name: 'Daftar' }).last().click()
   await expect(dialog).toBeHidden()
 

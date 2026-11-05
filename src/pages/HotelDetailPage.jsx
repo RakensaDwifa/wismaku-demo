@@ -67,6 +67,7 @@ export default function HotelDetailPage() {
           price: hotel.price,
         })
       : t('hotelDetailPage.metaDescFallback'),
+    { image: hotel?.img },
   )
 
   if (loading) {

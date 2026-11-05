@@ -1,34 +1,34 @@
 export const cities = [
   {
     name: 'Jakarta',
-    img: 'https://images.unsplash.com/photo-1555899434-94d136828a0d?auto=format&fit=crop&w=600&q=60',
+    img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Monumen_Nasional%2C_Jakarta%2C_Indonesia.jpg/960px-Monumen_Nasional%2C_Jakarta%2C_Indonesia.jpg',
   },
   {
     name: 'Bandung',
-    img: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=60',
+    img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Gedung_Sate_Oktober_2024_-_Rahmatdenas.jpg/960px-Gedung_Sate_Oktober_2024_-_Rahmatdenas.jpg',
   },
   {
     name: 'Surabaya',
-    img: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=600&q=60',
+    img: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Taman_suroboyo.jpg',
   },
   {
     name: 'Yogyakarta',
-    img: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=600&q=60',
+    img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Jogja_-_Tugu_Monument_%282025%29_-_img_06.jpg/960px-Jogja_-_Tugu_Monument_%282025%29_-_img_06.jpg',
   },
   {
     name: 'Bali',
-    img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=600&q=60',
+    img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/Pura_Ulun_Danu_Bratan%2C_2022.jpg/960px-Pura_Ulun_Danu_Bratan%2C_2022.jpg',
   },
   {
     name: 'Malang',
-    img: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=600&q=60',
+    img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/Tugu_Malang.jpg/960px-Tugu_Malang.jpg',
   },
   {
     name: 'Medan',
-    img: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=60',
+    img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Istana_Maimoon.jpg/960px-Istana_Maimoon.jpg',
   },
   {
     name: 'Bogor',
-    img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=60',
+    img: 'https://upload.wikimedia.org/wikipedia/commons/b/be/Tugukujang.jpg',
   },
 ]

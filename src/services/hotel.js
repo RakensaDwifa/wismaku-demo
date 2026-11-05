@@ -66,6 +66,8 @@ const dbToHotel = (row) => ({
   gallery: row.gallery ?? [],
   roomTypes: row.room_types ?? [],
   policy: row.policies ?? {},
+  partnerEmail: row.partner_email ?? null,
+  commissionRate: row.commission_rate ?? 0.15,
   reviewList: [],
 })
 

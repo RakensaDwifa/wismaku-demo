@@ -60,6 +60,7 @@ const fromDb = (row) => ({
   midtransOrderId: row.midtrans_order_id ?? null,
   platformFee: row.platform_fee ?? 0,
   partnerNet: row.partner_net ?? 0,
+  payoutId: row.payout_id ?? null,
 })
 
 export async function getBookings() {

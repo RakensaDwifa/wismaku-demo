@@ -202,7 +202,7 @@ export default function ReviewsSection({ hotel }) {
 
   return (
     <>
-      <section className="rounded-2xl border border-rd-border bg-white p-5">
+      <section id="ulasan" className="rounded-2xl border border-rd-border bg-white p-5">
         <h2 className="text-[18px] font-extrabold">{t('detail.reviews')}</h2>
         {allReviews.length > 0 ? (
           <>

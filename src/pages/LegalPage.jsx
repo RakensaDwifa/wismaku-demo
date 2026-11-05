@@ -29,8 +29,8 @@ export default function LegalPage({ doc }) {
           </div>
           <p className="mt-6 text-[13px] text-rd-muted">
             {t('legal.contactPrefix')}{' '}
-            <a className="font-bold text-rd hover:underline" href="mailto:cs-indonesia@wismaku.id">
-              cs-indonesia@wismaku.id
+            <a className="font-bold text-rd hover:underline" href={`mailto:${t('footer.email')}`}>
+              {t('footer.email')}
             </a>
             .{' '}
             <Link className="font-bold text-rd hover:underline" to="/">

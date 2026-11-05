@@ -32,7 +32,7 @@ const items = [
 export default function AssuranceBar() {
   const { t } = useLanguage()
   return (
-    <section className="bg-rd-soft py-[42px]">
+    <section id="about" className="bg-rd-soft py-[42px]">
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-4 gap-[26px] px-5 max-[640px]:grid-cols-1">
         {items.map((it) => (
           <div className="flex items-start gap-3.5" key={it.titleKey}>

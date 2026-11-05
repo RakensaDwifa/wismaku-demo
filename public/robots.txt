@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /akun
+Disallow: /bookings
+Disallow: /favorites
+Disallow: /booking/
+Disallow: /bayar/
+Disallow: /pesanan/
+
+Sitemap: https://wismaku-demo.vercel.app/sitemap.xml

@@ -9,8 +9,8 @@ import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
-const statusBadge = (status) => {
-  if (status === 'cancelled') return 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
+const statusBadge = (status, expired) => {
+  if (status === 'cancelled' || expired) return 'bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
   if (status === 'pending') return 'bg-[rgba(245,158,11,0.12)] text-[#b45309]'
   return 'bg-[rgba(20,184,166,0.12)] text-rd-teal'
 }
@@ -21,6 +21,7 @@ export default function BookingSuccessPage() {
   const { id } = useParams()
   const [booking, setBooking] = useState(null)
   const [loaded, setLoaded] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     let live = true
@@ -41,6 +42,44 @@ export default function BookingSuccessPage() {
 
   const subtotal = booking ? booking.roomPrice * booking.nights * booking.rooms : 0
   const stay = booking ? resolveStayDates(booking) : null
+
+  const isCancelled = booking?.status === 'cancelled'
+  const isConfirmed = booking?.status === 'confirmed'
+  const isPending = booking?.status === 'pending'
+  const expiresAtMs = booking?.expiresAt ? new Date(booking.expiresAt).getTime() : null
+  const isExpired = Boolean(
+    isPending && expiresAtMs !== null && Number.isFinite(expiresAtMs) && expiresAtMs <= now,
+  )
+
+  useEffect(() => {
+    if (!isPending || expiresAtMs === null || !Number.isFinite(expiresAtMs) || expiresAtMs <= now) {
+      return undefined
+    }
+    const timer = setTimeout(() => setNow(Date.now()), Math.min(2_147_483_647, expiresAtMs - now + 50))
+    return () => clearTimeout(timer)
+  }, [isPending, expiresAtMs, now])
+
+  const bannerIcon = isConfirmed
+    ? { bg: 'bg-[linear-gradient(95deg,#10b981,#0d9488)] text-white', symbol: '\u2713' }
+    : isCancelled || isExpired
+      ? { bg: 'bg-[rgba(239,68,68,0.15)] text-[#dc2626]', symbol: '\u2715' }
+      : { bg: 'bg-[linear-gradient(95deg,#f59e0b,#d97706)] text-white', symbol: '\u23F1' }
+
+  const bannerTitle = isConfirmed
+    ? t('pages.successConfirmed')
+    : isCancelled
+      ? t('pages.successCancelled')
+      : isExpired
+        ? t('pages.successExpired')
+        : t('pages.successPending')
+
+  const badgeLabel = isCancelled
+    ? t('bookings.cancelled')
+    : isExpired
+      ? t('bookings.expired')
+      : isPending
+        ? t('bookings.pending')
+        : t('bookings.confirmed')
 
   return (
     <>
@@ -84,23 +123,19 @@ export default function BookingSuccessPage() {
 
               <div className="mb-4 flex items-center gap-[14px] rounded-[14px] border border-rd-border bg-white p-[14px] print:border-none print:p-0">
                 <div
-                  className="grid size-[54px] shrink-0 place-items-center rounded-full bg-[linear-gradient(95deg,#10b981,#0d9488)] text-[26px] font-extrabold text-white print:hidden"
+                  className={`grid size-[54px] shrink-0 place-items-center rounded-full text-[24px] font-extrabold print:hidden ${bannerIcon.bg}`}
                   aria-hidden="true"
                 >
-                  &#10003;
+                  {bannerIcon.symbol}
                 </div>
                 <div>
-                  <h3 className="text-[17px] font-extrabold">{t('pages.successCreated')}</h3>
+                  <h3 className="text-[17px] font-extrabold">{bannerTitle}</h3>
                   <p className="text-[13px] text-rd-muted">
                     {t('pages.successCode')} <b className="text-rd-teal">{booking.id}</b> &middot;{' '}
                     <span
-                      className={`rounded-full px-[9px] py-[3px] text-[11px] font-extrabold ${statusBadge(booking.status)}`}
+                      className={`rounded-full px-[9px] py-[3px] text-[11px] font-extrabold ${statusBadge(booking.status, isExpired)}`}
                     >
-                      {booking.status === 'cancelled'
-                        ? t('bookings.cancelled')
-                        : booking.status === 'pending'
-                          ? t('bookings.pending')
-                          : t('bookings.confirmed')}
+                      {badgeLabel}
                     </span>
                   </p>
                 </div>
@@ -184,29 +219,31 @@ export default function BookingSuccessPage() {
               </div>
 
               <div className="mt-5 flex flex-wrap gap-2.5 print:hidden">
-                <button
-                  className="btn btn-outline inline-flex items-center gap-2"
-                  type="button"
-                  onClick={() => window.print()}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
+                {isConfirmed && (
+                  <button
+                    className="btn btn-outline inline-flex items-center gap-2"
+                    type="button"
+                    onClick={() => window.print()}
                   >
-                    <polyline points="6 9 6 2 18 2 18 9" />
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                    <rect x="6" y="14" width="12" height="8" />
-                  </svg>
-                  {t('pages.printTicket')}
-                </button>
-                {booking.status === 'pending' && (
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polyline points="6 9 6 2 18 2 18 9" />
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                      <rect x="6" y="14" width="12" height="8" />
+                    </svg>
+                    {t('pages.printTicket')}
+                  </button>
+                )}
+                {isPending && !isExpired && (
                   <Link className="btn btn-primary" to={`/bayar/${booking.id}`}>
                     {t('pages.continuePayment')}
                   </Link>

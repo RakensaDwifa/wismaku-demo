@@ -1,21 +1,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { confirmBookingOnce } from '../_shared/confirmBooking.ts'
+import { handleCorsOptions, jsonResponse } from '../_shared/cors.ts'
 
 const MIDTRANS_SNAP_URL = 'https://app.sandbox.midtrans.com/snap/v1/transactions'
 const MIDTRANS_API_BASE = 'https://api.sandbox.midtrans.com/v2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
 
 const normalizeMethod = (paymentType?: string | null): string | null => {
   if (!paymentType) return null
@@ -34,8 +23,10 @@ const isPaidStatus = (txStatus?: string, fraudStatus?: string) =>
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return handleCorsOptions(req)
   }
+  const json = (body: unknown, status = 200) => jsonResponse(req, body, status)
+
   if (req.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
   }

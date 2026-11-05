@@ -251,6 +251,9 @@ begin
 
     if not is_privileged then
       if new.status <> old.status then
+        if new.status = 'confirmed' then
+          raise exception 'Konfirmasi pembayaran hanya dapat dilakukan oleh server pembayaran.';
+        end if;
         if not (
           (old.status = 'pending' and new.status = 'cancelled')
           or (old.status = 'confirmed' and new.status in ('completed', 'cancelled') and (is_hotel_partner or public.is_admin()))

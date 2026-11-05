@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fetchCities, fetchHotel, fetchHotels, fetchPromos, fetchTestimonials } from './hotel.js'
+import {
+  CITY_LANDMARKS,
+  fetchCities,
+  fetchHotel,
+  fetchHotels,
+  fetchPromos,
+  fetchTestimonials,
+} from './hotel.js'
 
 const mockHotelRow = {
   id: '1',
@@ -90,11 +97,16 @@ describe('hotel service', () => {
     expect(await fetchHotel('H-TIDAK-ADA')).toBeNull()
   })
 
-  it('fetchCities mengembalikan daftar kota', async () => {
+  it('fetchCities mengembalikan daftar kota dengan gambar landmark otentik', async () => {
     const cities = await fetchCities()
     expect(Array.isArray(cities)).toBe(true)
     expect(cities.length).toBeGreaterThan(0)
     expect(cities[0]).toHaveProperty('name')
+
+    const jakarta = cities.find((c) => c.name === 'Jakarta')
+    if (jakarta) {
+      expect(jakarta.img).toBe(CITY_LANDMARKS.Jakarta)
+    }
   })
 
   it('fetchPromos dan fetchTestimonials mengembalikan array', async () => {

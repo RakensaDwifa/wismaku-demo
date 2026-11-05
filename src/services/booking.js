@@ -58,6 +58,8 @@ const fromDb = (row) => ({
   expiresAt: row.expires_at,
   snapToken: row.snap_token ?? null,
   midtransOrderId: row.midtrans_order_id ?? null,
+  platformFee: row.platform_fee ?? 0,
+  partnerNet: row.partner_net ?? 0,
 })
 
 export async function getBookings() {

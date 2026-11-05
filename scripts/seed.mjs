@@ -61,6 +61,8 @@ const hotelRows = hotels.map((h) => ({
   gallery: h.gallery ?? [],
   policies: h.policy ?? {},
   room_types: h.roomTypes ?? [],
+  partner_email: ['1', '2', '3'].includes(String(h.id)) ? 'mitra@wismaku.com' : null,
+  commission_rate: 0.15,
 }))
 
 const reviewRows = []

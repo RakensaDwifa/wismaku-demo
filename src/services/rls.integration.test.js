@@ -85,11 +85,47 @@ describe.skipIf(skip)('RLS: isolasi data per pengguna', () => {
     expect(check).toBeTruthy()
   })
 
-  it('user A bisa membaca booking miliknya', async () => {
+  it('user A bisa membaca booking miliknya dan harga dikunci ke katalog server', async () => {
     const { data, error } = await clientA.from('bookings').select('*').eq('id', bookingIdA).maybeSingle()
     expect(error).toBeNull()
     expect(data).toBeTruthy()
     expect(data.id).toBe(bookingIdA)
+    // Klien mengirim room_price: 100000 saat beforeAll, tetapi server mengunci ke harga katalog asli (>= 150000)
+    expect(Number(data.room_price)).toBeGreaterThanOrEqual(150000)
+    expect(Number(data.total_price)).toBe(Number(data.room_price))
+    expect(Number(data.member_discount)).toBe(0)
+  })
+
+  it('server menolak kode kupon palsu pada INSERT booking', async () => {
+    const { data: userData } = await clientA.auth.getUser()
+    const { data: hotel } = await clientA.from('hotels').select('id').limit(1).single()
+    const { data: unexpected, error } = await clientA
+      .from('bookings')
+      .insert({
+        user_id: userData.user.id,
+        hotel_id: hotel.id,
+        hotel_name: 'Hotel Test Kupon',
+        nights: 1,
+        rooms: 1,
+        guests: 1,
+        room_type_id: 'standard',
+        room_type_name: 'Standar',
+        room_price: 1,
+        coupon_code: 'KUPON_PALSU_999',
+        coupon_discount: 999999,
+        total_price: 0,
+        guest_name: 'User A',
+        email: emailA,
+        phone: '081234567890',
+      })
+      .select('id')
+      .maybeSingle()
+    if (unexpected?.id) {
+      await clientA.from('bookings').update({ status: 'cancelled' }).eq('id', unexpected.id)
+      await clientA.from('bookings').delete().eq('id', unexpected.id)
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toMatch(/kupon/i)
   })
 
   it('user A tidak bisa mengonfirmasi status pembayaran langsung dari klien', async () => {

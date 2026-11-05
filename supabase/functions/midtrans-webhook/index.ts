@@ -1,6 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { sendBookingConfirmationEmail } from '../_shared/email.ts'
+import { confirmBookingOnce } from '../_shared/confirmBooking.ts'
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -92,22 +92,18 @@ Deno.serve(async (req: Request) => {
   if (!booking || booking.status === 'cancelled') {
     return json({ ok: true, ignored: true })
   }
+  if (booking.status === 'confirmed') {
+    return json({ ok: true, status: 'confirmed', ignored: true })
+  }
 
   const method = normalizeMethod(paymentType) ?? booking.payment_method
 
   if (txStatus === 'settlement' || (txStatus === 'capture' && (!fraudStatus || fraudStatus === 'accept'))) {
-    const { error: updErr } = await supabaseAdmin
-      .from('bookings')
-      .update({
-        status: 'confirmed',
-        payment_method: method,
-        paid_at: booking.paid_at ?? new Date().toISOString(),
-      })
-      .eq('id', booking.id)
-    if (updErr) return json({ error: 'Failed to confirm booking' }, 500)
-
-    // Kirim email konfirmasi via Gmail SMTP
-    await sendBookingConfirmationEmail({ ...booking, payment_method: method })
+    const confirmed = await confirmBookingOnce(supabaseAdmin, {
+      booking,
+      paymentMethod: method,
+    })
+    if (confirmed.error) return json({ error: 'Failed to confirm booking' }, 500)
 
     return json({ ok: true, status: 'confirmed' })
   }

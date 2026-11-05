@@ -45,14 +45,19 @@ export default function CityChips({ cities, onPick, loading = false, error, onRe
               key={c.name}
               onClick={() => onPick(c.name)}
             >
-              <img
-                src={c.img}
-                srcSet={srcSet(c.img, [200, 400, 800])}
-                sizes="(max-width: 768px) 44vw, 160px"
-                alt={c.name}
-                loading="lazy"
-                className="h-[104px] w-full object-cover"
-              />
+              <div className="flex h-[104px] w-full items-center justify-center overflow-hidden bg-[#f1f5f9]">
+                <img
+                  src={c.img}
+                  srcSet={srcSet(c.img, [200, 400, 800])}
+                  sizes="(max-width: 768px) 44vw, 160px"
+                  alt={c.name}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <span className="block px-1 py-2.5 text-[13px] font-bold text-rd-text">{c.name}</span>
             </button>
           ))}

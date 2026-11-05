@@ -60,4 +60,13 @@ describe('CityChips', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Coba Lagi' })).toBeNull()
   })
+
+  it('menyembunyikan elemen img saat onError terpanggil', () => {
+    renderChips()
+
+    const img = screen.getByAltText('Jakarta')
+    expect(img).toBeInTheDocument()
+    img.dispatchEvent(new Event('error'))
+    expect(img.style.display).toBe('none')
+  })
 })

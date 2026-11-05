@@ -90,11 +90,30 @@ export async function fetchHotel(id) {
   return data ? dbToHotel(data) : null
 }
 
+// ponytail: fallback landmark monumen lokal bila data di DB belum termigrasi; hapus bila DB dipastikan tersinkronisasi.
+export const CITY_LANDMARKS = {
+  Jakarta:
+    'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Monumen_Nasional%2C_Jakarta%2C_Indonesia.jpg/960px-Monumen_Nasional%2C_Jakarta%2C_Indonesia.jpg',
+  Bandung:
+    'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Gedung_Sate_Oktober_2024_-_Rahmatdenas.jpg/960px-Gedung_Sate_Oktober_2024_-_Rahmatdenas.jpg',
+  Surabaya: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Taman_suroboyo.jpg',
+  Yogyakarta:
+    'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Jogja_-_Tugu_Monument_%282025%29_-_img_06.jpg/960px-Jogja_-_Tugu_Monument_%282025%29_-_img_06.jpg',
+  Bali: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/Pura_Ulun_Danu_Bratan%2C_2022.jpg/960px-Pura_Ulun_Danu_Bratan%2C_2022.jpg',
+  Malang: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/Tugu_Malang.jpg/960px-Tugu_Malang.jpg',
+  Medan:
+    'https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Istana_Maimoon.jpg/960px-Istana_Maimoon.jpg',
+  Bogor: 'https://upload.wikimedia.org/wikipedia/commons/b/be/Tugukujang.jpg',
+}
+
 export async function fetchCities() {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
   const { data, error } = await supabase.from('cities').select('name, image').order('name')
   if (error) throw new Error(error.message)
-  return (data ?? []).map((c) => ({ name: c.name, img: c.image }))
+  return (data ?? []).map((c) => ({
+    name: c.name,
+    img: CITY_LANDMARKS[c.name] ?? c.image,
+  }))
 }
 
 export async function fetchPromos() {

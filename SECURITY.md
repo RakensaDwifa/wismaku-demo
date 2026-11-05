@@ -34,28 +34,31 @@ belum, dan batas antara "demo yang lebih aman" dengan "sistem yang siap produksi
 
 ### 2. Row Level Security (RLS)
 
-Semua tabel di schema `public` mengaktifkan RLS, diperkuat dengan migrasi `0002_security_hardening.sql`:
+Semua tabel di schema `public` mengaktifkan RLS, diperkuat dengan rangkaian migrasi `0002_security_hardening.sql` hingga `0008_server_price_validation.sql`:
 
 - `cities`, `hotels`, `reviews`: baca publik (anon); `reviews` dibatasi satu ulasan per `(hotel_id, user_id)`.
 - `coupons`: baca publik dibatasi hanya untuk kupon yang aktif dan belum kedaluwarsa (`active = true`).
-- `profiles`, `members`, `favorites`, `bookings`, `partners`: baca/tulis hanya
-  milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`); penghapusan baris `bookings` (`0004_bookings_delete_cancelled.sql`) dibatasi hanya untuk pesanan milik sendiri yang sudah berstatus `cancelled`.
-- Trigger `profiles_protect_immutable` mengunci kolom `id`, `email`, `provider`, dan `joined_at` dari modifikasi klien.
-- Trigger `bookings_enforce_integrity` menghitung ulang `total_price` di server, mencegah perubahan status pesanan yang sudah dibatalkan (`cancelled`), dan melalui migrasi `0003_midtrans_payment.sql` **mengunci status `confirmed` serta kolom pembayaran (`paid_at`, `payment_method`, `snap_token`, `midtrans_order_id`) agar hanya dapat diubah oleh `service_role` di server**.
+- `profiles`, `members`, `favorites`, `bookings`, `partner_leads`: baca/tulis hanya milik sendiri (`auth.uid() = user_id` / `auth.uid() = id`); calon mitra dapat memasukkan data prospek (`partner_leads self insert`) dan membacanya sendiri; penghapusan baris `bookings` (`0004_bookings_delete_cancelled.sql`) dibatasi hanya untuk pesanan milik sendiri yang sudah berstatus `cancelled`.
+- Trigger `profiles_protect_immutable` mengunci kolom `id`, `email`, `provider`, dan `joined_at` dari modifikasi klien, namun mengizinkan pembaruan nama dan nomor telepon profil (`0007_profiles_phone.sql`).
+- Trigger `enforce_booking_integrity` (`0008_server_price_validation.sql`) mengambil harga kamar asli langsung dari `hotels.room_types`, memvalidasi keaktifan kupon diskon di tabel `coupons`, menerapkan diskon member 10% jika terdaftar di `members`, dan menghitung ulang `total_price` secara otoritatif di server. Klien dilarang memanipulasi harga kamar, diskon, maupun `total_price`.
+- Migrasi `0003_midtrans_payment.sql` mengunci status `confirmed` serta kolom pembayaran (`paid_at`, `payment_method`, `snap_token`, `midtrans_order_id`) agar hanya dapat diubah oleh `service_role` di server.
 - Migrasi `0006_booking_expiry.sql` menambah `expires_at` (di-set server, tidak bisa diubah klien), membatalkan otomatis pesanan `pending` yang lewat batas waktu lewat `pg_cron` tiap 5 menit (toleransi 10 menit untuk webhook yang terlambat), dan menyelaraskan `expiry` transaksi Snap dengan `expires_at`.
 
-Akibatnya, meskipun anon key diekspos di bundle frontend, pengguna tidak bisa
-membaca atau mengubah data pengguna lain maupun menandai pesanannya lunas secara sepihak dari DevTools.
+Akibatnya, meskipun anon key diekspos di bundle frontend, pengguna tidak bisa membaca atau mengubah data pengguna lain maupun memanipulasi tagihan dan status pembayarannya sendiri dari DevTools.
 
 ### 2b. Pembayaran server-side (Midtrans Snap Sandbox + Supabase Edge Functions)
 
 - Pembuatan transaksi Snap (`midtrans-token`) memverifikasi JWT pemilik pesanan dan memanggil API Midtrans menggunakan `MIDTRANS_SERVER_KEY` yang tersimpan eksklusif di Supabase Edge Function Secrets.
 - Konfirmasi pelunasan diverifikasi dua jalur di sisi server: sinkron melalui `GET /v2/{order_id}/status` setelah pop-up selesai, serta asinkron melalui webhook `midtrans-webhook` dengan validasi `SHA-512(order_id + status_code + gross_amount + server_key)` secara _constant-time_.
+- Helper `confirmBookingOnce` mencegah duplikasi status dan duplikasi email: pelunasan dilakukan atomik (`.neq('status', 'confirmed')`), disusul pengiriman konfirmasi e-tiket via Gmail SMTP (`_shared/email.ts`) dengan sanitasi HTML pada nama tamu, hotel, dan kode booking.
+- Edge Functions (`midtrans-token` & `delete-account`) membatasi origin lintas domain lewat allowlist CORS ketat (`_shared/cors.ts`) dan header `Vary: Origin`.
 
-### 3. Akun: reset password dan hapus akun
+### 3. Akun: reset password, profil, dan hapus akun
 
-- `requestPasswordReset` tidak pernah membocorkan apakah email terdaftar: UI selalu menampilkan pesan sukses netral, dan kegagalan dari Supabase juga ditelan.
+- Pemulihan password mendukung pengiriman kode OTP 6-digit via SMTP kustom (`supabase.auth.verifyOtp` tipe `recovery`) serta link tautan pemulihan.
+- `requestPasswordReset` tidak pernah membocorkan apakah email terdaftar: UI selalu menampilkan pesan sukses netral, dan kegagalan dari Supabase juga ditelan untuk mencegah enumerasi akun.
 - Ubah password memakai sesi Supabase aktif (`auth.updateUser`), dengan validasi panjang/komposisi password di `ChangePasswordSchema`.
+- Edit nama dan nomor telepon profil divalidasi via Zod di klien dan dilindungi RLS di database.
 - Hapus akun lewat Edge Function `delete-account` (verifikasi JWT, `verify_jwt: true`):
   email yang diketik pengguna harus sama dengan email akun, dan permintaan ditolak (409) bila masih ada pesanan `confirmed` dengan `check_out >= hari ini` agar data pembayaran tidak hilang.
 

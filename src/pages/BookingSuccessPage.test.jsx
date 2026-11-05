@@ -55,14 +55,15 @@ describe('BookingSuccessPage', () => {
     mockGetBookingById.mockReset()
   })
 
-  it('memuat data booking dan menampilkan tombol Cetak E-Tiket', async () => {
+  it('memuat data booking dan menampilkan tombol Cetak E-Tiket pada pesanan confirmed', async () => {
     mockGetBookingById.mockResolvedValue(sampleBooking)
     const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {})
     const user = userEvent.setup()
 
     renderPage()
 
-    const printBtn = await screen.findByRole('button', { name: /Cetak E-Tiket/i })
+    expect(await screen.findByRole('heading', { name: 'Pesanan Terkonfirmasi' })).toBeInTheDocument()
+    const printBtn = screen.getByRole('button', { name: /Cetak E-Tiket/i })
     expect(printBtn).toBeInTheDocument()
 
     expect(screen.getAllByText('b-999')).toHaveLength(2)
@@ -72,6 +73,44 @@ describe('BookingSuccessPage', () => {
     expect(printSpy).toHaveBeenCalled()
 
     printSpy.mockRestore()
+  })
+
+  it('menampilkan status Menunggu Pembayaran dan tombol bayar pada pending aktif', async () => {
+    mockGetBookingById.mockResolvedValue({
+      ...sampleBooking,
+      status: 'pending',
+      expiresAt: '2099-01-01T00:00:00Z',
+    })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Menunggu Pembayaran' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Lanjutkan Pembayaran' })).toHaveAttribute('href', '/bayar/b-999')
+    expect(screen.queryByRole('button', { name: /Cetak E-Tiket/i })).not.toBeInTheDocument()
+  })
+
+  it('menampilkan status Batas Waktu Pembayaran Habis pada pending kedaluwarsa', async () => {
+    mockGetBookingById.mockResolvedValue({
+      ...sampleBooking,
+      status: 'pending',
+      expiresAt: '2020-01-01T00:00:00Z',
+    })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Batas Waktu Pembayaran Habis' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Lanjutkan Pembayaran' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Cetak E-Tiket/i })).not.toBeInTheDocument()
+  })
+
+  it('menampilkan status Pesanan Dibatalkan pada pesanan cancelled', async () => {
+    mockGetBookingById.mockResolvedValue({
+      ...sampleBooking,
+      status: 'cancelled',
+    })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Pesanan Dibatalkan' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Lanjutkan Pembayaran' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Cetak E-Tiket/i })).not.toBeInTheDocument()
   })
 
   it('menampilkan status tidak ditemukan bila booking gagal dimuat', async () => {

@@ -20,16 +20,17 @@ Aplikasi ini adalah **prototipe/demo**, bukan sistem produksi. Yang perlu diketa
 
 - Pencarian penginapan: destinasi, tanggal (date range picker), kamar, tamu
 - Filter & sortir hasil: amenities, rentang harga, rating, harga/rating
-- Halaman detail hotel: galeri foto + lightbox, tipe kamar, ulasan tamu, kebijakan
-- Pemesanan dengan kalkulasi harga: kupon diskon, diskon member 10%
-- Pembayaran Midtrans Snap (Sandbox) dengan hitung mundur; pesanan pending otomatis dibatalkan setelah 1 jam (`pg_cron`)
-- Akun: lupa password, ubah password, hapus akun (Edge Function `delete-account`)
-- Ulasan: 1 ulasan per akun per hotel, badge Tamu Terverifikasi, sortir & filter per bintang
+- Halaman detail hotel: galeri foto + lightbox, tipe kamar, ulasan tamu, kebijakan, dan tombol bagikan
+- Pemesanan aman: gerbang modal login saat klik Pesan Sekarang, validasi harga kamar katalog & kupon di server, chip kupon cepat, dan diskon member WismaClub 10%
+- Pembayaran Midtrans Snap (Sandbox): hitung mundur 1 jam (`pg_cron`), konfirmasi atomik anti-duplikasi, dan pengiriman email e-tiket otomatis via Gmail SMTP
+- Cetak voucher e-tiket native (`/pesanan/sukses/:id`) untuk pesanan terkonfirmasi
+- Akun: edit nama & nomor telepon, pemulihan password via OTP email, ubah password, dan hapus akun (Edge Function `delete-account`)
+- Ulasan: 1 ulasan per akun per hotel, badge Tamu Terverifikasi, sortir & filter per bintang, serta tautan ulasan langsung dari pesanan terkonfirmasi
+- Halaman pemesanan: filter tab status (`Semua`, `Menunggu`, `Terkonfirmasi`, `Dibatalkan`), deteksi kedaluwarsa sisi klien, pembatalan & penghapusan riwayat
+- Pendaftaran member WismaClub & calon mitra penginapan (`partner_leads` modal + validasi Zod)
+- SEO & Meta dinamis: `<link rel="canonical">` dan Open Graph per rute, `robots.txt`, dan `sitemap.xml`
 - Halaman statis Syarat & Ketentuan, Kebijakan Privasi, dan Pusat Bantuan/FAQ
-- Kupon validasi (misl. `WISMA20`), diskon member WismaClub
-- Halaman pemesanan (riwayat + pembatalan) dan halaman favorit
-- Pendaftaran member WismaClub & partner penginapan (modal + validasi)
-- Backend Supabase: Auth (email/password + OAuth Google/Facebook), Postgres, RLS per pengguna
+- Backend Supabase: Auth (email/password + OAuth Google/Facebook), Postgres, RLS per pengguna, dan Edge Functions terproteksi CORS allowlist
 
 ## Teknologi
 

@@ -1,20 +1,11 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
+import { handleCorsOptions, jsonResponse } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method === 'OPTIONS') return handleCorsOptions(req)
+  const json = (body: unknown, status = 200) => jsonResponse(req, body, status)
+
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''

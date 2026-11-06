@@ -151,6 +151,7 @@ export const en = {
     thumbAria: 'Photo {{n}}',
   },
   review: {
+    officialReply: 'Official Response from Management',
     yours: 'Your Review',
     verifiedGuest: 'Verified Guest',
     empty: 'No reviews for this stay yet. Be the first to review!',

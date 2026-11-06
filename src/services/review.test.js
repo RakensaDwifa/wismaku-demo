@@ -89,6 +89,31 @@ describe('addReview / getReviews', () => {
     expect(list[0].text).toBe(payload.text)
   })
 
+  it('memetakan balasan resmi mitra (replyText dan repliedAt)', async () => {
+    mockFrom.mockImplementation(() =>
+      qb({
+        data: [
+          {
+            id: 'r-1',
+            hotel_id: '1',
+            name: payload.name,
+            city: payload.city,
+            rating: payload.rating,
+            text: payload.text,
+            reply_text: 'Terima kasih atas ulasan positifnya!',
+            replied_at: '2026-11-06T18:00:00Z',
+            created_at: '2026-08-02T00:00:00Z',
+          },
+        ],
+        error: null,
+      }),
+    )
+    const list = await getReviews('1')
+    expect(list).toHaveLength(1)
+    expect(list[0].replyText).toBe('Terima kasih atas ulasan positifnya!')
+    expect(list[0].repliedAt).toBe('2026-11-06T18:00:00Z')
+  })
+
   it('menolak payload tidak valid', async () => {
     await expect(addReview({ ...payload, rating: 9 })).rejects.toThrow()
     await expect(addReview({ ...payload, rating: 0 })).rejects.toThrow()

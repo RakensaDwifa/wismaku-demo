@@ -152,6 +152,7 @@ export const id = {
     thumbAria: 'Foto {{n}}',
   },
   review: {
+    officialReply: 'Tanggapan Resmi Pengelola',
     yours: 'Ulasan Anda',
     verifiedGuest: 'Tamu Terverifikasi',
     empty: 'Belum ada ulasan untuk penginapan ini. Jadilah yang pertama mengulas!',

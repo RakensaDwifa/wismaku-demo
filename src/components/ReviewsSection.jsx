@@ -197,6 +197,19 @@ export default function ReviewsSection({ hotel }) {
         {r.city ? `${r.city} · ${fmtDate(r.date, lang)}` : fmtDate(r.date, lang)}
       </span>
       <p className="mt-1.5 leading-[1.55]">{r.translated ?? r.text}</p>
+      {r.replyText && (
+        <div className="mt-2.5 rounded-lg border-l-2 border-rd-teal bg-white/80 p-2.5 text-[12.5px] shadow-xs">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-extrabold uppercase tracking-wide text-rd-teal">
+              {t('review.officialReply')}
+            </span>
+            {r.repliedAt && (
+              <span className="text-[10.5px] text-rd-muted">{fmtDate(r.repliedAt.slice(0, 10), lang)}</span>
+            )}
+          </div>
+          <p className="mt-1 text-[12.5px] text-rd-text leading-relaxed">{r.replyText}</p>
+        </div>
+      )}
     </li>
   )
 

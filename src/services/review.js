@@ -16,6 +16,8 @@ const fromDb = (row) => ({
   city: row.city,
   rating: row.rating,
   text: row.text,
+  replyText: row.reply_text ?? null,
+  repliedAt: row.replied_at ?? null,
   verifiedGuest: Boolean(row.verified_guest),
   date: row.created_at ? row.created_at.slice(0, 10) : null,
   createdAt: row.created_at,
@@ -25,7 +27,9 @@ export async function getReviews(hotelId) {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('reviews')
-    .select('id, hotel_id, user_id, name, city, rating, text, verified_guest, created_at')
+    .select(
+      'id, hotel_id, user_id, name, city, rating, text, reply_text, replied_at, verified_guest, created_at',
+    )
     .eq('hotel_id', String(hotelId))
     .order('created_at', { ascending: false })
   if (error) return []

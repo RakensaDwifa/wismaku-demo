@@ -25,15 +25,30 @@ const fromDb = (row) => ({
 
 export async function getReviews(hotelId) {
   if (!supabase) return []
-  const { data, error } = await supabase
-    .from('reviews')
-    .select(
-      'id, hotel_id, user_id, name, city, rating, text, reply_text, replied_at, verified_guest, created_at',
-    )
-    .eq('hotel_id', String(hotelId))
-    .order('created_at', { ascending: false })
-  if (error) return []
-  return (data ?? []).map(fromDb)
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select(
+        'id, hotel_id, user_id, name, city, rating, text, reply_text, replied_at, verified_guest, created_at, is_hidden',
+      )
+      .eq('hotel_id', String(hotelId))
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return (data ?? []).filter((r) => !r.is_hidden).map(fromDb)
+  } catch {
+    // Fallback jika kolom is_hidden belum aktif pada schema remote
+    const { data: fbData, error: fbErr } = await supabase
+      .from('reviews')
+      .select(
+        'id, hotel_id, user_id, name, city, rating, text, reply_text, replied_at, verified_guest, created_at',
+      )
+      .eq('hotel_id', String(hotelId))
+      .order('created_at', { ascending: false })
+
+    if (fbErr) return []
+    return (fbData ?? []).map(fromDb)
+  }
 }
 
 export async function addReview(payload) {

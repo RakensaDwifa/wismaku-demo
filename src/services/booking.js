@@ -8,6 +8,25 @@ const notify = () => {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(CHANGE_EVENT))
 }
 
+export function initBookingsRealtime() {
+  if (typeof window === 'undefined' || !supabase) return () => {}
+  try {
+    const channel = supabase
+      .channel('wismaku-guest-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+        notify()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  } catch (err) {
+    console.warn('[initBookingsRealtime] Realtime init warning:', err)
+    return () => {}
+  }
+}
+
 const toDb = (payload, userId) => ({
   user_id: userId,
   hotel_id: String(payload.hotelId),

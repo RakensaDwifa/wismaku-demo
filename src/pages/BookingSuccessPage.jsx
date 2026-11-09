@@ -25,18 +25,24 @@ export default function BookingSuccessPage() {
 
   useEffect(() => {
     let live = true
-    getBookingById(id)
-      .then((item) => {
-        if (live) setBooking(item)
-      })
-      .catch(() => {
-        if (live) setBooking(null)
-      })
-      .finally(() => {
-        if (live) setLoaded(true)
-      })
+    const fetchBooking = () => {
+      getBookingById(id)
+        .then((item) => {
+          if (live) setBooking(item)
+        })
+        .catch(() => {
+          if (live) setBooking(null)
+        })
+        .finally(() => {
+          if (live) setLoaded(true)
+        })
+    }
+
+    fetchBooking()
+    window.addEventListener('wismaku:bookings-changed', fetchBooking)
     return () => {
       live = false
+      window.removeEventListener('wismaku:bookings-changed', fetchBooking)
     }
   }, [id])
 

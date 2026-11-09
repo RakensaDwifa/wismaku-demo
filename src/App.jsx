@@ -4,6 +4,7 @@ import PageLoader from './components/PageLoader.jsx'
 import SkipLink from './components/SkipLink.jsx'
 import HomePage from './pages/HomePage.jsx'
 import { consumeAuthReturnPath, getActiveUser, peekAuthReturnPath } from './services/member.js'
+import { initBookingsRealtime } from './services/booking.js'
 
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage.jsx'))
 const HotelDetailPage = lazy(() => import('./pages/HotelDetailPage.jsx'))
@@ -42,6 +43,11 @@ export default function App() {
       window.removeEventListener('wismaku:session-changed', restoreReturnPath)
     }
   }, [location.pathname, navigate])
+
+  useEffect(() => {
+    const unsub = initBookingsRealtime()
+    return () => unsub?.()
+  }, [])
 
   return (
     <>

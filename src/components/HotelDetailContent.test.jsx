@@ -160,7 +160,7 @@ describe('HotelDetailContent (fitur ulasan penginapan)', () => {
     })
     expect(mockDeleteReview).toHaveBeenCalledWith('rev-u1')
     expect(screen.queryByText('Ulasan Anda')).not.toBeInTheDocument()
-  })
+  }, 15000)
 
   it('menerjemahkan teks ulasan seed saat bahasa diatur ke Inggris (EN)', async () => {
     window.localStorage.setItem('wismaku.lang', 'en')

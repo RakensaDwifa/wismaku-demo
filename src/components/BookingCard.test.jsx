@@ -22,12 +22,21 @@ const sampleBooking = {
   guestName: 'Budi Santoso',
 }
 
-const renderCard = (booking, { onCancel = vi.fn(), onDelete = vi.fn() } = {}) =>
+const renderCard = (
+  booking,
+  { onCancel = vi.fn(), onDelete = vi.fn(), refundRequest = null, onRequestRefund = vi.fn() } = {},
+) =>
   render(
     <LanguageProvider>
       <MemoryRouter>
         <ul>
-          <BookingCard booking={booking} onCancel={onCancel} onDelete={onDelete} />
+          <BookingCard
+            booking={booking}
+            refundRequest={refundRequest}
+            onCancel={onCancel}
+            onDelete={onDelete}
+            onRequestRefund={onRequestRefund}
+          />
         </ul>
       </MemoryRouter>
     </LanguageProvider>,
@@ -76,5 +85,27 @@ describe('BookingCard (hapus pesanan dibatalkan)', () => {
     expect(screen.getByText('Kedaluwarsa')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Bayar Sekarang' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Batal' })).toBeInTheDocument()
+  })
+
+  it('menampilkan tombol Ajukan Refund untuk pesanan confirmed dan memanggil onRequestRefund', async () => {
+    const user = userEvent.setup()
+    const onRequestRefund = vi.fn()
+    renderCard({ ...sampleBooking, status: 'confirmed' }, { onRequestRefund })
+
+    const refundBtn = screen.getByRole('button', { name: 'Ajukan Refund' })
+    expect(refundBtn).toBeInTheDocument()
+    await user.click(refundBtn)
+    expect(onRequestRefund).toHaveBeenCalledWith(expect.objectContaining({ id: 'b-201' }))
+  })
+
+  it('menampilkan badge status refund jika permohonan sudah ada', () => {
+    renderCard(
+      { ...sampleBooking, status: 'confirmed' },
+      { refundRequest: { status: 'pending', hqNotes: 'Sedang diverifikasi' } },
+    )
+
+    expect(screen.getByText(/Refund: Menunggu Tinjauan HQ/)).toBeInTheDocument()
+    expect(screen.getByText(/Sedang diverifikasi/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ajukan Refund' })).not.toBeInTheDocument()
   })
 })

@@ -7,10 +7,13 @@ import BookingCard from '../components/BookingCard.jsx'
 import ErrorBanner from '../components/ErrorBanner.jsx'
 import AuthModal from '../components/AuthModal.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
+import Modal from '../components/ui/Modal.jsx'
 import { getBookings, cancelBooking, deleteBooking } from '../services/booking.js'
+import { getRefundRequests, createRefundRequest, REFUND_CHANGE_EVENT } from '../services/refund.js'
 import { getActiveUser } from '../services/member.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
+import { fmtRupiah } from '../utils/format.js'
 
 const FILTER_TABS = [
   { id: 'all', labelKey: 'bookings.filterAll' },
@@ -23,12 +26,22 @@ export default function BookingsPage() {
   const { t } = useLanguage()
   usePageMeta(t('pages.bookingsTitle'), t('pages.bookingsDesc'))
   const [orders, setOrders] = useState(null)
+  const [refunds, setRefunds] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [user, setUser] = useState(null)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState('')
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
+
+  // State Modal Pengajuan Refund
+  const [refundModalBooking, setRefundModalBooking] = useState(null)
+  const [refundReason, setRefundReason] = useState('Pembatalan Rencana Perjalanan')
+  const [bankName, setBankName] = useState('BCA')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [accountHolder, setAccountHolder] = useState('')
+  const [refundSubmitting, setRefundSubmitting] = useState(false)
+  const [refundError, setRefundError] = useState('')
 
   useEffect(() => {
     let live = true
@@ -39,13 +52,18 @@ export default function BookingsPage() {
         if (!u) {
           if (live) {
             setOrders([])
+            setRefunds([])
             setError(null)
           }
           return
         }
-        const list = await getBookings({ email: u.email })
+        const [list, refList] = await Promise.all([
+          getBookings({ email: u.email }),
+          getRefundRequests({ email: u.email }).catch(() => []),
+        ])
         if (live) {
           setOrders(list)
+          setRefunds(refList || [])
           setError(null)
         }
       } catch (err) {
@@ -55,12 +73,48 @@ export default function BookingsPage() {
     sync()
     window.addEventListener('wismaku:session-changed', sync)
     window.addEventListener('wismaku:bookings-changed', sync)
+    window.addEventListener(REFUND_CHANGE_EVENT, sync)
     return () => {
       live = false
       window.removeEventListener('wismaku:session-changed', sync)
       window.removeEventListener('wismaku:bookings-changed', sync)
+      window.removeEventListener(REFUND_CHANGE_EVENT, sync)
     }
   }, [])
+
+  const handleOpenRefundModal = (booking) => {
+    setRefundModalBooking(booking)
+    setRefundReason('Pembatalan Rencana Perjalanan')
+    setBankName('BCA')
+    setAccountNumber('')
+    setAccountHolder(booking.guestName || user?.name || '')
+    setRefundError('')
+  }
+
+  const handleRefundSubmit = async (e) => {
+    e.preventDefault()
+    if (!refundModalBooking) return
+    setRefundSubmitting(true)
+    setRefundError('')
+    try {
+      await createRefundRequest({
+        bookingId: refundModalBooking.id,
+        hotelId: refundModalBooking.hotelId,
+        guestName: refundModalBooking.guestName,
+        email: refundModalBooking.email,
+        amount: refundModalBooking.totalPrice,
+        reason: refundReason,
+        bankName,
+        accountNumber,
+        accountHolder,
+      })
+      setRefundModalBooking(null)
+    } catch (err) {
+      setRefundError(err.message || 'Gagal mengajukan refund.')
+    } finally {
+      setRefundSubmitting(false)
+    }
+  }
 
   const handleCancel = async (id) => {
     setActionError('')
@@ -208,11 +262,21 @@ export default function BookingsPage() {
                 </div>
               ) : (
                 <ul className="grid list-none gap-[14px] p-0">
-                  {(statusFilter === 'all' ? orders : orders.filter((o) => o.status === statusFilter)).map(
-                    (o) => (
-                      <BookingCard key={o.id} booking={o} onCancel={handleCancel} onDelete={handleDelete} />
-                    ),
-                  )}
+                  {(() => {
+                    const refundMap = Object.fromEntries((refunds || []).map((r) => [r.bookingId, r]))
+                    return (statusFilter === 'all' ? orders : orders.filter((o) => o.status === statusFilter)).map(
+                      (o) => (
+                        <BookingCard
+                          key={o.id}
+                          booking={o}
+                          refundRequest={refundMap[o.id]}
+                          onRequestRefund={handleOpenRefundModal}
+                          onCancel={handleCancel}
+                          onDelete={handleDelete}
+                        />
+                      ),
+                    )
+                  })()}
                 </ul>
               )}
             </div>
@@ -221,6 +285,114 @@ export default function BookingsPage() {
       </main>
       <Footer />
       {authOpen && <AuthModal initialTab={authTab} onClose={() => setAuthOpen(false)} />}
+
+      {/* Modal Pengajuan Refund & Dispute */}
+      {refundModalBooking && (
+        <Modal onClose={() => setRefundModalBooking(null)} labelledBy="refund-modal-title">
+          <div className="px-6 py-5 space-y-4">
+            <div>
+              <h3 id="refund-modal-title" className="text-lg font-black text-slate-900">
+                Pengajuan Pengembalian Dana (Refund)
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Pesanan #{refundModalBooking.id} • {refundModalBooking.hotelName}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-teal-100 bg-teal-50/70 p-3 text-xs text-teal-800 space-y-1">
+              <div className="flex justify-between font-bold">
+                <span>Nilai Pengembalian:</span>
+                <span>{fmtRupiah(refundModalBooking.totalPrice)}</span>
+              </div>
+              <p className="text-[11px] text-teal-700">
+                Pengajuan akan ditinjau oleh tim Refund Desk HQ dalam 1x24 jam kerja.
+              </p>
+            </div>
+
+            {refundError && (
+              <div className="rounded-lg bg-red-50 p-3 text-xs font-bold text-red-700 border border-red-200">
+                {refundError}
+              </div>
+            )}
+
+            <form onSubmit={handleRefundSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Alasan Pengajuan Refund</label>
+                <select
+                  className="w-full rounded-lg border border-slate-200 bg-white p-2.5 font-semibold text-slate-800 focus:border-teal-700 focus:outline-none"
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                >
+                  <option value="Pembatalan Rencana Perjalanan">Pembatalan Rencana Perjalanan / Urusan Mendadak</option>
+                  <option value="Kesalahan Pemilihan Tanggal / Kamar">Kesalahan Pemilihan Tanggal / Tipe Kamar</option>
+                  <option value="Keluhan Fasilitas Tidak Sesuai">Fasilitas Penginapan Tidak Sesuai Deskripsi</option>
+                  <option value="Kondisi Darurat / Sakit">Kondisi Darurat Medis / Bencana Alam</option>
+                </select>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Nama Bank / E-Wallet</label>
+                  <select
+                    className="w-full rounded-lg border border-slate-200 bg-white p-2.5 font-semibold text-slate-800 focus:border-teal-700 focus:outline-none"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                  >
+                    <option value="BCA">Bank BCA</option>
+                    <option value="Mandiri">Bank Mandiri</option>
+                    <option value="BRI">Bank BRI</option>
+                    <option value="BNI">Bank BNI</option>
+                    <option value="BSI">Bank Syariah Indonesia (BSI)</option>
+                    <option value="GoPay/OVO/Dana">E-Wallet (GoPay / OVO / DANA)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Nomor Rekening / No. HP</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="misal: 1234567890"
+                    className="w-full rounded-lg border border-slate-200 bg-white p-2.5 font-mono font-semibold text-slate-800 focus:border-teal-700 focus:outline-none"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Nama Pemilik Rekening</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="sesuai buku tabungan / akun e-wallet"
+                  className="w-full rounded-lg border border-slate-200 bg-white p-2.5 font-semibold text-slate-800 focus:border-teal-700 focus:outline-none"
+                  value={accountHolder}
+                  onChange={(e) => setAccountHolder(e.target.value)}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setRefundModalBooking(null)}
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 hover:bg-slate-50"
+                  disabled={refundSubmitting}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={refundSubmitting}
+                  className="rounded-lg bg-teal-700 px-5 py-2 font-bold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
+                >
+                  {refundSubmitting ? 'Mengirimkan...' : 'Kirim Pengajuan Refund'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
     </>
   )
 }

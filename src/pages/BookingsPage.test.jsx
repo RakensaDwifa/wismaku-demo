@@ -23,6 +23,12 @@ vi.mock('../services/booking.js', () => ({
   deleteBooking: vi.fn(),
 }))
 
+vi.mock('../services/refund.js', () => ({
+  getRefundRequests: vi.fn().mockResolvedValue([]),
+  createRefundRequest: vi.fn(),
+  REFUND_CHANGE_EVENT: 'wismaku:refunds-changed',
+}))
+
 const sampleBookings = [
   {
     id: 'b-1',

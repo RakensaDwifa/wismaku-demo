@@ -118,6 +118,28 @@ export async function fetchCities() {
   }))
 }
 
+export async function getRoomBlackouts({ hotelId, checkIn, checkOut } = {}) {
+  if (!supabase || !hotelId) return []
+  try {
+    let query = supabase.from('room_blackout_dates').select('*').eq('hotel_id', String(hotelId))
+    if (checkOut) query = query.lte('start_date', checkOut)
+    if (checkIn) query = query.gte('end_date', checkIn)
+    const { data, error } = await query
+    if (error) return []
+    return (data ?? []).map((b) => ({
+      id: b.id,
+      hotelId: b.hotel_id,
+      roomTypeId: b.room_type_id,
+      startDate: b.start_date,
+      endDate: b.end_date,
+      blockedQty: Number(b.blocked_qty || 1),
+      reason: b.reason,
+    }))
+  } catch {
+    return []
+  }
+}
+
 export async function fetchPromos() {
   // Promo belum di-migrate ke DB; tetap dari data statis.
   return promos

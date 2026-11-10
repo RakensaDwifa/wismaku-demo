@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthModal from './AuthModal.jsx'
 import DateRangePicker from './DateRangePicker.jsx'
 import { getMember, getActiveUser } from '../services/member.js'
+import { getRoomBlackouts } from '../services/hotel.js'
 import { fmtRupiah, fmtDate, parseYMD, toYMD, resolveStayDates } from '../utils/format.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
@@ -22,6 +23,7 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
   const [isMember, setIsMember] = useState(false)
   const [user, setUser] = useState(null)
   const [authOpen, setAuthOpen] = useState(false)
+  const [blackouts, setBlackouts] = useState([])
 
   const nights = dateRange.nights
   const roomType = hotel.roomTypes?.find((t) => t.id === roomTypeId) ??
@@ -29,6 +31,26 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
 
   const subtotal = roomType.price * nights * rooms
   const cancelDays = hotel.policy?.cancelRule.match(/(\d+) hari/)?.[1] ?? '1'
+
+  useEffect(() => {
+    let live = true
+    if (!hotel?.id || !dateRange.checkIn || !dateRange.checkOut) return
+    getRoomBlackouts({ hotelId: hotel.id, checkIn: dateRange.checkIn, checkOut: dateRange.checkOut })
+      .then((res) => {
+        if (live) setBlackouts(res || [])
+      })
+      .catch(() => {
+        if (live) setBlackouts([])
+      })
+    return () => {
+      live = false
+    }
+  }, [hotel?.id, dateRange.checkIn, dateRange.checkOut])
+
+  const relevantBlackouts = blackouts.filter((b) => !b.roomTypeId || b.roomTypeId === roomTypeId)
+  const totalBlockedRooms = relevantBlackouts.reduce((sum, b) => sum + (b.blockedQty || 1), 0)
+  const roomCapacity = Number(roomType.capacity || 10)
+  const isRoomFull = totalBlockedRooms >= roomCapacity
 
   useEffect(() => {
     let live = true
@@ -161,8 +183,27 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
         </button>
       ) : null}
 
-      <button className="btn btn-primary mt-4 w-full" type="button" onClick={goBooking}>
-        {t('promo.bookNow')}
+      {totalBlockedRooms > 0 && (
+        <div
+          className={`mt-3 rounded-[8px] p-2.5 text-[12px] font-semibold leading-relaxed ${
+            isRoomFull
+              ? 'border border-rose-200 bg-rose-50 text-rose-700'
+              : 'border border-amber-200 bg-amber-50 text-amber-800'
+          }`}
+        >
+          {isRoomFull
+            ? 'Kamar ini telah penuh dialokasikan untuk tamu offline/pemeliharaan pada tanggal yang dipilih.'
+            : `${totalBlockedRooms} unit kamar dialokasikan offline pada tanggal ini.`}
+        </div>
+      )}
+
+      <button
+        className="btn btn-primary mt-4 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+        type="button"
+        disabled={isRoomFull}
+        onClick={goBooking}
+      >
+        {isRoomFull ? 'Kamar Penuh pada Tanggal Ini' : t('promo.bookNow')}
       </button>
       {hotel.policy && (
         <p className="mt-3 text-center text-[11.5px] leading-[1.5] text-rd-muted">

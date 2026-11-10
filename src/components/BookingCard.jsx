@@ -4,7 +4,7 @@ import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import Modal from './ui/Modal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
 
-export default function BookingCard({ booking, onCancel, onDelete }) {
+export default function BookingCard({ booking, refundRequest, onCancel, onDelete, onRequestRefund }) {
   const { t, lang } = useLanguage()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -71,6 +71,31 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
         <small className="font-bold text-rd-teal">
           {t('bookings.code', { id: booking.id, name: booking.guestName })}
         </small>
+        {refundRequest && (
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span
+              className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                refundRequest.status === 'approved'
+                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : refundRequest.status === 'rejected'
+                    ? 'border border-rose-200 bg-rose-50 text-rose-700'
+                    : 'border border-amber-200 bg-amber-50 text-amber-700'
+              }`}
+            >
+              Refund:{' '}
+              {refundRequest.status === 'approved'
+                ? 'Disetujui & Dikembalikan'
+                : refundRequest.status === 'rejected'
+                  ? 'Ditolak'
+                  : 'Menunggu Tinjauan HQ'}
+            </span>
+            {refundRequest.hqNotes && (
+              <span className="text-[10px] text-slate-500 italic truncate max-w-[200px]" title={refundRequest.hqNotes}>
+                ({refundRequest.hqNotes})
+              </span>
+            )}
+          </div>
+        )}
       </div>
       <div className="ml-auto flex flex-col gap-2 max-[768px]:w-full max-[768px]:flex-row max-[768px]:flex-wrap">
         <Link className="btn btn-outline btn-sm" to={`/hotel/${booking.hotelId}`}>
@@ -90,6 +115,15 @@ export default function BookingCard({ booking, onCancel, onDelete }) {
               {t('bookings.writeReview')}
             </Link>
           </>
+        )}
+        {!pending && !cancelled && !refundRequest && onRequestRefund && (
+          <button
+            type="button"
+            className="rounded-[7px] border border-amber-600 bg-white px-2.5 py-[5px] text-[12px] font-bold text-amber-700 transition-all hover:bg-amber-50"
+            onClick={() => onRequestRefund(booking)}
+          >
+            Ajukan Refund
+          </button>
         )}
         {!cancelled && (
           <button

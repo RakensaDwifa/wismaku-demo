@@ -6,6 +6,7 @@ import {
   fetchHotels,
   fetchPromos,
   fetchTestimonials,
+  getRoomBlackouts,
 } from './hotel.js'
 
 const mockHotelRow = {
@@ -37,12 +38,16 @@ const { mockFrom, qb } = vi.hoisted(() => {
     const b = {
       select: vi.fn(() => b),
       eq: vi.fn(() => b),
+      lte: vi.fn(() => b),
+      gte: vi.fn(() => b),
       maybeSingle: vi.fn(() => Promise.resolve(singleResolved)),
       single: vi.fn(() => Promise.resolve(singleResolved)),
       order: vi.fn(() => b),
     }
     b.select.mockReturnValue(b)
     b.eq.mockReturnValue(b)
+    b.lte.mockReturnValue(b)
+    b.gte.mockReturnValue(b)
     b.order.mockReturnValue(b)
     b.then = (resolve, reject) => Promise.resolve(listResolved).then(resolve, reject)
     return b
@@ -112,5 +117,31 @@ describe('hotel service', () => {
   it('fetchPromos dan fetchTestimonials mengembalikan array', async () => {
     expect((await fetchPromos()).length).toBeGreaterThan(0)
     expect((await fetchTestimonials()).length).toBeGreaterThan(0)
+  })
+
+  it('getRoomBlackouts mengembalikan daftar blackout kamar offline', async () => {
+    mockFrom.mockImplementation((table) => {
+      if (table === 'room_blackout_dates') {
+        return qb({
+          list: [
+            {
+              id: 'bo-1',
+              hotel_id: '1',
+              room_type_id: 'standard',
+              start_date: '2026-11-15',
+              end_date: '2026-11-18',
+              blocked_qty: 2,
+              reason: 'Tamu Offline',
+            },
+          ],
+        })
+      }
+      return qb({ list: null })
+    })
+
+    const blackouts = await getRoomBlackouts({ hotelId: '1', checkIn: '2026-11-15', checkOut: '2026-11-17' })
+    expect(blackouts.length).toBe(1)
+    expect(blackouts[0].blockedQty).toBe(2)
+    expect(blackouts[0].reason).toBe('Tamu Offline')
   })
 })

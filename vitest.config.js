@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
 
 /**
  * Dua project test terpisah:
@@ -10,9 +11,14 @@ import { defineConfig } from 'vitest/config'
  *   `src/**\/*.test.jsx` = component test (butuh DOM)
  */
 export default defineConfig({
+  plugins: [react()],
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     projects: [
       {
+        plugins: [react()],
         test: {
           name: 'unit',
           environment: 'node',
@@ -21,6 +27,7 @@ export default defineConfig({
         },
       },
       {
+        plugins: [react()],
         test: {
           name: 'component',
           environment: 'jsdom',

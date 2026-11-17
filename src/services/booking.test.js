@@ -7,6 +7,7 @@ import {
   deleteBooking,
   createSnapTransaction,
   verifyBookingPayment,
+  rescheduleBooking,
   migrateBookings,
 } from './booking.js'
 
@@ -284,5 +285,61 @@ describe('createSnapTransaction & verifyBookingPayment', () => {
 describe('migrateBookings', () => {
   it('tetap diekspor sebagai no-op (kompatibilitas)', () => {
     expect(migrateBookings()).toEqual([])
+  })
+})
+
+describe('rescheduleBooking', () => {
+  it('menolak jika tanggal tidak valid atau check-out sebelum check-in', async () => {
+    await expect(rescheduleBooking('b-1', { newCheckIn: '', newCheckOut: '' })).rejects.toThrow(
+      'Tanggal check-in dan check-out baru wajib dipilih.',
+    )
+    await expect(
+      rescheduleBooking('b-1', { newCheckIn: '2026-09-10', newCheckOut: '2026-09-08' }),
+    ).rejects.toThrow('Tanggal check-out harus setelah tanggal check-in.')
+  })
+
+  it('mengupdate tanggal booking dan menghitung selisih harga', async () => {
+    const existing = {
+      id: 'b-1',
+      status: 'confirmed',
+      hotel_id: '1',
+      hotel_name: 'Hotel Test',
+      check_in: '2026-09-01',
+      check_out: '2026-09-03',
+      nights: 2,
+      total_price: 400000,
+    }
+
+    const updatedRow = {
+      ...existing,
+      check_in: '2026-09-05',
+      check_out: '2026-09-08',
+      nights: 3,
+      total_price: 600000,
+      original_check_in: '2026-09-01',
+      original_check_out: '2026-09-03',
+      reschedule_count: 1,
+      rescheduled_at: new Date().toISOString(),
+    }
+
+    mockFrom.mockImplementation((table) => {
+      if (table === 'bookings') {
+        const b = qb({ data: existing, error: null })
+        b.update = vi.fn().mockReturnValue(qb({ data: updatedRow, error: null }))
+        return b
+      }
+      return qb({ data: null, error: null })
+    })
+
+    const result = await rescheduleBooking('b-1', {
+      newCheckIn: '2026-09-05',
+      newCheckOut: '2026-09-08',
+    })
+
+    expect(result.checkIn).toBe('2026-09-05')
+    expect(result.checkOut).toBe('2026-09-08')
+    expect(result.nights).toBe(3)
+    expect(result.rescheduleCount).toBe(1)
+    expect(result.priceDifference).toBe(200000)
   })
 })

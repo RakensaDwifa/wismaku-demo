@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import Modal from './ui/Modal.jsx'
+import OfficialInvoiceModal from './OfficialInvoiceModal.jsx'
 import { useLanguage } from '../i18n/useLanguage.js'
 
-export default function BookingCard({ booking, refundRequest, onCancel, onDelete, onRequestRefund }) {
+export default function BookingCard({ booking, refundRequest, onCancel, onDelete, onRequestRefund, onReschedule }) {
   const { t, lang } = useLanguage()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [invoiceOpen, setInvoiceOpen] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const cancelled = booking.status === 'cancelled'
   const pending = booking.status === 'pending'
@@ -71,6 +73,20 @@ export default function BookingCard({ booking, refundRequest, onCancel, onDelete
         <small className="font-bold text-rd-teal">
           {t('bookings.code', { id: booking.id, name: booking.guestName })}
         </small>
+        {booking.rescheduleCount > 0 && (
+          <div className="mt-1.5 rounded-lg border border-teal-200 bg-teal-50/70 p-2 text-[11px] text-teal-900 space-y-0.5">
+            <div className="font-extrabold flex items-center gap-1 text-teal-800">
+              <span>🗓️ Jadwal Menginap Diubah ({booking.rescheduleCount}x)</span>
+            </div>
+            <div className="text-[10.5px] text-teal-700">
+              Semula:{' '}
+              <span className="line-through">
+                {fmtDate(booking.originalCheckIn || stay.checkIn, lang)} &rarr;{' '}
+                {fmtDate(booking.originalCheckOut || stay.checkOut, lang)}
+              </span>
+            </div>
+          </div>
+        )}
         {refundRequest && (
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <span
@@ -111,10 +127,28 @@ export default function BookingCard({ booking, refundRequest, onCancel, onDelete
             <Link className="btn btn-outline btn-sm" to={`/pesanan/sukses/${booking.id}`}>
               {t('bookings.viewTicket')}
             </Link>
+            <button
+              type="button"
+              onClick={() => setInvoiceOpen(true)}
+              className="rounded-[7px] border border-teal-600 bg-white px-2.5 py-[5px] text-[12px] font-bold text-teal-800 transition-all hover:bg-teal-50"
+              title="Lihat & Cetak Invoice Resmi (NPWP)"
+            >
+              📄 Invoice
+            </button>
             <Link className="btn btn-outline btn-sm" to={`/hotel/${booking.hotelId}#ulasan`}>
               {t('bookings.writeReview')}
             </Link>
           </>
+        )}
+        {!cancelled && !expired && !refundRequest && onReschedule && (
+          <button
+            type="button"
+            className="rounded-[7px] border border-teal-600 bg-white px-2.5 py-[5px] text-[12px] font-bold text-teal-700 transition-all hover:bg-teal-50"
+            onClick={() => onReschedule(booking)}
+            title="Ubah Tanggal Menginap Mandiri"
+          >
+            🗓️ Ubah Jadwal
+          </button>
         )}
         {!pending && !cancelled && !refundRequest && onRequestRefund && (
           <button
@@ -197,6 +231,9 @@ export default function BookingCard({ booking, refundRequest, onCancel, onDelete
             </div>
           </div>
         </Modal>
+      )}
+      {invoiceOpen && (
+        <OfficialInvoiceModal booking={booking} onClose={() => setInvoiceOpen(false)} />
       )}
     </li>
   )

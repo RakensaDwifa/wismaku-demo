@@ -5,6 +5,7 @@ import DateRangePicker from './DateRangePicker.jsx'
 import { getMember, getActiveUser } from '../services/member.js'
 import { getRoomBlackouts } from '../services/hotel.js'
 import { fmtRupiah, fmtDate, parseYMD, toYMD, resolveStayDates } from '../utils/format.js'
+import { calculateStayPricing } from '../utils/pricing.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 
 export default function BookingBox({ hotel, search, rooms = 1, adults = 2, children = 0 }) {
@@ -29,7 +30,16 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
   const roomType = hotel.roomTypes?.find((t) => t.id === roomTypeId) ??
     hotel.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel.price }
 
-  const subtotal = roomType.price * nights * rooms
+  const weekendSurchargePercent =
+    Number(roomType.weekendSurchargePercent ?? hotel.weekendSurchargePercent ?? 0)
+  const pricing = calculateStayPricing({
+    basePrice: roomType.price,
+    checkIn: dateRange.checkIn,
+    nights,
+    rooms,
+    weekendSurchargePercent,
+  })
+  const subtotal = pricing.subtotal
   const cancelDays = hotel.policy?.cancelRule.match(/(\d+) hari/)?.[1] ?? '1'
 
   useEffect(() => {
@@ -168,6 +178,16 @@ export default function BookingBox({ hotel, search, rooms = 1, adults = 2, child
         <span>{t('bookingBox.subtotalCalc', { price: fmtRupiah(roomType.price), nights, rooms })}</span>
         <b>{fmtRupiah(subtotal)}</b>
       </div>
+
+      {pricing.hasWeekendSurcharge && (
+        <div className="mt-1 flex items-center justify-between text-[11.5px] text-amber-800">
+          <span className="flex items-center gap-1 font-semibold">
+            <span>⚡ Tarif Akhir Pekan (+{pricing.weekendSurchargePercent}%)</span>
+            <span className="text-slate-400">({pricing.weekendNights} malam)</span>
+          </span>
+          <span className="font-bold">+{fmtRupiah(pricing.weekendSurchargeTotal)}</span>
+        </div>
+      )}
 
       {isMember ? (
         <p className="mt-2 rounded-[8px] bg-[rgba(20,184,166,0.1)] px-3 py-2 text-[12.5px] font-bold text-rd-teal">

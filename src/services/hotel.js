@@ -48,28 +48,39 @@ const testimonials = [
   },
 ]
 
-const dbToHotel = (row) => ({
-  id: row.id,
-  name: row.name,
-  city: row.cities?.name ?? row.city_id,
-  area: row.area,
-  lat: row.lat,
-  lng: row.lng,
-  rating: row.rating,
-  reviews: row.review_count,
-  price: row.price_from,
-  originalPrice: row.original_price,
-  discount: row.discount,
-  img: row.img,
-  desc: row.description,
-  amenities: row.amenities ?? [],
-  gallery: row.gallery ?? [],
-  roomTypes: row.room_types ?? [],
-  policy: row.policies ?? {},
-  partnerEmail: row.partner_email ?? null,
-  commissionRate: row.commission_rate ?? 0.15,
-  reviewList: [],
-})
+const dbToHotel = (row) => {
+  const weekendSurchargePercent = Number(row.weekend_surcharge_percent ?? 0)
+  const roomTypes = (row.room_types ?? []).map((r) => ({
+    ...r,
+    weekendSurchargePercent: Number(
+      r.weekend_surcharge_percent ?? r.weekendSurchargePercent ?? weekendSurchargePercent,
+    ),
+  }))
+
+  return {
+    id: row.id,
+    name: row.name,
+    city: row.cities?.name ?? row.city_id,
+    area: row.area,
+    lat: row.lat,
+    lng: row.lng,
+    rating: row.rating,
+    reviews: row.review_count,
+    price: row.price_from,
+    originalPrice: row.original_price,
+    discount: row.discount,
+    img: row.img,
+    desc: row.description,
+    amenities: row.amenities ?? [],
+    gallery: row.gallery ?? [],
+    roomTypes,
+    weekendSurchargePercent,
+    policy: row.policies ?? {},
+    partnerEmail: row.partner_email ?? null,
+    commissionRate: row.commission_rate ?? 0.15,
+    reviewList: [],
+  }
+}
 
 export async function fetchHotels() {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.')

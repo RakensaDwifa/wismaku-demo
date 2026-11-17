@@ -8,12 +8,13 @@ import ErrorBanner from '../components/ErrorBanner.jsx'
 import AuthModal from '../components/AuthModal.jsx'
 import { Skeleton } from '../components/Skeletons.jsx'
 import Modal from '../components/ui/Modal.jsx'
-import { getBookings, cancelBooking, deleteBooking } from '../services/booking.js'
+import { getBookings, cancelBooking, deleteBooking, rescheduleBooking } from '../services/booking.js'
 import { getRefundRequests, createRefundRequest, REFUND_CHANGE_EVENT } from '../services/refund.js'
 import { getActiveUser } from '../services/member.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
 import { fmtRupiah } from '../utils/format.js'
+import { calculateStayPricing } from '../utils/pricing.js'
 
 const FILTER_TABS = [
   { id: 'all', labelKey: 'bookings.filterAll' },
@@ -42,6 +43,40 @@ export default function BookingsPage() {
   const [accountHolder, setAccountHolder] = useState('')
   const [refundSubmitting, setRefundSubmitting] = useState(false)
   const [refundError, setRefundError] = useState('')
+
+  // State Modal Reschedule Mandiri Tamu
+  const [rescheduleBookingData, setRescheduleBookingData] = useState(null)
+  const [newCheckIn, setNewCheckIn] = useState('')
+  const [newCheckOut, setNewCheckOut] = useState('')
+  const [rescheduleSubmitting, setRescheduleSubmitting] = useState(false)
+  const [rescheduleError, setRescheduleError] = useState('')
+
+  const handleOpenRescheduleModal = (booking) => {
+    setRescheduleBookingData(booking)
+    const today = new Date().toISOString().slice(0, 10)
+    setNewCheckIn(booking.checkIn || today)
+    setNewCheckOut(booking.checkOut || today)
+    setRescheduleError('')
+  }
+
+  const handleRescheduleSubmit = async (e) => {
+    e.preventDefault()
+    if (!rescheduleBookingData) return
+    setRescheduleSubmitting(true)
+    setRescheduleError('')
+    try {
+      await rescheduleBooking(rescheduleBookingData.id, {
+        newCheckIn,
+        newCheckOut,
+      })
+      setRescheduleBookingData(null)
+      await load()
+    } catch (err) {
+      setRescheduleError(err.message || 'Gagal mengubah tanggal menginap.')
+    } finally {
+      setRescheduleSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     let live = true
@@ -271,6 +306,7 @@ export default function BookingsPage() {
                           booking={o}
                           refundRequest={refundMap[o.id]}
                           onRequestRefund={handleOpenRefundModal}
+                          onReschedule={handleOpenRescheduleModal}
                           onCancel={handleCancel}
                           onDelete={handleDelete}
                         />
@@ -391,6 +427,139 @@ export default function BookingsPage() {
               </div>
             </form>
           </div>
+        </Modal>
+      )}
+
+      {/* Modal Reschedule Mandiri Tamu */}
+      {rescheduleBookingData && (
+        <Modal onClose={() => setRescheduleBookingData(null)} labelledBy="reschedule-modal-title">
+          {(() => {
+            const inD = new Date(newCheckIn)
+            const outD = new Date(newCheckOut)
+            const isValidDates = !isNaN(inD) && !isNaN(outD) && outD > inD
+            const newNightsCount = isValidDates ? Math.max(1, Math.round((outD - inD) / 86400000)) : 0
+            const oldNightsCount = Math.max(1, rescheduleBookingData.nights || 1)
+            const surchargePct = Number(rescheduleBookingData.weekendSurchargePercent || 0)
+            // ponytail: turunkan tarif dasar dari total lama (sudah termasuk surcharge weekend).
+            const oldWeekendNights = calculateStayPricing({
+              basePrice: 1,
+              checkIn: rescheduleBookingData.checkIn,
+              nights: oldNightsCount,
+            }).weekendNights
+            const roomsCount = Math.max(1, rescheduleBookingData.rooms || 1)
+            const baseFactor = oldNightsCount + (surchargePct / 100) * oldWeekendNights
+            const basePricePerNight = Math.round(
+              (rescheduleBookingData.totalPrice || 0) / (baseFactor * roomsCount),
+            )
+            const pricePerNight = basePricePerNight
+            const estimatedNewTotal = calculateStayPricing({
+              basePrice: basePricePerNight,
+              checkIn: newCheckIn,
+              nights: newNightsCount,
+              rooms: roomsCount,
+              weekendSurchargePercent: surchargePct,
+            }).subtotal
+            const diff = estimatedNewTotal - (rescheduleBookingData.totalPrice || 0)
+
+            return (
+              <div className="px-6 py-5 space-y-4">
+                <div>
+                  <h3 id="reschedule-modal-title" className="text-lg font-black text-slate-900">
+                    Ubah Tanggal Menginap (Reschedule)
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Pesanan #{rescheduleBookingData.id} • {rescheduleBookingData.hotelName}
+                  </p>
+                </div>
+
+                {rescheduleError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
+                    {rescheduleError}
+                  </div>
+                )}
+
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs text-slate-600 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Jadwal Sebelumnya:</span>
+                    <strong className="text-slate-800">
+                      {rescheduleBookingData.checkIn} &rarr; {rescheduleBookingData.checkOut} ({oldNightsCount} Malam)
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tarif per Malam:</span>
+                    <strong className="text-slate-800">{fmtRupiah(pricePerNight)}</strong>
+                  </div>
+                </div>
+
+                <form onSubmit={handleRescheduleSubmit} className="space-y-4 text-xs">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Tanggal Check-In Baru</label>
+                      <input
+                        type="date"
+                        required
+                        value={newCheckIn}
+                        onChange={(e) => setNewCheckIn(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white p-2.5 font-semibold text-slate-800 focus:border-teal-700 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Tanggal Check-Out Baru</label>
+                      <input
+                        type="date"
+                        required
+                        value={newCheckOut}
+                        min={newCheckIn}
+                        onChange={(e) => setNewCheckOut(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white p-2.5 font-semibold text-slate-800 focus:border-teal-700 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {isValidDates && (
+                    <div className="rounded-lg border border-teal-200 bg-teal-50/70 p-3 text-teal-950 space-y-1.5">
+                      <div className="flex justify-between font-semibold">
+                        <span>Durasi Baru:</span>
+                        <span>{newNightsCount} Malam</span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span>Estimasi Total Biaya Baru:</span>
+                        <span>{fmtRupiah(estimatedNewTotal)}</span>
+                      </div>
+                      <div className="flex justify-between border-t border-teal-200/60 pt-1.5 font-extrabold text-sm">
+                        <span>Penyesuaian Biaya (Selisih):</span>
+                        <span className={diff > 0 ? 'text-amber-700' : diff < 0 ? 'text-emerald-700' : 'text-teal-900'}>
+                          {diff > 0
+                            ? `+ ${fmtRupiah(diff)} (Tambahan)`
+                            : diff < 0
+                              ? `- ${fmtRupiah(Math.abs(diff))} (Refund Selisih)`
+                              : 'Rp 0 (Sama)'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setRescheduleBookingData(null)}
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 hover:bg-slate-50"
+                      disabled={rescheduleSubmitting}
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={rescheduleSubmitting || !isValidDates}
+                      className="rounded-lg bg-teal-700 px-5 py-2 font-bold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
+                    >
+                      {rescheduleSubmitting ? 'Menyimpan...' : 'Konfirmasi Jadwal Baru'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )
+          })()}
         </Modal>
       )}
     </>

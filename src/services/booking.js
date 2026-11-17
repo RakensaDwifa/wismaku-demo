@@ -80,6 +80,11 @@ const fromDb = (row) => ({
   platformFee: row.platform_fee ?? 0,
   partnerNet: row.partner_net ?? 0,
   payoutId: row.payout_id ?? null,
+  originalCheckIn: row.original_check_in ?? null,
+  originalCheckOut: row.original_check_out ?? null,
+  rescheduleCount: Number(row.reschedule_count ?? 0),
+  rescheduledAt: row.rescheduled_at ?? null,
+  weekendSurchargePercent: Number(row.weekend_surcharge_percent ?? 0),
 })
 
 export async function getBookings() {
@@ -165,6 +170,78 @@ export async function verifyBookingPayment(id) {
   const data = await invokeMidtrans({ bookingId: id, action: 'verify' })
   notify()
   return data
+}
+
+export async function rescheduleBooking(id, { newCheckIn, newCheckOut }) {
+  if (!newCheckIn || !newCheckOut) {
+    throw new Error('Tanggal check-in dan check-out baru wajib dipilih.')
+  }
+  const inDate = new Date(newCheckIn)
+  const outDate = new Date(newCheckOut)
+  if (isNaN(inDate.getTime()) || isNaN(outDate.getTime())) {
+    throw new Error('Format tanggal tidak valid.')
+  }
+  if (outDate <= inDate) {
+    throw new Error('Tanggal check-out harus setelah tanggal check-in.')
+  }
+
+  const booking = await getBookingById(id)
+  if (!booking) throw new Error('Data reservasi tidak ditemukan.')
+  if (booking.status === 'cancelled') {
+    throw new Error('Pesanan yang telah dibatalkan tidak dapat diubah tanggalnya.')
+  }
+
+  const newNights = Math.max(1, Math.round((outDate - inDate) / (1000 * 60 * 60 * 24)))
+  const oldNights = Math.max(1, Number(booking.nights) || 1)
+  // ponytail: tarif per malam diturunkan dari total (termasuk surcharge weekend lama).
+  // Ganti dengan lookup katalog hotel bila harga pokok perlu presisi penuh.
+  const pricePerNight = Math.round(Number(booking.totalPrice) / oldNights)
+  const newTotalPrice = pricePerNight * newNights
+  const priceDifference = newTotalPrice - Number(booking.totalPrice)
+
+  const origIn = booking.originalCheckIn || booking.checkIn
+  const origOut = booking.originalCheckOut || booking.checkOut
+  const newCount = (booking.rescheduleCount || 0) + 1
+  const rescheduledAt = new Date().toISOString()
+
+  if (!supabase) {
+    notify()
+    return {
+      ...booking,
+      checkIn: newCheckIn,
+      checkOut: newCheckOut,
+      nights: newNights,
+      totalPrice: newTotalPrice,
+      originalCheckIn: origIn,
+      originalCheckOut: origOut,
+      rescheduleCount: newCount,
+      rescheduledAt,
+      priceDifference,
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({
+      check_in: newCheckIn,
+      check_out: newCheckOut,
+      nights: newNights,
+      total_price: newTotalPrice,
+      original_check_in: origIn,
+      original_check_out: origOut,
+      reschedule_count: newCount,
+      rescheduled_at: rescheduledAt,
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  notify()
+  return {
+    ...fromDb(data),
+    priceDifference,
+  }
 }
 
 // Kompatibilitas: migrateBookings dipanggil di modul lama. Sekarang no-op.

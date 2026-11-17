@@ -5,6 +5,7 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import { getBookingById } from '../services/booking.js'
 import { Skeleton } from '../components/Skeletons.jsx'
+import OfficialInvoiceModal from '../components/OfficialInvoiceModal.jsx'
 import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { useLanguage } from '../i18n/useLanguage.js'
@@ -22,6 +23,7 @@ export default function BookingSuccessPage() {
   const [booking, setBooking] = useState(null)
   const [loaded, setLoaded] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const [invoiceOpen, setInvoiceOpen] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -226,28 +228,37 @@ export default function BookingSuccessPage() {
 
               <div className="mt-5 flex flex-wrap gap-2.5 print:hidden">
                 {isConfirmed && (
-                  <button
-                    className="btn btn-outline inline-flex items-center gap-2"
-                    type="button"
-                    onClick={() => window.print()}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="16"
-                      height="16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
+                  <>
+                    <button
+                      className="btn btn-outline inline-flex items-center gap-2"
+                      type="button"
+                      onClick={() => window.print()}
                     >
-                      <polyline points="6 9 6 2 18 2 18 9" />
-                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                      <rect x="6" y="14" width="12" height="8" />
-                    </svg>
-                    {t('pages.printTicket')}
-                  </button>
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="6 9 6 2 18 2 18 9" />
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                        <rect x="6" y="14" width="12" height="8" />
+                      </svg>
+                      {t('pages.printTicket')}
+                    </button>
+                    <button
+                      className="btn btn-outline inline-flex items-center gap-2 border-teal-700 text-teal-800 hover:bg-teal-50"
+                      type="button"
+                      onClick={() => setInvoiceOpen(true)}
+                    >
+                      📄 Invoice Resmi (NPWP)
+                    </button>
+                  </>
                 )}
                 {isPending && !isExpired && (
                   <Link className="btn btn-primary" to={`/bayar/${booking.id}`}>
@@ -272,6 +283,9 @@ export default function BookingSuccessPage() {
           )}
         </div>
       </main>
+      {invoiceOpen && booking && (
+        <OfficialInvoiceModal booking={booking} onClose={() => setInvoiceOpen(false)} />
+      )}
       <div className="print:hidden">
         <Footer />
       </div>

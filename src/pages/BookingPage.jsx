@@ -6,6 +6,7 @@ import Footer from '../components/Footer.jsx'
 import { useHotels } from '../hooks/useCatalog.js'
 import { parseSearchParams } from '../utils/searchParams.js'
 import { fmtRupiah, fmtDate, resolveStayDates } from '../utils/format.js'
+import { calculateStayPricing } from '../utils/pricing.js'
 import { usePageMeta } from '../hooks/usePageMeta.js'
 import { Skeleton } from '../components/Skeletons.jsx'
 import { createBooking } from '../services/booking.js'
@@ -60,7 +61,16 @@ export default function BookingPage() {
   const roomType = hotel?.roomTypes?.find((t) => t.id === roomTypeId) ??
     hotel?.roomTypes?.[0] ?? { id: 'standard', name: 'Standar', price: hotel?.price ?? 0 }
 
-  const subtotal = roomType.price * nights * rooms
+  const weekendSurchargePercent =
+    Number(roomType.weekendSurchargePercent ?? hotel?.weekendSurchargePercent ?? 0)
+  const pricing = calculateStayPricing({
+    basePrice: roomType.price,
+    checkIn: stay.checkIn,
+    nights,
+    rooms,
+    weekendSurchargePercent,
+  })
+  const subtotal = pricing.subtotal
   const couponAmount = coupon ? Math.min(Math.round((subtotal * coupon.pct) / 100), coupon.maxDiscount) : 0
   const afterCoupon = subtotal - couponAmount
   const memberDiscount = isMember ? Math.round(afterCoupon * MEMBER_DISCOUNT_PCT) : 0
@@ -414,6 +424,14 @@ export default function BookingPage() {
                   </span>
                   <b>{fmtRupiah(subtotal)}</b>
                 </div>
+                {pricing.hasWeekendSurcharge && (
+                  <div className="flex justify-between gap-2.5 text-[12px] text-amber-800">
+                    <span className="font-semibold">
+                      ⚡ Tarif Akhir Pekan (+{pricing.weekendSurchargePercent}%, {pricing.weekendNights} malam)
+                    </span>
+                    <b>+{fmtRupiah(pricing.weekendSurchargeTotal)}</b>
+                  </div>
+                )}
                 {coupon && (
                   <div className="flex justify-between gap-2.5 text-[13px] text-rd-teal">
                     <span>{t('booking.couponLine', { code: coupon.code })}</span>
